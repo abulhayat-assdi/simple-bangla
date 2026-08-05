@@ -37,7 +37,18 @@
 	 * -------------------------------------------------------------- */
 
 	var drawer = document.getElementById('sb-drawer');
-	var burger = document.querySelector('.sb-header__burger');
+
+	// Two triggers open the same panel: the burger in the black bar on small screens, and the
+	// "All Categories" button in the nav row on large ones. Only one is ever visible.
+	var openers = Array.prototype.slice.call(document.querySelectorAll('[data-sb-drawer-open]'));
+
+	function visibleOpener() {
+		return (
+			openers.filter(function (el) {
+				return el.offsetParent !== null;
+			})[0] || openers[0]
+		);
+	}
 
 	function focusable(root) {
 		return Array.prototype.filter.call(
@@ -57,7 +68,10 @@
 
 		drawer.classList.add('is-open');
 		document.body.classList.add('sb-drawer-open');
-		burger.setAttribute('aria-expanded', 'true');
+
+		openers.forEach(function (el) {
+			el.setAttribute('aria-expanded', 'true');
+		});
 
 		var first = focusable(drawer)[0];
 		if (first) {
@@ -72,22 +86,32 @@
 
 		drawer.classList.remove('is-open');
 		document.body.classList.remove('sb-drawer-open');
-		burger.setAttribute('aria-expanded', 'false');
+
+		openers.forEach(function (el) {
+			el.setAttribute('aria-expanded', 'false');
+		});
 
 		window.setTimeout(function () {
 			drawer.hidden = true;
 		}, 200);
 
-		burger.focus();
+		// Return focus to whichever trigger the current breakpoint actually shows.
+		var trigger = visibleOpener();
+
+		if (trigger) {
+			trigger.focus();
+		}
 	}
 
-	if (drawer && burger) {
-		burger.addEventListener('click', function () {
-			if (drawer.hidden) {
-				openDrawer();
-			} else {
-				closeDrawer();
-			}
+	if (drawer && openers.length) {
+		openers.forEach(function (el) {
+			el.addEventListener('click', function () {
+				if (drawer.hidden) {
+					openDrawer();
+				} else {
+					closeDrawer();
+				}
+			});
 		});
 
 		drawer.addEventListener('click', function (event) {
@@ -124,12 +148,6 @@
 			}
 		});
 
-		// A drawer left open across a resize into desktop would trap focus in a hidden panel.
-		window.addEventListener('resize', function () {
-			if (window.innerWidth >= 1024) {
-				closeDrawer();
-			}
-		});
 	}
 
 	/* -------------------------------------------------------------- *

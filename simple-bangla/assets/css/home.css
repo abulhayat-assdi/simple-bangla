@@ -5,11 +5,89 @@
  */
 
 .sb-home {
-	padding-block: var(--sb-space-5) var(--sb-space-7);
+	padding-block: var(--sb-space-4) var(--sb-space-7);
 }
 
 .sb-home-section + .sb-home-section {
-	margin-top: var(--sb-space-7);
+	margin-top: var(--sb-space-6);
+}
+
+/* ------------------------------------------------------------------ *
+ * Hero: narrow Hot Deals slider beside the wide banner carousel
+ * ------------------------------------------------------------------ */
+
+.sb-hero {
+	margin-bottom: var(--sb-space-6);
+}
+
+.sb-hero__grid {
+	display: grid;
+	gap: var(--sb-space-4);
+}
+
+/* The deals column sits under the banner on a phone — the banner is the headline. */
+.sb-hero__deals {
+	order: 2;
+}
+
+.sb-hero__banner {
+	order: 1;
+}
+
+@media (min-width: 900px) {
+	.sb-hero__grid {
+		/* Measured off the reference: roughly one part card to three parts banner. */
+		grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+		align-items: stretch;
+	}
+
+	.sb-hero__grid--single {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.sb-hero__deals {
+		order: 0;
+	}
+
+	.sb-hero__banner {
+		order: 0;
+	}
+}
+
+/* One card at a time in the hero column, whatever the breakpoint. */
+.sb-hero__deals .sb-products--single {
+	--sb-per-view: 1;
+}
+
+.sb-hero__deals .sb-card {
+	border: 1px solid var(--sb-line);
+}
+
+.sb-hero__track {
+	display: flex;
+	gap: 0;
+	scroll-snap-type: x mandatory;
+	border-radius: var(--sb-radius);
+}
+
+.sb-hero__slide {
+	flex: 0 0 100%;
+	scroll-snap-align: start;
+	display: block;
+}
+
+.sb-hero__image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	/* Keeps every slide the same height however the uploads were cropped. */
+	aspect-ratio: 2 / 1;
+}
+
+@media (min-width: 900px) {
+	.sb-hero__image {
+		aspect-ratio: 16 / 7;
+	}
 }
 
 .sb-home__notice {
@@ -32,13 +110,7 @@
 	display: flex;
 	gap: var(--sb-space-4);
 	list-style: none;
-	overflow-x: auto;
 	padding-bottom: var(--sb-space-2);
-	scrollbar-width: none;
-}
-
-.sb-circles::-webkit-scrollbar {
-	display: none;
 }
 
 .sb-circles__item {
@@ -139,17 +211,21 @@ a.sb-banners__item:hover .sb-banners__image {
 }
 
 /*
- * The measured pair is roughly 595×280 beside 1024×512 — about one part narrow to two parts
- * wide. The ratio is what matters, not the pixel sizes, so it is expressed as grid fractions.
+ * The two source images differ in size, but the reference renders them as equal columns —
+ * so the grid splits evenly and object-fit absorbs the difference.
  */
 @media (min-width: 768px) {
 	.sb-banners {
-		grid-template-columns: 1fr 2fr;
-		gap: var(--sb-space-5);
+		grid-template-columns: 1fr 1fr;
+		gap: var(--sb-space-4);
 	}
 
 	/* A pair with only one banner configured should not sit in a half-width column. */
 	.sb-banners:has(.sb-banners__item:only-child) {
 		grid-template-columns: 1fr;
+	}
+
+	.sb-banners__image {
+		aspect-ratio: 2 / 1;
 	}
 }

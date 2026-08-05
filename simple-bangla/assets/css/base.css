@@ -25,10 +25,23 @@
 	--sb-ink: #333333;        /* body text, headings, current price */
 	--sb-muted: #7e7e7e;      /* section headings, secondary text */
 	--sb-sale: #ba5e5e;       /* struck-through original price */
+	--sb-sale-badge: #f85606; /* the "Hot Deals" ribbon on a discounted card */
 	--sb-line: #e5e7eb;       /* borders and dividers */
-	--sb-bg: #ffffff;         /* page background */
+	--sb-bg: #ffffff;         /* surfaces that sit on the page: dropdowns, inputs, the nav row */
 	--sb-bg-alt: #fffcf7;     /* product cards, alternating sections */
-	--sb-footer-bg: #ffffff;  /* footer */
+	--sb-footer-bg: #fbf4e2;  /* footer — same warm cream as the page */
+
+	/*
+	 * Page background. The reference sets body to rgba(222,166,11,0.12) over white, which
+	 * resolves to this warm cream. It is a separate token from --sb-bg on purpose: cards,
+	 * dropdowns and the search field still need a true white to sit on top of it.
+	 */
+	--sb-page: #fbf4e2;
+
+	/* Footer specifics, measured off the reference's own stylesheet. */
+	--sb-footer-ink: #2d3134;   /* column headings */
+	--sb-footer-circle: #3c3a3a;/* contact icon circles */
+	--sb-footer-accent: #f5735a;/* their hover colour */
 
 	/* Derived colours. Kept out of the Customizer so the palette stays small. */
 	--sb-on-brand: #ffffff;
@@ -37,6 +50,14 @@
 	/* Type. The system stack is the fallback when web fonts are disabled or still loading. */
 	--sb-font-body: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	--sb-font-heading: "Oswald", var(--sb-font-body);
+	/* Raleway carries the footer column headings, matching the reference exactly. */
+	--sb-font-footer: "Raleway", var(--sb-font-body);
+	/*
+	 * Baskervville carries the big uppercase section headings. It has no Bengali glyphs, but
+	 * that is safe: fallback is per character, so Bangla text drops through to the system
+	 * serif while the Latin headings keep the reference's look.
+	 */
+	--sb-font-display: "Baskervville", Georgia, "Times New Roman", serif;
 
 	--sb-text-xs: 0.75rem;   /* 12px — View All, badges */
 	--sb-text-sm: 0.875rem;  /* 14px — meta, captions */
@@ -125,7 +146,7 @@ html {
 
 body {
 	margin: 0;
-	background: var(--sb-bg);
+	background: var(--sb-page);
 	color: var(--sb-ink);
 	font-family: var(--sb-font-body);
 	font-size: var(--sb-text-base);
@@ -218,8 +239,7 @@ a:hover {
 	color: var(--sb-brand-dark);
 }
 
-small,
-.sb-text-sm {
+small {
 	font-size: var(--sb-text-sm);
 }
 
@@ -345,62 +365,110 @@ small,
 	pointer-events: none;
 }
 
-/* -- Section heading, shared by the homepage rows and the shop -- */
+/*
+ * Section heading, shared by the homepage rows and the shop.
+ *
+ * Measured off the reference: Baskervville 32px/600, uppercase, 1px tracking, sitting behind
+ * a thick black rule on the left, with the row closed by a black underline.
+ */
 
 .sb-section-head {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--sb-space-4);
+	gap: var(--sb-space-3);
 	margin-bottom: var(--sb-space-4);
+	padding-bottom: var(--sb-space-3);
+	border-bottom: 2px solid var(--sb-brand);
 }
 
 .sb-section-head__title {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
 	margin: 0;
-	font-family: var(--sb-font-heading);
-	font-size: var(--sb-text-lg);
-	font-weight: 400;
-	color: var(--sb-muted);
+	min-width: 0;
+	font-family: var(--sb-font-display);
+	font-size: 1.375rem; /* 22px on phones, 32px from 768px up */
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: var(--sb-brand);
+}
+
+/* The upright rule to the left of the label. */
+.sb-section-head__title::before {
+	content: "";
+	flex: 0 0 auto;
+	width: 6px;
+	align-self: stretch;
+	min-height: 1.4em;
+	background: var(--sb-brand);
 }
 
 .sb-section-head__link {
 	flex: 0 0 auto;
-	padding: var(--sb-space-1) var(--sb-space-3);
-	border: 2px solid var(--sb-bg);
+	padding: 8px 12px;
+	border: 2px solid var(--sb-brand);
 	border-radius: var(--sb-radius-sm);
 	background: var(--sb-brand);
 	color: var(--sb-on-brand);
 	font-size: var(--sb-text-xs);
+	font-weight: 500;
+	text-transform: uppercase;
 	text-decoration: none;
 	white-space: nowrap;
+	transition: background-color var(--sb-transition), color var(--sb-transition);
 }
 
 .sb-section-head__link:hover,
 .sb-section-head__link:focus-visible {
-	background: var(--sb-brand-dark);
-	color: var(--sb-on-brand);
+	background: var(--sb-bg);
+	color: var(--sb-brand);
+}
+
+@media (min-width: 768px) {
+	.sb-section-head__title {
+		font-size: 2rem; /* 32px */
+	}
+
+	.sb-section-head__link {
+		font-size: var(--sb-text-base);
+		padding: 10px 12px;
+	}
 }
 
 /* -- Search form -- */
 
+/*
+ * A white pill, as on the reference. The submit is an icon inside the pill rather than a
+ * contrasting block on the end — the field is the affordance, the button is the fallback for
+ * anyone not pressing Enter.
+ */
 .sb-search {
 	display: flex;
 	align-items: stretch;
 	width: 100%;
+	padding-inline: var(--sb-space-2);
 	background: var(--sb-bg);
-	border: 1px solid var(--sb-line);
-	border-radius: var(--sb-radius-sm);
+	border: 1px solid transparent;
+	border-radius: var(--sb-radius-pill);
 	overflow: hidden;
 }
 
 .sb-search__field {
 	flex: 1 1 auto;
 	min-width: 0;
-	padding: var(--sb-space-2) var(--sb-space-3);
+	padding: var(--sb-space-3) var(--sb-space-3);
 	border: 0;
 	background: transparent;
 	color: var(--sb-ink);
 	font-size: var(--sb-text-sm);
+}
+
+.sb-search__field::placeholder {
+	color: var(--sb-muted);
 }
 
 .sb-search__field:focus {
@@ -415,10 +483,15 @@ small,
 .sb-search__submit {
 	display: grid;
 	place-items: center;
-	padding-inline: var(--sb-space-3);
+	padding-inline: var(--sb-space-2);
 	border: 0;
-	background: var(--sb-brand);
-	color: var(--sb-on-brand);
+	background: transparent;
+	color: var(--sb-muted);
+	transition: color var(--sb-transition);
+}
+
+.sb-search__submit:hover {
+	color: var(--sb-ink);
 }
 
 /* -- Entries -- */
@@ -578,54 +651,25 @@ small,
 	gap: var(--sb-space-3);
 }
 
-/* -- Footer (Phase 1 baseline; Phase 6 replaces this block) -- */
+/* The footer lives entirely in assets/css/footer.css. */
 
-.sb-footer {
-	margin-top: auto;
-	padding-block: var(--sb-space-6);
-	background: var(--sb-footer-bg);
-	border-top: 1px solid var(--sb-line);
+/*
+ * Every swipeable row hides its scrollbar — the arrows, dots and swipe are the affordance.
+ * Grouped here so four sheets do not repeat the same two rules.
+ */
+.sb-products--slider,
+.sb-circles,
+.sb-hero__track,
+.sb-gallery__thumbs {
+	overflow-x: auto;
+	scrollbar-width: none;
 }
 
-.sb-footer__columns {
-	display: grid;
-	gap: var(--sb-space-6);
-	margin-bottom: var(--sb-space-6);
-}
-
-.sb-footer__heading {
-	font-size: var(--sb-text-lg);
-	margin-bottom: var(--sb-space-3);
-}
-
-.sb-footer__menu {
-	list-style: none;
-	display: grid;
-	gap: var(--sb-space-2);
-	font-size: var(--sb-text-sm);
-}
-
-.sb-footer__menu a {
-	text-decoration: none;
-	color: var(--sb-muted);
-}
-
-.sb-footer__menu a:hover {
-	color: var(--sb-ink);
-}
-
-.sb-footer__copyright {
-	margin: 0;
-	padding-top: var(--sb-space-4);
-	border-top: 1px solid var(--sb-line);
-	color: var(--sb-muted);
-	font-size: var(--sb-text-sm);
-}
-
-@media (min-width: 768px) {
-	.sb-footer__columns {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
+.sb-products--slider::-webkit-scrollbar,
+.sb-circles::-webkit-scrollbar,
+.sb-hero__track::-webkit-scrollbar,
+.sb-gallery__thumbs::-webkit-scrollbar {
+	display: none;
 }
 
 /* -- Icons -- */
@@ -669,11 +713,3 @@ small,
 	text-align: center;
 }
 
-/* Hidden from sighted users but kept for assistive tech and SEO. */
-.sb-visually-hidden {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-}

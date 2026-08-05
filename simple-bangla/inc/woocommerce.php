@@ -100,6 +100,16 @@ add_filter( 'loop_shop_columns', 'simple_bangla_loop_columns' );
  */
 remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10 );
 
+/*
+ * woocommerce/content-product.php draws its own image and ribbon, then fires
+ * `woocommerce_before_shop_loop_item_title` so badge plugins still get their hook. WooCommerce
+ * itself hangs the stock thumbnail and sale flash on that same hook, which rendered a second
+ * copy of every product image — and a stray "Sale!" label — inside each card. Unhooking just
+ * those two leaves the extension point intact.
+ */
+remove_action( 'woocommerce_before_shop_loop_item_title', 'woocommerce_template_loop_product_thumbnail', 10 );
+remove_action( 'woocommerce_before_shop_loop_item_title', 'woocommerce_show_product_loop_sale_flash', 10 );
+
 /**
  * Add a Buy Now button beside Add to Cart.
  *

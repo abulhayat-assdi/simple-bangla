@@ -30,9 +30,10 @@ function simple_bangla_asset_version( $relative_path ) {
 /**
  * The Google Fonts stylesheet URL, or an empty string when web fonts are switched off.
  *
- * Two families only. The reference design uses five, which is a performance problem we are
- * deliberately not inheriting. Oswald carries headings and navigation; Lato carries body copy,
- * product titles and buttons.
+ * Three families. The reference uses five; Chelsea Market is the one deliberately not
+ * inherited, because it is a display face with no Bengali glyphs and this theme has to stay
+ * Bangla-ready. Oswald carries headings and navigation, Lato carries body copy and buttons,
+ * Raleway carries the footer column headings so they match the reference exactly.
  *
  * @return string
  */
@@ -62,6 +63,12 @@ function simple_bangla_fonts_url() {
 	 */
 	$lato = _x( 'on', 'Lato font: on or off', 'simple-bangla' );
 
+	/*
+	 * translators: If Raleway does not render well in your language, translate this to 'off'.
+	 * Do not translate into your own alphabet.
+	 */
+	$raleway = _x( 'on', 'Raleway font: on or off', 'simple-bangla' );
+
 	$families = array();
 
 	if ( 'off' !== $oswald ) {
@@ -70,6 +77,22 @@ function simple_bangla_fonts_url() {
 
 	if ( 'off' !== $lato ) {
 		$families[] = 'Lato:wght@400;600;700';
+	}
+
+	// Only weight 900 — the footer headings are the sole place Raleway appears.
+	if ( 'off' !== $raleway ) {
+		$families[] = 'Raleway:wght@900';
+	}
+
+	/*
+	 * translators: If Baskervville does not render well in your language, translate this to
+	 * 'off'. Do not translate into your own alphabet.
+	 */
+	$baskervville = _x( 'on', 'Baskervville font: on or off', 'simple-bangla' );
+
+	// Google ships Baskervville in one weight; the reference faux-bolds it to 600 and so do we.
+	if ( 'off' !== $baskervville ) {
+		$families[] = 'Baskervville';
 	}
 
 	if ( empty( $families ) ) {
@@ -190,8 +213,10 @@ function simple_bangla_enqueue_assets() {
 			'simpleBanglaSlider',
 			array(
 				'i18n' => array(
-					'prev' => __( 'Previous products', 'simple-bangla' ),
-					'next' => __( 'Next products', 'simple-bangla' ),
+					'prev'  => __( 'Previous products', 'simple-bangla' ),
+					'next'  => __( 'Next products', 'simple-bangla' ),
+					'pages' => __( 'Product pages', 'simple-bangla' ),
+					'page'  => __( 'Page', 'simple-bangla' ),
 				),
 			)
 		);

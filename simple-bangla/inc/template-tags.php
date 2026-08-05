@@ -192,14 +192,12 @@ function simple_bangla_cart_link() {
 	}
 	?>
 	<a class="sb-header__action sb-cart-link" href="<?php echo esc_url( wc_get_cart_url() ); ?>">
+		<?php simple_bangla_cart_total(); ?>
 		<span class="sb-cart-link__icon">
-			<?php simple_bangla_icon( 'cart' ); ?>
+			<?php simple_bangla_icon( 'cart', 22 ); ?>
 			<?php simple_bangla_cart_count(); ?>
 		</span>
-		<span class="sb-header__action-label">
-			<?php simple_bangla_cart_total(); ?>
-			<span class="sb-cart-link__word"><?php esc_html_e( 'Cart', 'simple-bangla' ); ?></span>
-		</span>
+		<span class="screen-reader-text"><?php esc_html_e( 'View cart', 'simple-bangla' ); ?></span>
 	</a>
 	<?php
 }
@@ -334,7 +332,7 @@ function simple_bangla_product_query( $args = array() ) {
  * @param WP_Query $query  Query holding the products.
  * @param bool     $slider Render as a horizontal snap track rather than a grid.
  */
-function simple_bangla_render_product_loop( $query, $slider = false ) {
+function simple_bangla_render_product_loop( $query, $slider = false, $extra_class = '' ) {
 
 	if ( ! $query instanceof WP_Query || ! $query->have_posts() ) {
 		return;
@@ -342,11 +340,21 @@ function simple_bangla_render_product_loop( $query, $slider = false ) {
 
 	$classes = 'sb-products' . ( $slider ? ' sb-products--slider' : '' );
 
+	if ( $extra_class ) {
+		$classes .= ' ' . $extra_class;
+	}
+
 	if ( $slider ) {
 		echo '<div class="sb-slider" data-sb-slider>';
 	}
 
-	printf( '<ul class="%s">', esc_attr( $classes ) );
+	printf(
+		'<ul class="%s"%s>',
+		esc_attr( $classes ),
+		// The slider script keys off this attribute, so a product row and a banner carousel
+		// can share one implementation without sharing markup.
+		$slider ? ' data-sb-track' : ''
+	);
 
 	while ( $query->have_posts() ) {
 		$query->the_post();

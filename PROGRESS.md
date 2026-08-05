@@ -1,6 +1,65 @@
 # Simple Bangla — Progress
 
-Last updated: 2026-08-05
+Last updated: 2026-08-06
+
+## Reference-matching pass (2026-08-06)
+
+The user supplied screenshots of demarkt.com.bd showing the footer, header, hero and product
+rows. Rather than eyeball them, the reference was fetched directly — `WebFetch` 403s, but
+**plain `curl` with a desktop User-Agent returns 200** — and its Elementor stylesheets were
+read for exact values. Everything in this pass is measured. The table of values lives in
+`CLAUDE.md` under "Reference measurements".
+
+**A correction.** An earlier pass told the user the reference homepage has no hero, and they
+agreed on that basis. That was wrong: the page opens with a narrow one-card Hot Deals slider
+beside a wide banner carousel. The first HTML scan found only the left column and missed the
+hero images in Elementor slide backgrounds. Rebuilt as `template-parts/home/hero.php`.
+
+Changed in this pass:
+
+- **Page background** is now warm cream `#FBF4E2`, not white. `--sb-page` is a separate token
+  from `--sb-bg` so cards, dropdowns and the search field keep a true white to sit on.
+- **Footer rebuilt**: one grid of brand · three link columns · map. Brand block carries logo,
+  phone, email, address and five contact circles. Headings are Raleway 900/20px, underlined.
+  The copyright is a full-bleed black band with `#808080` text.
+- **Header**: hamburger reproduced as an "All Categories" button that opens the same drawer at
+  every width, with the mega menu kept beside it (the user chose this hybrid over the
+  reference's burger-only nav). Search is a white pill, account is icon-only, cart is an
+  outlined box carrying the running total. The nav hotline was dropped — the reference's nav
+  strip carries nothing but the menu.
+- **Section headings**: Baskervville 32px uppercase behind a thick black rule, closed by a
+  black underline, with a black uppercase VIEW ALL button linking to that category archive.
+- **Sale ribbon**: orange `#F85606` with the reference's `10px 0 10px 0` diagonal radius.
+  This settles the "sale ribbon shape unknown" item that was open since Phase 0.
+- **Product rows are now one-line carousels**: exactly 3 cards on desktop, 2 on a phone, with
+  five-second autoplay, page dots, desktop arrows and touch swipe. Autoplay pauses on hover,
+  focus, touch, when the row is off-screen, when the tab is hidden, and under
+  `prefers-reduced-motion`.
+- **Banner pairs** render as equal columns, as the reference shows them.
+- **Fonts** are now four: Oswald, Lato, Raleway (footer headings), Baskervville (section
+  headings). Baskervville has no Bengali glyphs, but fallback is per character, so Bangla text
+  drops through to the system serif — the Bangla-ready requirement still holds.
+- **`blueprint.json` moved into the repo** and now sets BDT, turns WooCommerce's "Coming soon"
+  mode off, and runs the demo import automatically, so a restarted Playground comes up
+  complete without manual admin steps.
+
+### Card fixes (2026-08-06, from a user screenshot)
+
+- **Every product card rendered its image twice**, with a stray "Sale!" label between the two
+  copies, which roughly doubled the height of every card on the site.
+  `woocommerce/content-product.php` draws its own image and ribbon and then fires
+  `woocommerce_before_shop_loop_item_title` so badge plugins keep their extension point — but
+  WooCommerce hangs `woocommerce_template_loop_product_thumbnail` and
+  `woocommerce_show_product_loop_sale_flash` on that same hook. Both are now unhooked in
+  `inc/woocommerce.php`; the hook itself still fires.
+- **Card images are 4:3, not square**, matching the reference, and use `object-fit: contain`
+  so a cable or a tripod is not cropped at the ends.
+- **Placeholder art rewritten.** The first generator drew an abstract disc-and-rectangle with
+  the product's initials stamped on it, which read as a coloured blob rather than a product.
+  It now draws a recognisable silhouette per category — headphones, a watch, a ring light, a
+  tripod, a keyboard and so on, twenty-odd shapes in all — in white-panelled artwork whose hue
+  is derived from the product name, so neighbouring cards in a row differ. Still pure GD, still
+  generated locally, still nothing copied from the reference.
 
 ## Status
 
@@ -170,8 +229,8 @@ Run against WordPress (latest) + WooCommerce 11.0 on PHP 8.3, under WordPress Pl
 | AJAX search | ✅ Returns products; **bad nonce → HTTP 403** |
 | Mega menu | ✅ 16 top-level, 40 second-level, 12 third-level items; 2 branches render as mega panels |
 | Gallery weight | ✅ No flexslider, photoswipe or zoom scripts. jQuery loads only because WooCommerce's own frontend scripts require it |
-| CSS budget | ✅ **53.8 KB** of 60 KB across all seven sheets — and no single page loads all of them |
-| JS budget | ✅ **20.6 KB** of 30 KB front-end |
+| CSS budget | ✅ **59.9 KB** of 60 KB across all seven sheets — and no single page loads all of them |
+| JS budget | ✅ **24.9 KB** of 30 KB front-end |
 | i18n | ✅ 204 strings extracted to `languages/simple-bangla.pot` |
 
 ---
@@ -238,11 +297,18 @@ npx @wp-playground/cli@latest server --port=8882 \
   --blueprint <path>/blueprint.json
 ```
 
-Two Windows gotchas, both worked around above:
+Three Windows gotchas, all worked around above:
 
 - `--mount host:vfs` cannot be used, because `C:\…` contains a colon. Use `--mount-dir`.
 - `@wp-now/wp-now` crashes here: it resolves its own install path against the current drive,
   producing `D:\C:\Users\…`. Use `@wp-playground/cli`.
+- **Start it from PowerShell, not Git Bash.** Git Bash rewrites the second `--mount-dir`
+  argument from `/wordpress/wp-content/...` to `C:/Program Files/Git/wordpress/...` and the
+  mount fails.
+
+Playground keeps its database in a temp directory, so **restarting loses all content**. That
+is why the blueprint now runs the demo import itself — a restart takes about a minute and
+comes back with the full catalogue, BDT pricing and the storefront visible.
 
 `preview/` holds static HTML mirrors of the **Phase 1** templates only. They are superseded by
 the real install above and are not kept in sync.

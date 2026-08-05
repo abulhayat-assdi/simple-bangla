@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Simple Bangla 1.0.0\n"
 "Report-Msgid-Bugs-To: https://simplebangla.com/\n"
-"POT-Creation-Date: 2026-08-05 16:53+0000\n"
+"POT-Creation-Date: 2026-08-05 18:25+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -30,13 +30,13 @@ msgstr ""
 msgid "Browse the shop"
 msgstr ""
 
-#: footer.php:32
+#: footer.php:37
 msgid "Accepted payment methods"
 msgstr ""
 
 #. translators: 1: current year, 2: site name.
-#: footer.php:46
-msgid "© %1$s %2$s. All rights reserved."
+#: footer.php:52
+msgid "© %1$s %2$s. All rights reserved"
 msgstr ""
 
 #: front-page.php:52
@@ -47,108 +47,125 @@ msgstr ""
 msgid "Skip to content"
 msgstr ""
 
-#: inc/customizer-home.php:32
+#: inc/customizer-home.php:61
 msgid "Best Selling"
 msgstr ""
 
-#: inc/customizer-home.php:36
+#: inc/customizer-home.php:65
 msgid "Microphone"
 msgstr ""
 
-#: inc/customizer-home.php:40
+#: inc/customizer-home.php:69
 msgid "Smart Watch"
 msgstr ""
 
-#: inc/customizer-home.php:44
+#: inc/customizer-home.php:73
 msgid "Headphone"
 msgstr ""
 
-#: inc/customizer-home.php:48
+#: inc/customizer-home.php:77
 msgid "Power Bank"
 msgstr ""
 
-#: inc/customizer-home.php:52
+#: inc/customizer-home.php:81
 msgid "Gadgets"
 msgstr ""
 
-#: inc/customizer-home.php:65
+#: inc/customizer-home.php:94
 msgid "— Any category —"
 msgstr ""
 
-#: inc/customizer-home.php:160
+#: inc/customizer-home.php:189
 msgid "Homepage sections"
 msgstr ""
 
-#: inc/customizer-home.php:161
+#: inc/customizer-home.php:190
 msgid "The homepage renders in a fixed order: Hot Deals, category circles, two product rows, a banner pair, two more rows, a second banner pair, then the last two rows."
 msgstr ""
 
-#: inc/customizer-home.php:187 template-parts/home/hot-deals.php:25 woocommerce/content-product.php:40 woocommerce/single-product/product-image.php:25
+#. translators: %d: slide number.
+#: inc/customizer-home.php:232
+msgid "Hero slide %d — image"
+msgstr ""
+
+#. translators: %d: slide number.
+#: inc/customizer-home.php:234
+msgid "The wide banner beside Hot Deals at the top of the homepage. Around 1024×512 works well. Leave every slide empty to hide the hero."
+msgstr ""
+
+#. translators: %d: slide number.
+#: inc/customizer-home.php:248
+msgid "Hero slide %d — link"
+msgstr ""
+
+#. translators: %d: slide number.
+#: inc/customizer-home.php:258 woocommerce/content-product.php:40 woocommerce/single-product/product-image.php:25
 msgid "Hot Deals"
 msgstr ""
 
-#: inc/customizer-home.php:190
+#. translators: %d: slide number.
+#: inc/customizer-home.php:261
 msgid "Hot Deals — heading"
 msgstr ""
 
-#: inc/customizer-home.php:200
+#: inc/customizer-home.php:271
 msgid "Hot Deals — how many products"
 msgstr ""
 
-#: inc/customizer-home.php:201
+#: inc/customizer-home.php:272
 msgid "Only products that are actually on sale appear here."
 msgstr ""
 
-#: inc/customizer-home.php:217
+#: inc/customizer-home.php:288
 msgid "Category circles — how many"
 msgstr ""
 
-#: inc/customizer-home.php:218
+#: inc/customizer-home.php:289
 msgid "Top-level product categories, shown as circular thumbnails."
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:239
+#: inc/customizer-home.php:310
 msgid "Row %d — show this row"
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:250
+#: inc/customizer-home.php:321
 msgid "Row %d — heading"
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:261
+#: inc/customizer-home.php:332
 msgid "Row %d — category"
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:262
+#: inc/customizer-home.php:333
 msgid "The heading above and the category here are separate on purpose. Set both."
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:274
+#: inc/customizer-home.php:345
 msgid "Row %d — how many products"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:309
+#: inc/customizer-home.php:380
 msgid "Banner pair %d — narrow image"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:311
+#: inc/customizer-home.php:382
 msgid "Banner pair %d — wide image"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:325
+#: inc/customizer-home.php:396
 msgid "Banner pair %d — narrow link"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:327
+#: inc/customizer-home.php:398
 msgid "Banner pair %d — wide link"
 msgstr ""
 
@@ -212,31 +229,39 @@ msgstr ""
 msgid "From Google Maps → Share → Embed a map, copy just the src URL. Leave empty to hide the map."
 msgstr ""
 
-#: inc/customizer-store.php:158
+#: inc/customizer-store.php:163
 msgid "Facebook"
 msgstr ""
 
-#: inc/customizer-store.php:159
+#: inc/customizer-store.php:164
 msgid "Instagram"
 msgstr ""
 
-#: inc/customizer-store.php:160
+#: inc/customizer-store.php:165
 msgid "YouTube"
 msgstr ""
 
-#: inc/customizer-store.php:193
+#: inc/customizer-store.php:188
+msgid "Email us"
+msgstr ""
+
+#: inc/customizer-store.php:198
+msgid "WhatsApp"
+msgstr ""
+
+#: inc/customizer-store.php:216
 msgid "Store details"
 msgstr ""
 
-#: inc/customizer-store.php:194
+#: inc/customizer-store.php:217
 msgid "Contact routes and social profiles. These placeholders are wired through the whole theme — replace them with your real details before launch."
 msgstr ""
 
-#: inc/customizer-store.php:242
+#: inc/customizer-store.php:265
 msgid "Payment methods image"
 msgstr ""
 
-#: inc/customizer-store.php:243
+#: inc/customizer-store.php:266
 msgid "A single wide image showing the payment methods you accept. Shown near the bottom of the footer."
 msgstr ""
 
@@ -293,38 +318,46 @@ msgid "Page background"
 msgstr ""
 
 #: inc/customizer.php:64
-msgid "The base background behind everything."
+msgid "The warm background behind the whole page."
 msgstr ""
 
 #: inc/customizer.php:69
-msgid "Card background"
+msgid "Surface"
 msgstr ""
 
 #: inc/customizer.php:70
-msgid "Product cards and alternating sections."
+msgid "Panels that sit on the page: dropdowns, the search field, the nav row."
 msgstr ""
 
 #: inc/customizer.php:75
-msgid "Footer background"
+msgid "Card background"
 msgstr ""
 
 #: inc/customizer.php:76
-msgid "Background of the site footer."
+msgid "Product cards and alternating sections."
 msgstr ""
 
-#: inc/customizer.php:112
+#: inc/customizer.php:81
+msgid "Footer background"
+msgstr ""
+
+#: inc/customizer.php:82
+msgid "Background of the site footer. The copyright bar below it stays black."
+msgstr ""
+
+#: inc/customizer.php:118
 msgid "Simple Bangla"
 msgstr ""
 
-#: inc/customizer.php:113
+#: inc/customizer.php:119
 msgid "Theme-wide options for layout, colour and store details."
 msgstr ""
 
-#: inc/customizer.php:121
+#: inc/customizer.php:127
 msgid "Colours"
 msgstr ""
 
-#: inc/customizer.php:122
+#: inc/customizer.php:128
 msgid "Every colour in the theme comes from this palette. Changing one here changes it everywhere."
 msgstr ""
 
@@ -338,115 +371,135 @@ msgstr ""
 msgid "This is placeholder copy so the layout can be judged with realistic text in it. Every product created by the importer carries the same description; edit or delete them once your real catalogue is in."
 msgstr ""
 
-#: inc/demo-content.php:639
+#: inc/demo-content.php:673
 msgid "Primary Menu"
 msgstr ""
 
-#: inc/demo-content.php:685
+#: inc/demo-content.php:719
 msgid "Footer — Company"
 msgstr ""
 
-#: inc/demo-content.php:689
+#: inc/demo-content.php:723
 msgid "Footer — Helps"
 msgstr ""
 
-#: inc/demo-content.php:693
+#: inc/demo-content.php:727
 msgid "Footer — Customer Service"
 msgstr ""
 
-#: inc/demo-content.php:752 template-parts/footer/mobile-bar.php:36
+#: inc/demo-content.php:786 template-parts/footer/mobile-bar.php:36
 msgid "Home"
 msgstr ""
 
-#: inc/demo-content.php:783
+#: inc/demo-content.php:817
 msgid "Simple Bangla Demo Content"
 msgstr ""
 
-#: inc/demo-content.php:784 inc/demo-content.php:813
+#: inc/demo-content.php:818 inc/demo-content.php:847
 msgid "Demo Content"
 msgstr ""
 
-#: inc/demo-content.php:798
+#: inc/demo-content.php:832
 msgid "You are not allowed to do that."
 msgstr ""
 
-#: inc/demo-content.php:817
+#: inc/demo-content.php:851
 msgid "WooCommerce needs to be active before the catalogue can be imported."
 msgstr ""
 
-#: inc/demo-content.php:823
+#: inc/demo-content.php:857
 msgid "PHP has no GD image support here, so products will be created without placeholder images."
 msgstr ""
 
 #. translators: 1: categories created, 2: products created, 3: images created.
-#: inc/demo-content.php:833
+#: inc/demo-content.php:867
 msgid "Done. Created %1$d categories, %2$d products and %3$d images."
 msgstr ""
 
 #. translators: 1: categories created, 2: products created, 3: images created.
-#: inc/demo-content.php:844
+#: inc/demo-content.php:878
 msgid "Fills the store with a demo catalogue so the design can be judged with real content in it: a three-level category tree, a few dozen products with sale prices, navigation menus, homepage banners and generated placeholder images."
 msgstr ""
 
-#: inc/demo-content.php:848
+#: inc/demo-content.php:882
 msgid "Nothing is overwritten."
 msgstr ""
 
-#: inc/demo-content.php:849
+#: inc/demo-content.php:883
 msgid "Anything that already exists under the same slug is left exactly as it is, so running this twice is harmless."
 msgstr ""
 
 #. translators: %s: human-readable date and time.
-#: inc/demo-content.php:857
+#: inc/demo-content.php:891
 msgid "Last run: %s"
 msgstr ""
 
 #. translators: %s: human-readable date and time.
-#: inc/demo-content.php:868 inc/demo-content.php:895
+#: inc/demo-content.php:902 inc/demo-content.php:929
 msgid "Import demo content"
 msgstr ""
 
-#: inc/demo-content.php:893
+#: inc/demo-content.php:927
 msgid "Simple Bangla can fill your store with demo products so you can see the design working."
 msgstr ""
 
 #. translators: If Oswald does not render well in your language, translate this to 'off'.
-#: inc/enqueue.php:57
+#: inc/enqueue.php:58
 msgctxt "Oswald font: on or off"
 msgid "on"
 msgstr ""
 
 #. translators: If Lato does not render well in your language, translate this to 'off'.
-#: inc/enqueue.php:63
+#: inc/enqueue.php:64
 msgctxt "Lato font: on or off"
 msgid "on"
 msgstr ""
 
-#: inc/enqueue.php:193
+#. translators: If Raleway does not render well in your language, translate this to 'off'.
+#: inc/enqueue.php:70
+msgctxt "Raleway font: on or off"
+msgid "on"
+msgstr ""
+
+#. translators: If Baskervville does not render well in your language, translate this to
+#: inc/enqueue.php:91
+msgctxt "Baskervville font: on or off"
+msgid "on"
+msgstr ""
+
+#: inc/enqueue.php:216
 msgid "Previous products"
 msgstr ""
 
-#: inc/enqueue.php:194
+#: inc/enqueue.php:217
 msgid "Next products"
 msgstr ""
 
-#: inc/enqueue.php:210
+#: inc/enqueue.php:218 template-parts/shop/results.php:74
+msgid "Product pages"
+msgstr ""
+
+#: inc/enqueue.php:219
+msgid "Page"
+msgstr ""
+
+#: inc/enqueue.php:235
 msgid "Loading…"
 msgstr ""
 
-#: inc/enqueue.php:211
+#: inc/enqueue.php:236
 msgid "That is everything."
 msgstr ""
 
-#: inc/enqueue.php:212
+#: inc/enqueue.php:237
 msgid "Something went wrong. Please try again."
 msgstr ""
 
-#: inc/enqueue.php:231
+#: inc/enqueue.php:256
 msgid "No products matched."
 msgstr ""
 
-#: inc/enqueue.php:232
+#: inc/enqueue.php:257
 msgid "See all results"
 msgstr ""
 
@@ -600,30 +653,30 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: inc/template-tags.php:201 template-parts/footer/mobile-bar.php:53
-msgid "Cart"
+#: inc/template-tags.php:200
+msgid "View cart"
 msgstr ""
 
 #. translators: %s: number of items in the cart.
-#: inc/template-tags.php:221
+#: inc/template-tags.php:219
 msgid "item in cart"
 msgid_plural "items in cart"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/template-tags.php:388
+#: inc/template-tags.php:396
 msgid "View All"
 msgstr ""
 
-#: inc/template-tags.php:403 single.php:24 template-parts/shop/results.php:72
+#: inc/template-tags.php:411 single.php:24 template-parts/shop/results.php:72
 msgid "Previous"
 msgstr ""
 
-#: inc/template-tags.php:404 single.php:25 template-parts/shop/results.php:73
+#: inc/template-tags.php:412 single.php:25 template-parts/shop/results.php:73
 msgid "Next"
 msgstr ""
 
-#: inc/template-tags.php:405
+#: inc/template-tags.php:413
 msgid "Page navigation"
 msgstr ""
 
@@ -680,23 +733,19 @@ msgstr ""
 msgid "Read more"
 msgstr ""
 
-#: template-parts/footer/columns.php:20
+#: template-parts/footer/columns.php:23
 msgid "Helps"
 msgstr ""
 
-#: template-parts/footer/columns.php:24
+#: template-parts/footer/columns.php:27
 msgid "Customer Service"
-msgstr ""
-
-#: template-parts/footer/columns.php:75
-msgid "Find us"
 msgstr ""
 
 #: template-parts/footer/columns.php:81
 msgid "Store location on Google Maps"
 msgstr ""
 
-#: template-parts/footer/columns.php:89
+#: template-parts/footer/columns.php:90
 msgid "Add a Google Maps embed URL in the Customizer to show your shop here."
 msgstr ""
 
@@ -720,15 +769,19 @@ msgstr ""
 msgid "Chat"
 msgstr ""
 
+#: template-parts/footer/mobile-bar.php:53
+msgid "Cart"
+msgstr ""
+
 #: template-parts/footer/mobile-bar.php:62
 msgid "Quick links"
 msgstr ""
 
-#: template-parts/header/bar.php:20
+#: template-parts/header/bar.php:24
 msgid "Open menu"
 msgstr ""
 
-#: template-parts/header/bar.php:35
+#: template-parts/header/bar.php:39
 msgid "Account"
 msgstr ""
 
@@ -752,8 +805,12 @@ msgstr ""
 msgid "My Account"
 msgstr ""
 
-#: template-parts/header/nav.php:12
+#: template-parts/header/nav.php:17
 msgid "Primary"
+msgstr ""
+
+#: template-parts/header/nav.php:28
+msgid "All Categories"
 msgstr ""
 
 #: template-parts/product/assurances.php:16
@@ -835,10 +892,6 @@ msgstr ""
 
 #: template-parts/shop/results.php:62
 msgid "Load more products"
-msgstr ""
-
-#: template-parts/shop/results.php:74
-msgid "Product pages"
 msgstr ""
 
 #: woocommerce/archive-product.php:45

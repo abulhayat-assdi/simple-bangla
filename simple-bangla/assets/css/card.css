@@ -4,9 +4,9 @@
  * Loaded wherever a card can appear: homepage rows, shop and category archives, search
  * results, and the related-products strip.
  *
- * The card is intentionally flat — cream fill, 15px radius, no border and no shadow. That is
- * measured from the reference, and it is why the grid reads as a set of tiles rather than a
- * stack of floating panels.
+ * The card is intentionally flat — white fill on the page's cream, 15px radius, no border and
+ * no shadow. That is measured from the reference, and it is why a row reads as a set of tiles
+ * rather than a stack of floating panels.
  */
 
 /* ------------------------------------------------------------------ *
@@ -44,35 +44,40 @@
 }
 
 /*
- * Slider variant: the same cards on one horizontal track.
+ * Slider variant: one category, one line.
  *
- * Built on scroll-snap rather than a carousel library — it is scrollable by touch, trackpad,
- * scrollbar and keyboard for free, and it degrades to a plain scrolling row if slider.js
- * never runs.
+ * Exactly two cards fit on a phone and three on a desktop — the rest are reached by swiping,
+ * by the arrows, or by the five-second autoplay in slider.js.
+ *
+ * Built on scroll-snap rather than a carousel library: it is scrollable by touch, trackpad,
+ * scrollbar and keyboard for free, and with JavaScript blocked it degrades to a plain
+ * horizontally scrolling row that still shows every product.
  */
 .sb-products--slider {
+	--sb-slide-gap: var(--sb-space-3);
+	--sb-per-view: 2;
+
 	display: flex;
-	gap: var(--sb-space-4);
-	overflow-x: auto;
+	gap: var(--sb-slide-gap);
 	scroll-snap-type: x mandatory;
-	scroll-padding-inline: var(--sb-gutter);
-	scrollbar-width: none;
 	padding-bottom: var(--sb-space-2);
 }
 
-.sb-products--slider::-webkit-scrollbar {
-	display: none;
-}
-
+/*
+ * The card width is derived from how many should be visible, so the count lives in one
+ * custom property and the arithmetic never has to be repeated per breakpoint.
+ */
 .sb-products--slider > .sb-card {
-	flex: 0 0 auto;
-	width: min(46vw, 220px);
+	flex: 0 0 calc(
+		(100% - (var(--sb-per-view) - 1) * var(--sb-slide-gap)) / var(--sb-per-view)
+	);
 	scroll-snap-align: start;
 }
 
-@media (min-width: 768px) {
-	.sb-products--slider > .sb-card {
-		width: 240px;
+@media (min-width: 1024px) {
+	.sb-products--slider {
+		--sb-slide-gap: var(--sb-space-4);
+		--sb-per-view: 3;
 	}
 }
 
@@ -85,7 +90,7 @@
 	flex-direction: column;
 	overflow: hidden;
 	border-radius: var(--sb-radius);
-	background: var(--sb-bg-alt);
+	background: var(--sb-bg);
 }
 
 .sb-card__media {
@@ -97,40 +102,50 @@
 }
 
 /*
- * A fixed square frame. Product photography arrives at every aspect ratio a supplier felt
- * like, and letting that through is what makes a grid look broken.
+ * A fixed 4:3 frame, matching the reference. Product photography arrives at every aspect
+ * ratio a supplier felt like, and letting that through is what makes a grid look broken.
+ *
+ * `contain`, not `cover`: a catalogue photo cropped to fill would lose the ends of a cable or
+ * the legs of a tripod. Letterboxing against the card is the honest trade.
  */
 .sb-card__image,
 .sb-card__media img {
-	aspect-ratio: 1 / 1;
+	aspect-ratio: 4 / 3;
 	width: 100%;
 	height: auto;
-	object-fit: cover;
+	object-fit: contain;
+	background: var(--sb-bg);
 	transition: transform var(--sb-transition);
 }
 
 .sb-card:hover .sb-card__image {
-	transform: scale(1.03);
+	transform: scale(1.04);
 }
 
+/*
+ * The sale ribbon, measured off the reference: orange, white Lato, and rounded on the
+ * top-left and bottom-right only — that diagonal pair is what gives it its tag shape.
+ */
 .sb-card__badge {
 	position: absolute;
-	top: var(--sb-space-2);
-	left: var(--sb-space-2);
+	top: 7px;
+	left: 20px;
 	z-index: 1;
-	padding: 2px var(--sb-space-2);
-	border-radius: var(--sb-radius-sm);
-	background: var(--sb-brand);
-	color: var(--sb-on-brand);
-	font-size: var(--sb-text-xs);
-	font-weight: 700;
-	line-height: 1.6;
-	letter-spacing: 0.02em;
+	padding: 5px 10px;
+	border-radius: 10px 0 10px 0;
+	background: var(--sb-sale-badge);
+	color: #ffffff;
+	font-family: var(--sb-font-body);
+	font-size: var(--sb-text-sm);
+	font-weight: 500;
+	line-height: 1.3;
 }
 
 .sb-card__badge--out {
 	top: auto;
 	bottom: var(--sb-space-2);
+	left: 0;
+	border-radius: 0 10px 0 10px;
 	background: var(--sb-sale);
 }
 
@@ -200,8 +215,48 @@
 
 .sb-card__cta {
 	margin-top: auto;
-	padding: var(--sb-space-2) var(--sb-space-4);
+	padding: var(--sb-space-2) var(--sb-space-3);
 	font-size: var(--sb-text-sm);
+	text-align: center;
+}
+
+/*
+ * Two cards on a 360px phone leaves each one about 155px wide. At that size the default
+ * price pair and the padding around the button are what overflow first, so both step down.
+ */
+@media (max-width: 479px) {
+	.sb-card__body {
+		gap: var(--sb-space-1);
+		padding: var(--sb-space-2);
+	}
+
+	.sb-card__title {
+		font-size: var(--sb-text-sm);
+	}
+
+	.sb-card__price {
+		gap: var(--sb-space-1);
+	}
+
+	.sb-card__price del {
+		font-size: var(--sb-text-xs);
+	}
+
+	.sb-card__price ins,
+	.sb-card__price > .woocommerce-Price-amount {
+		font-size: var(--sb-text-base);
+	}
+
+	.sb-card__badge {
+		left: 10px;
+		padding: 3px 8px;
+		font-size: var(--sb-text-xs);
+	}
+
+	.sb-card__cta {
+		padding-inline: var(--sb-space-2);
+		font-size: var(--sb-text-xs);
+	}
 }
 
 /* ------------------------------------------------------------------ *
@@ -214,7 +269,7 @@
 
 .sb-slider__nav {
 	position: absolute;
-	top: calc(50% - 60px);
+	top: calc(50% - 30px);
 	z-index: 2;
 	display: none;
 	place-items: center;
@@ -229,11 +284,11 @@
 }
 
 .sb-slider__nav--prev {
-	left: calc(var(--sb-space-4) * -1);
+	left: -8px;
 }
 
 .sb-slider__nav--next {
-	right: calc(var(--sb-space-4) * -1);
+	right: -8px;
 }
 
 .sb-slider__nav[disabled] {
@@ -246,4 +301,34 @@
 	.sb-slider__nav {
 		display: grid;
 	}
+}
+
+/* -- Page dots -- */
+
+.sb-slider__dots {
+	display: flex;
+	justify-content: center;
+	gap: var(--sb-space-2);
+	margin-top: var(--sb-space-3);
+}
+
+.sb-slider__dot {
+	width: 8px;
+	height: 8px;
+	padding: 0;
+	border: 0;
+	border-radius: var(--sb-radius-pill);
+	background: var(--sb-line);
+	transition: background-color var(--sb-transition), transform var(--sb-transition);
+}
+
+.sb-slider__dot.is-active {
+	background: var(--sb-brand);
+	transform: scale(1.25);
+}
+
+/* One page of products needs no arrows and no dots. */
+.sb-slider--static .sb-slider__nav,
+.sb-slider--static .sb-slider__dots {
+	display: none;
 }

@@ -21,6 +21,35 @@ const SIMPLE_BANGLA_HOME_ROWS = 6;
 /** How many banner pairs the homepage offers. */
 const SIMPLE_BANGLA_HOME_BANNERS = 2;
 
+/** How many slides the hero carousel offers. */
+const SIMPLE_BANGLA_HERO_SLIDES = 5;
+
+/**
+ * The configured hero slides, skipping any slot with no image.
+ *
+ * @return array<int,array{image:int,link:string}>
+ */
+function simple_bangla_hero_slides() {
+
+	$slides = array();
+
+	for ( $i = 1; $i <= SIMPLE_BANGLA_HERO_SLIDES; $i++ ) {
+
+		$image = (int) get_theme_mod( 'simple_bangla_hero_' . $i . '_image', 0 );
+
+		if ( ! $image ) {
+			continue;
+		}
+
+		$slides[] = array(
+			'image' => $image,
+			'link'  => (string) get_theme_mod( 'simple_bangla_hero_' . $i . '_link', '' ),
+		);
+	}
+
+	return $slides;
+}
+
 /**
  * Default heading and category slug for each row, used until the owner picks their own.
  *
@@ -179,6 +208,48 @@ function simple_bangla_customize_home( $wp_customize ) {
 		$control['section'] = 'simple_bangla_home';
 		$wp_customize->add_control( $id, $control );
 	};
+
+	/* -- Hero carousel -- */
+
+	for ( $slide = 1; $slide <= SIMPLE_BANGLA_HERO_SLIDES; $slide++ ) {
+
+		$wp_customize->add_setting(
+			'simple_bangla_hero_' . $slide . '_image',
+			array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+				'transport'         => 'refresh',
+				'capability'        => 'edit_theme_options',
+			)
+		);
+
+		$wp_customize->add_control(
+			new WP_Customize_Media_Control(
+				$wp_customize,
+				'simple_bangla_hero_' . $slide . '_image',
+				array(
+					/* translators: %d: slide number. */
+					'label'       => sprintf( __( 'Hero slide %d — image', 'simple-bangla' ), $slide ),
+					'description' => 1 === $slide
+						? __( 'The wide banner beside Hot Deals at the top of the homepage. Around 1024×512 works well. Leave every slide empty to hide the hero.', 'simple-bangla' )
+						: '',
+					'section'     => 'simple_bangla_home',
+					'mime_type'   => 'image',
+				)
+			)
+		);
+
+		$add(
+			'simple_bangla_hero_' . $slide . '_link',
+			'',
+			'esc_url_raw',
+			array(
+				/* translators: %d: slide number. */
+				'label' => sprintf( __( 'Hero slide %d — link', 'simple-bangla' ), $slide ),
+				'type'  => 'url',
+			)
+		);
+	}
 
 	/* -- Hot Deals -- */
 

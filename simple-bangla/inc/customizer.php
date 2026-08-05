@@ -58,10 +58,16 @@ function simple_bangla_color_tokens() {
 			'description' => __( 'Card borders, dividers, input outlines.', 'simple-bangla' ),
 			'default'     => '#e5e7eb',
 		),
+		'page'       => array(
+			'var'         => '--sb-page',
+			'label'       => __( 'Page background', 'simple-bangla' ),
+			'description' => __( 'The warm background behind the whole page.', 'simple-bangla' ),
+			'default'     => '#fbf4e2',
+		),
 		'bg'         => array(
 			'var'         => '--sb-bg',
-			'label'       => __( 'Page background', 'simple-bangla' ),
-			'description' => __( 'The base background behind everything.', 'simple-bangla' ),
+			'label'       => __( 'Surface', 'simple-bangla' ),
+			'description' => __( 'Panels that sit on the page: dropdowns, the search field, the nav row.', 'simple-bangla' ),
 			'default'     => '#ffffff',
 		),
 		'bg_alt'     => array(
@@ -73,8 +79,8 @@ function simple_bangla_color_tokens() {
 		'footer_bg'  => array(
 			'var'         => '--sb-footer-bg',
 			'label'       => __( 'Footer background', 'simple-bangla' ),
-			'description' => __( 'Background of the site footer.', 'simple-bangla' ),
-			'default'     => '#ffffff',
+			'description' => __( 'Background of the site footer. The copyright bar below it stays black.', 'simple-bangla' ),
+			'default'     => '#fbf4e2',
 		),
 	);
 }

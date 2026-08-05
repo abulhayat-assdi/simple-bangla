@@ -199,18 +199,316 @@ function simple_bangla_demo_color( $image, $hue, $saturation, $lightness ) {
 }
 
 /**
+ * Which silhouette a category's placeholders are drawn with.
+ *
+ * @return array<string,string> Category slug => shape key.
+ */
+function simple_bangla_demo_shapes() {
+	return array(
+		'microphone'           => 'mic',
+		'airpods'              => 'earbuds',
+		'airpods-case'         => 'earbuds',
+		'power-bank'           => 'powerbank',
+		'smart-watch'          => 'watch',
+		'watch-strap'          => 'watch',
+		'headphone'            => 'headphone',
+		'bluetooth-headphones' => 'headphone',
+		'tws'                  => 'earbuds',
+		'neckband'             => 'neckband',
+		'mobile-charger'       => 'charger',
+		'cable'                => 'cable',
+		'bluetooth-speaker'    => 'speaker',
+		'rechargeable-fan'     => 'fan',
+		'lighting'             => 'ringlight',
+		'ring-light'           => 'ringlight',
+		'softbox'              => 'softbox',
+		'led-panel'            => 'softbox',
+		'tripods'              => 'tripod',
+		'selfie-stick'         => 'tripod',
+		'gimbal'               => 'tripod',
+		'phone-holder'         => 'phone',
+		'camera-accessories'   => 'camera',
+		'memory-card'          => 'memcard',
+		'camera-bag'           => 'bag',
+		'keyboard'             => 'keyboard',
+		'mouse'                => 'mouse',
+		'usb-hub'              => 'hub',
+		'trimmer'              => 'trimmer',
+		'hair-dryer'           => 'dryer',
+		'best-selling'         => 'speaker',
+		'gadgets'              => 'phone',
+		'computer-accessories' => 'keyboard',
+		'home-appliance'       => 'dryer',
+	);
+}
+
+/**
+ * Draw a filled rounded rectangle.
+ *
+ * GD has no primitive for this, and every silhouette below needs one.
+ *
+ * @param resource|GdImage $img    Target.
+ * @param int              $x1     Left.
+ * @param int              $y1     Top.
+ * @param int              $x2     Right.
+ * @param int              $y2     Bottom.
+ * @param int              $radius Corner radius.
+ * @param int              $color  Colour identifier.
+ */
+function simple_bangla_demo_rrect( $img, $x1, $y1, $x2, $y2, $radius, $color ) {
+
+	$radius = max( 0, min( $radius, (int) ( min( $x2 - $x1, $y2 - $y1 ) / 2 ) ) );
+
+	if ( ! $radius ) {
+		imagefilledrectangle( $img, $x1, $y1, $x2, $y2, $color );
+		return;
+	}
+
+	imagefilledrectangle( $img, $x1 + $radius, $y1, $x2 - $radius, $y2, $color );
+	imagefilledrectangle( $img, $x1, $y1 + $radius, $x2, $y2 - $radius, $color );
+
+	$d = $radius * 2;
+
+	imagefilledellipse( $img, $x1 + $radius, $y1 + $radius, $d, $d, $color );
+	imagefilledellipse( $img, $x2 - $radius, $y1 + $radius, $d, $d, $color );
+	imagefilledellipse( $img, $x1 + $radius, $y2 - $radius, $d, $d, $color );
+	imagefilledellipse( $img, $x2 - $radius, $y2 - $radius, $d, $d, $color );
+}
+
+/**
+ * Draw an annulus by punching a hole out of a disc.
+ *
+ * @param resource|GdImage $img       Target.
+ * @param int              $cx        Centre x.
+ * @param int              $cy        Centre y.
+ * @param int              $diameter  Outer diameter.
+ * @param int              $thickness Ring thickness.
+ * @param int              $color     Ring colour.
+ * @param int              $hole      Colour to punch the middle with.
+ */
+function simple_bangla_demo_ring( $img, $cx, $cy, $diameter, $thickness, $color, $hole ) {
+	imagefilledellipse( $img, $cx, $cy, $diameter, $diameter, $color );
+	imagefilledellipse( $img, $cx, $cy, max( 1, $diameter - $thickness * 2 ), max( 1, $diameter - $thickness * 2 ), $hole );
+}
+
+/**
+ * Draw one product silhouette, centred on the canvas.
+ *
+ * Coordinates are expressed against a 100-unit square and scaled, so every shape keeps its
+ * proportions at any canvas size.
+ *
+ * @param resource|GdImage $img    Target.
+ * @param string           $shape  Shape key from simple_bangla_demo_shapes().
+ * @param int              $size   Canvas edge.
+ * @param int              $body   Main colour.
+ * @param int              $accent Secondary colour.
+ * @param int              $paper  Background colour, used to punch holes.
+ */
+function simple_bangla_demo_draw( $img, $shape, $size, $body, $accent, $paper ) {
+
+	$u = function ( $n ) use ( $size ) {
+		return (int) round( $size * $n / 100 );
+	};
+
+	switch ( $shape ) {
+
+		case 'headphone':
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 52 ), $u( 62 ), $u( 7 ), $body, $paper );
+			// The band is an arc, so the lower half of the ring is painted back out.
+			imagefilledrectangle( $img, $u( 10 ), $u( 52 ), $u( 90 ), $u( 90 ), $paper );
+			simple_bangla_demo_rrect( $img, $u( 15 ), $u( 45 ), $u( 31 ), $u( 72 ), $u( 7 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 69 ), $u( 45 ), $u( 85 ), $u( 72 ), $u( 7 ), $accent );
+			break;
+
+		case 'earbuds':
+			simple_bangla_demo_rrect( $img, $u( 30 ), $u( 52 ), $u( 70 ), $u( 80 ), $u( 9 ), $body );
+			imagefilledellipse( $img, $u( 39 ), $u( 34 ), $u( 17 ), $u( 17 ), $accent );
+			imagefilledellipse( $img, $u( 61 ), $u( 34 ), $u( 17 ), $u( 17 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 36 ), $u( 34 ), $u( 42 ), $u( 50 ), $u( 3 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 58 ), $u( 34 ), $u( 64 ), $u( 50 ), $u( 3 ), $accent );
+			break;
+
+		case 'watch':
+			simple_bangla_demo_rrect( $img, $u( 40 ), $u( 12 ), $u( 60 ), $u( 34 ), $u( 5 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 40 ), $u( 66 ), $u( 60 ), $u( 88 ), $u( 5 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 32 ), $u( 30 ), $u( 68 ), $u( 70 ), $u( 11 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 38 ), $u( 36 ), $u( 62 ), $u( 64 ), $u( 8 ), $paper );
+			break;
+
+		case 'powerbank':
+			simple_bangla_demo_rrect( $img, $u( 33 ), $u( 18 ), $u( 67 ), $u( 82 ), $u( 8 ), $body );
+			for ( $i = 0; $i < 4; $i++ ) {
+				simple_bangla_demo_rrect( $img, $u( 40 ), $u( 30 + $i * 11 ), $u( 60 ), $u( 36 + $i * 11 ), $u( 2 ), $paper );
+			}
+			break;
+
+		case 'speaker':
+			simple_bangla_demo_rrect( $img, $u( 25 ), $u( 22 ), $u( 75 ), $u( 78 ), $u( 10 ), $body );
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 40 ), $u( 26 ), $u( 5 ), $accent, $body );
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 64 ), $u( 16 ), $u( 4 ), $accent, $body );
+			break;
+
+		case 'mic':
+			simple_bangla_demo_rrect( $img, $u( 41 ), $u( 14 ), $u( 59 ), $u( 52 ), $u( 9 ), $body );
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 50 ), $u( 40 ), $u( 5 ), $accent, $paper );
+			imagefilledrectangle( $img, $u( 26 ), $u( 20 ), $u( 74 ), $u( 50 ), $paper );
+			simple_bangla_demo_rrect( $img, $u( 41 ), $u( 14 ), $u( 59 ), $u( 52 ), $u( 9 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 47 ), $u( 62 ), $u( 53 ), $u( 80 ), $u( 2 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 34 ), $u( 80 ), $u( 66 ), $u( 86 ), $u( 3 ), $accent );
+			break;
+
+		case 'neckband':
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 46 ), $u( 60 ), $u( 6 ), $body, $paper );
+			imagefilledrectangle( $img, $u( 40 ), $u( 10 ), $u( 60 ), $u( 46 ), $paper );
+			imagefilledellipse( $img, $u( 22 ), $u( 62 ), $u( 14 ), $u( 14 ), $accent );
+			imagefilledellipse( $img, $u( 78 ), $u( 62 ), $u( 14 ), $u( 14 ), $accent );
+			break;
+
+		case 'charger':
+			simple_bangla_demo_rrect( $img, $u( 30 ), $u( 32 ), $u( 70 ), $u( 78 ), $u( 10 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 40 ), $u( 18 ), $u( 45 ), $u( 34 ), $u( 2 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 55 ), $u( 18 ), $u( 60 ), $u( 34 ), $u( 2 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 42 ), $u( 60 ), $u( 58 ), $u( 66 ), $u( 3 ), $paper );
+			break;
+
+		case 'cable':
+			simple_bangla_demo_rrect( $img, $u( 16 ), $u( 20 ), $u( 30 ), $u( 38 ), $u( 4 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 70 ), $u( 62 ), $u( 84 ), $u( 80 ), $u( 4 ), $accent );
+			imagesetthickness( $img, max( 2, $u( 5 ) ) );
+			imagearc( $img, $u( 50 ), $u( 50 ), $u( 56 ), $u( 56 ), 200, 20, $body );
+			imagesetthickness( $img, 1 );
+			break;
+
+		case 'fan':
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 46 ), $u( 62 ), $u( 5 ), $body, $paper );
+			for ( $i = 0; $i < 3; $i++ ) {
+				imagefilledarc( $img, $u( 50 ), $u( 46 ), $u( 48 ), $u( 48 ), $i * 120, $i * 120 + 72, $accent, IMG_ARC_PIE );
+			}
+			imagefilledellipse( $img, $u( 50 ), $u( 46 ), $u( 12 ), $u( 12 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 44 ), $u( 78 ), $u( 56 ), $u( 88 ), $u( 3 ), $body );
+			break;
+
+		case 'ringlight':
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 42 ), $u( 64 ), $u( 10 ), $body, $paper );
+			simple_bangla_demo_rrect( $img, $u( 47 ), $u( 72 ), $u( 53 ), $u( 88 ), $u( 2 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 34 ), $u( 86 ), $u( 66 ), $u( 92 ), $u( 3 ), $accent );
+			break;
+
+		case 'softbox':
+			imagefilledpolygon(
+				$img,
+				array( $u( 22 ), $u( 24 ), $u( 78 ), $u( 24 ), $u( 66 ), $u( 66 ), $u( 34 ), $u( 66 ) ),
+				$body
+			);
+			simple_bangla_demo_rrect( $img, $u( 47 ), $u( 66 ), $u( 53 ), $u( 88 ), $u( 2 ), $accent );
+			simple_bangla_demo_rrect( $img, $u( 34 ), $u( 86 ), $u( 66 ), $u( 92 ), $u( 3 ), $accent );
+			break;
+
+		case 'tripod':
+			simple_bangla_demo_rrect( $img, $u( 40 ), $u( 14 ), $u( 60 ), $u( 30 ), $u( 4 ), $body );
+			imagesetthickness( $img, max( 2, $u( 4 ) ) );
+			imageline( $img, $u( 50 ), $u( 30 ), $u( 24 ), $u( 86 ), $accent );
+			imageline( $img, $u( 50 ), $u( 30 ), $u( 76 ), $u( 86 ), $accent );
+			imageline( $img, $u( 50 ), $u( 30 ), $u( 50 ), $u( 80 ), $accent );
+			imagesetthickness( $img, 1 );
+			break;
+
+		case 'phone':
+			simple_bangla_demo_rrect( $img, $u( 34 ), $u( 12 ), $u( 66 ), $u( 76 ), $u( 7 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 39 ), $u( 19 ), $u( 61 ), $u( 68 ), $u( 3 ), $paper );
+			simple_bangla_demo_rrect( $img, $u( 38 ), $u( 76 ), $u( 62 ), $u( 90 ), $u( 5 ), $accent );
+			break;
+
+		case 'camera':
+			simple_bangla_demo_rrect( $img, $u( 20 ), $u( 32 ), $u( 80 ), $u( 76 ), $u( 8 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 36 ), $u( 24 ), $u( 56 ), $u( 34 ), $u( 3 ), $body );
+			simple_bangla_demo_ring( $img, $u( 50 ), $u( 55 ), $u( 30 ), $u( 6 ), $accent, $paper );
+			imagefilledellipse( $img, $u( 70 ), $u( 40 ), $u( 6 ), $u( 6 ), $accent );
+			break;
+
+		case 'memcard':
+			imagefilledpolygon(
+				$img,
+				array( $u( 34 ), $u( 20 ), $u( 60 ), $u( 20 ), $u( 68 ), $u( 30 ), $u( 68 ), $u( 80 ), $u( 34 ), $u( 80 ) ),
+				$body
+			);
+			for ( $i = 0; $i < 4; $i++ ) {
+				imagefilledrectangle( $img, $u( 39 + $i * 7 ), $u( 34 ), $u( 43 + $i * 7 ), $u( 50 ), $paper );
+			}
+			break;
+
+		case 'bag':
+			simple_bangla_demo_rrect( $img, $u( 22 ), $u( 38 ), $u( 78 ), $u( 82 ), $u( 8 ), $body );
+			imagesetthickness( $img, max( 2, $u( 5 ) ) );
+			imagearc( $img, $u( 50 ), $u( 40 ), $u( 34 ), $u( 34 ), 180, 360, $accent );
+			imagesetthickness( $img, 1 );
+			simple_bangla_demo_rrect( $img, $u( 22 ), $u( 54 ), $u( 78 ), $u( 60 ), 0, $accent );
+			break;
+
+		case 'keyboard':
+			simple_bangla_demo_rrect( $img, $u( 14 ), $u( 34 ), $u( 86 ), $u( 68 ), $u( 6 ), $body );
+			for ( $row = 0; $row < 3; $row++ ) {
+				for ( $col = 0; $col < 8; $col++ ) {
+					imagefilledrectangle( $img, $u( 20 + $col * 8 ), $u( 40 + $row * 8 ), $u( 25 + $col * 8 ), $u( 45 + $row * 8 ), $paper );
+				}
+			}
+			break;
+
+		case 'mouse':
+			simple_bangla_demo_rrect( $img, $u( 34 ), $u( 20 ), $u( 66 ), $u( 82 ), $u( 16 ), $body );
+			imagefilledrectangle( $img, $u( 49 ), $u( 22 ), $u( 51 ), $u( 44 ), $paper );
+			simple_bangla_demo_rrect( $img, $u( 47 ), $u( 34 ), $u( 53 ), $u( 46 ), $u( 3 ), $accent );
+			break;
+
+		case 'hub':
+			simple_bangla_demo_rrect( $img, $u( 18 ), $u( 40 ), $u( 82 ), $u( 62 ), $u( 6 ), $body );
+			for ( $i = 0; $i < 4; $i++ ) {
+				imagefilledrectangle( $img, $u( 26 + $i * 14 ), $u( 46 ), $u( 34 + $i * 14 ), $u( 52 ), $paper );
+			}
+			simple_bangla_demo_rrect( $img, $u( 46 ), $u( 20 ), $u( 54 ), $u( 40 ), $u( 2 ), $accent );
+			break;
+
+		case 'trimmer':
+			simple_bangla_demo_rrect( $img, $u( 42 ), $u( 26 ), $u( 58 ), $u( 84 ), $u( 6 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 38 ), $u( 14 ), $u( 62 ), $u( 26 ), $u( 3 ), $accent );
+			for ( $i = 0; $i < 5; $i++ ) {
+				imagefilledrectangle( $img, $u( 39 + $i * 5 ), $u( 10 ), $u( 41 + $i * 5 ), $u( 16 ), $accent );
+			}
+			simple_bangla_demo_rrect( $img, $u( 45 ), $u( 46 ), $u( 55 ), $u( 52 ), $u( 2 ), $paper );
+			break;
+
+		case 'dryer':
+			simple_bangla_demo_rrect( $img, $u( 24 ), $u( 24 ), $u( 70 ), $u( 52 ), $u( 14 ), $body );
+			simple_bangla_demo_rrect( $img, $u( 16 ), $u( 28 ), $u( 26 ), $u( 48 ), $u( 4 ), $accent );
+			imagefilledpolygon(
+				$img,
+				array( $u( 46 ), $u( 52 ), $u( 62 ), $u( 52 ), $u( 58 ), $u( 88 ), $u( 44 ), $u( 88 ) ),
+				$accent
+			);
+			break;
+
+		default:
+			simple_bangla_demo_rrect( $img, $u( 26 ), $u( 26 ), $u( 74 ), $u( 74 ), $u( 12 ), $body );
+			imagefilledellipse( $img, $u( 50 ), $u( 50 ), $u( 26 ), $u( 26 ), $accent );
+			break;
+	}
+}
+
+/**
  * Draw a placeholder product image and add it to the media library.
  *
- * The composition is a tinted field, a soft device silhouette and the product's initials —
- * enough visual difference between products that a grid of them reads as a real catalogue
- * rather than forty copies of the same grey box.
+ * Each category gets a recognisable silhouette — a watch for watches, a ring light for
+ * lighting — on a soft tinted field, with the hue derived from the product name so no two
+ * items in a row look identical. It is obviously artwork rather than photography, which is
+ * the point: it fills the layout honestly until real photos replace it.
  *
  * @param string $label    Product name.
  * @param string $filename Slug used for the file name.
  * @param int    $size     Square edge in pixels.
+ * @param string $shape    Shape key; falls back to a neutral device.
  * @return int Attachment ID, or 0 on failure.
  */
-function simple_bangla_demo_image( $label, $filename, $size = 800 ) {
+function simple_bangla_demo_image( $label, $filename, $size = 800, $shape = 'default' ) {
 
 	if ( ! simple_bangla_can_draw() ) {
 		return 0;
@@ -219,49 +517,18 @@ function simple_bangla_demo_image( $label, $filename, $size = 800 ) {
 	$image = imagecreatetruecolor( $size, $size );
 	$hue   = simple_bangla_demo_hue( $label );
 
-	$background = simple_bangla_demo_color( $image, $hue, 0.35, 0.93 );
-	$body       = simple_bangla_demo_color( $image, $hue, 0.45, 0.66 );
-	$accent     = simple_bangla_demo_color( $image, $hue, 0.55, 0.42 );
-	$ink        = imagecolorallocate( $image, 51, 51, 51 );
+	$paper  = simple_bangla_demo_color( $image, $hue, 0.30, 0.95 );
+	$panel  = imagecolorallocate( $image, 255, 255, 255 );
+	$body   = simple_bangla_demo_color( $image, $hue, 0.34, 0.52 );
+	$accent = simple_bangla_demo_color( $image, $hue, 0.45, 0.68 );
 
-	imagefilledrectangle( $image, 0, 0, $size, $size, $background );
+	imagefilledrectangle( $image, 0, 0, $size, $size, $paper );
 
-	// A large off-centre disc, then a rounded body over it: reads as an object without
-	// pretending to be a photograph of any particular product.
-	imagefilledellipse( $image, (int) ( $size * 0.68 ), (int) ( $size * 0.32 ), (int) ( $size * 0.46 ), (int) ( $size * 0.46 ), $accent );
+	// A white panel inset from the edge, so the silhouette reads as a product on a backdrop
+	// rather than a flat sticker filling the tile.
+	simple_bangla_demo_rrect( $image, (int) ( $size * 0.08 ), (int) ( $size * 0.08 ), (int) ( $size * 0.92 ), (int) ( $size * 0.92 ), (int) ( $size * 0.06 ), $panel );
 
-	$pad    = (int) ( $size * 0.26 );
-	$radius = (int) ( $size * 0.12 );
-
-	imagefilledrectangle( $image, $pad + $radius, $pad, $size - $pad - $radius, $size - $pad, $body );
-	imagefilledrectangle( $image, $pad, $pad + $radius, $size - $pad, $size - $pad - $radius, $body );
-
-	foreach ( array(
-		array( $pad + $radius, $pad + $radius ),
-		array( $size - $pad - $radius, $pad + $radius ),
-		array( $pad + $radius, $size - $pad - $radius ),
-		array( $size - $pad - $radius, $size - $pad - $radius ),
-	) as $corner ) {
-		imagefilledellipse( $image, $corner[0], $corner[1], $radius * 2, $radius * 2, $body );
-	}
-
-	// Initials, drawn small and scaled up — GD's built-in fonts top out around 15px, which
-	// would be invisible on an 800px canvas.
-	$initials = simple_bangla_demo_initials( $label );
-	$strip    = imagecreatetruecolor( 60, 20 );
-	$stripbg  = imagecolorallocate( $strip, 255, 255, 255 );
-	$striptx  = imagecolorallocate( $strip, 51, 51, 51 );
-
-	imagefilledrectangle( $strip, 0, 0, 60, 20, $stripbg );
-	imagecolortransparent( $strip, $stripbg );
-	imagestring( $strip, 5, (int) ( ( 60 - strlen( $initials ) * 9 ) / 2 ), 2, $initials, $striptx );
-
-	$target = (int) ( $size * 0.34 );
-	imagecopyresampled( $image, $strip, (int) ( ( $size - $target ) / 2 ), (int) ( $size * 0.42 ), 0, 0, $target, (int) ( $target / 3 ), 60, 20 );
-	imagedestroy( $strip );
-
-	// A thin baseline so the tile has a horizon and does not float.
-	imagefilledrectangle( $image, 0, $size - 6, $size, $size, $ink );
+	simple_bangla_demo_draw( $image, $shape, $size, $body, $accent, $panel );
 
 	return simple_bangla_demo_store_image( $image, $filename, $label );
 }
@@ -306,33 +573,6 @@ function simple_bangla_demo_banner( $label, $filename, $width, $height ) {
 	imagedestroy( $strip );
 
 	return simple_bangla_demo_store_image( $image, $filename, $label );
-}
-
-/**
- * The letters to stamp on a placeholder.
- *
- * @param string $label Product name.
- * @return string Two or three characters.
- */
-function simple_bangla_demo_initials( $label ) {
-
-	$words = preg_split( '/\s+/', trim( $label ) );
-	$out   = '';
-
-	foreach ( $words as $word ) {
-
-		if ( ! preg_match( '/^[A-Za-z]/', $word ) ) {
-			continue;
-		}
-
-		$out .= strtoupper( $word[0] );
-
-		if ( strlen( $out ) >= 3 ) {
-			break;
-		}
-	}
-
-	return $out ? $out : 'SB';
 }
 
 /**
@@ -461,7 +701,13 @@ function simple_bangla_run_demo_import() {
 		// Only top-level categories appear as homepage circles, so only they need artwork.
 		if ( ! $parent_slug ) {
 
-			$thumb = simple_bangla_demo_image( $name, 'sb-cat-' . $slug, 300 );
+			$shapes = simple_bangla_demo_shapes();
+			$thumb  = simple_bangla_demo_image(
+				$name,
+				'sb-cat-' . $slug,
+				300,
+				isset( $shapes[ $slug ] ) ? $shapes[ $slug ] : 'default'
+			);
 
 			if ( $thumb ) {
 				update_term_meta( $term_ids[ $slug ], 'thumbnail_id', $thumb );
@@ -534,7 +780,13 @@ function simple_bangla_run_demo_import() {
 		update_post_meta( $product_id, SIMPLE_BANGLA_DEMO_MARK, 1 );
 		$created['products']++;
 
-		$image_id = simple_bangla_demo_image( $name, 'sb-product-' . $slug );
+		$shapes   = simple_bangla_demo_shapes();
+		$image_id = simple_bangla_demo_image(
+			$name,
+			'sb-product-' . $slug,
+			800,
+			isset( $shapes[ $category ] ) ? $shapes[ $category ] : 'default'
+		);
 
 		if ( $image_id ) {
 			set_post_thumbnail( $product_id, $image_id );
@@ -550,6 +802,7 @@ function simple_bangla_run_demo_import() {
 		simple_bangla_demo_seed_best_selling( $term_ids['best-selling'] );
 	}
 
+	simple_bangla_demo_hero();
 	simple_bangla_demo_banners();
 	simple_bangla_demo_menus( $term_ids );
 	simple_bangla_demo_front_page();
@@ -585,6 +838,39 @@ function simple_bangla_demo_seed_best_selling( $term_id ) {
 
 	foreach ( $products as $product_id ) {
 		wp_set_object_terms( $product_id, array( (int) $term_id ), 'product_cat', true );
+	}
+}
+
+/**
+ * Generate and assign the hero carousel slides.
+ */
+function simple_bangla_demo_hero() {
+
+	$shop = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/' );
+
+	$slides = array(
+		'Student Combo Offer',
+		'Special Offer — 30% Off',
+		'New Arrivals This Week',
+	);
+
+	foreach ( $slides as $index => $label ) {
+
+		$slot = $index + 1;
+
+		if ( get_theme_mod( 'simple_bangla_hero_' . $slot . '_image' ) ) {
+			continue;
+		}
+
+		// 16:7, matching the aspect ratio the hero renders at on a desktop.
+		$image_id = simple_bangla_demo_banner( $label, 'sb-hero-' . $slot, 1400, 612 );
+
+		if ( ! $image_id ) {
+			continue;
+		}
+
+		set_theme_mod( 'simple_bangla_hero_' . $slot . '_image', $image_id );
+		set_theme_mod( 'simple_bangla_hero_' . $slot . '_link', $shop );
 	}
 }
 

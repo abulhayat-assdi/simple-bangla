@@ -319,6 +319,29 @@ favour of a single pass. Reinstate it for any future work unless told otherwise.
 - **Heading text and target category stay separate Customizer fields** — the reference site's
   wiring is broken and we are not reproducing the bug.
 - **Six product rows**, matching both the spec and the live site.
+
+## Reference measurements (2026-08-06)
+
+`WebFetch` gets a 403 from demarkt.com.bd, but **plain `curl` with a desktop User-Agent gets
+200**. Its Elementor stylesheets (`/wp-content/uploads/elementor/css/post-{15,202,286,308}.css`,
+plus inline blocks for the loop template) are readable, so these are measured, not guessed:
+
+| Thing | Value |
+|---|---|
+| Page background | `rgba(222,166,11,0.12)` over white → **`#FBF4E2`** warm cream |
+| Section heading | **Baskervville** 32px / 600 / uppercase / 1px tracking / `#000` |
+| "VIEW ALL" button | `#000` bg, 16px/500, uppercase, 2px border, 8px radius, 10px 12px padding; hover inverts |
+| Sale ribbon | `#F85606`, white **Lato** 16px/500, `border-radius: 10px 0 10px 0`, `left: 20px; top: 7px` |
+| Footer headings | **Raleway** 900 / 20px / capitalize / **underlined** / `#2D3134` |
+| Footer social circles | `#3C3A3A`, hover `#F5735A`; five of them — Facebook, Instagram, YouTube, Email, WhatsApp |
+| Copyright bar | full-bleed `#000` band, text `#808080`, centred |
+| Primary nav | `elementor-nav-menu--burger` at every width — no horizontal nav row at all |
+
+**Correction (2026-08-06):** an earlier pass concluded the homepage has no hero. That was
+wrong. The page opens with a two-column row — a narrow one-card Hot Deals slider on the left
+beside a wide banner carousel on the right. The single "carousel" found in the HTML was the
+left column; the hero images sit in Elementor slide backgrounds that the first scan missed.
+Confirmed from screenshots and rebuilt as `template-parts/home/hero.php`.
 - **Own vanilla product gallery** instead of WooCommerce's. The three `wc-product-gallery-*`
   theme supports are deliberately not declared, because they pull in jQuery, flexslider,
   photoswipe and zoom — about 90 KB of script to swap an image. Cost: no pinch-zoom lightbox.

@@ -148,19 +148,22 @@ function simple_bangla_whatsapp_url( $message = '' ) {
 }
 
 /**
- * The configured social profiles, in display order.
+ * The configured contact icons, in display order.
+ *
+ * Email and WhatsApp sit in the same row as the social profiles because that is how the
+ * reference footer arranges them — five circles, not three social ones plus a stray mailto.
  *
  * @return array<int,array{key:string,label:string,url:string}>
  */
 function simple_bangla_social_links() {
+
+	$links = array();
 
 	$networks = array(
 		'facebook'  => __( 'Facebook', 'simple-bangla' ),
 		'instagram' => __( 'Instagram', 'simple-bangla' ),
 		'youtube'   => __( 'YouTube', 'simple-bangla' ),
 	);
-
-	$links = array();
 
 	foreach ( $networks as $key => $label ) {
 
@@ -174,6 +177,26 @@ function simple_bangla_social_links() {
 			'key'   => $key,
 			'label' => $label,
 			'url'   => $url,
+		);
+	}
+
+	$email = simple_bangla_get_contact( 'email' );
+
+	if ( $email && is_email( $email ) ) {
+		$links[] = array(
+			'key'   => 'mail',
+			'label' => __( 'Email us', 'simple-bangla' ),
+			'url'   => 'mailto:' . $email,
+		);
+	}
+
+	$whatsapp = simple_bangla_whatsapp_url();
+
+	if ( $whatsapp ) {
+		$links[] = array(
+			'key'   => 'whatsapp',
+			'label' => __( 'WhatsApp', 'simple-bangla' ),
+			'url'   => $whatsapp,
 		);
 	}
 

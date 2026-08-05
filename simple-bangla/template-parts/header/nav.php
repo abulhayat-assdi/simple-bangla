@@ -2,7 +2,12 @@
 /**
  * The desktop navigation row.
  *
- * Hidden below 1024px, where template-parts/header/drawer.php takes over.
+ * Hybrid arrangement: the reference hides its whole menu behind a burger at every width, so
+ * the burger is reproduced here as an "All Categories" button that opens the same drawer.
+ * The mega menu stays beside it, because burying a shop's categories behind one extra click
+ * costs sales.
+ *
+ * Below 1024px this row is hidden and the drawer takes over on its own.
  *
  * @package Simple_Bangla
  */
@@ -12,18 +17,24 @@ defined( 'ABSPATH' ) || exit;
 <nav class="sb-nav" aria-label="<?php esc_attr_e( 'Primary', 'simple-bangla' ); ?>">
 	<div class="sb-container sb-nav__inner">
 
-		<?php simple_bangla_primary_menu(); ?>
+		<button
+			type="button"
+			class="sb-nav__categories"
+			aria-expanded="false"
+			aria-controls="sb-drawer"
+			data-sb-drawer-open
+		>
+			<?php simple_bangla_icon( 'menu', 20 ); ?>
+			<span><?php esc_html_e( 'All Categories', 'simple-bangla' ); ?></span>
+		</button>
 
 		<?php
-		$simple_bangla_phone = simple_bangla_get_contact( 'phone' );
-
-		if ( $simple_bangla_phone ) :
-			?>
-			<a class="sb-nav__hotline" href="<?php echo esc_url( 'tel:' . simple_bangla_tel_href( $simple_bangla_phone ) ); ?>">
-				<?php simple_bangla_icon( 'phone', 18 ); ?>
-				<span><?php echo esc_html( $simple_bangla_phone ); ?></span>
-			</a>
-		<?php endif; ?>
+		/*
+		 * No hotline here. The reference's nav strip carries nothing but the menu, and the
+		 * phone number already appears in the drawer, the footer and the mobile Call button.
+		 */
+		simple_bangla_primary_menu();
+		?>
 
 	</div>
 </nav>

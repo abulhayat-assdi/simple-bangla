@@ -1,0 +1,44 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/",
+  "preferredVersions": {
+    "php": "8.2",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "wordpress.org/plugins",
+        "slug": "woocommerce"
+      },
+      "options": { "activate": true }
+    },
+    {
+      "step": "activateTheme",
+      "themeFolderName": "simple-bangla"
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "blogname": "Simple Bangla",
+        "blogdescription": "Gadgets, delivered across Bangladesh",
+
+        "woocommerce_coming_soon": "no",
+        "woocommerce_store_pages_only": "no",
+        "woocommerce_private_link": "no",
+
+        "woocommerce_currency": "BDT",
+        "woocommerce_currency_pos": "left",
+        "woocommerce_price_thousand_sep": ",",
+        "woocommerce_price_decimal_sep": ".",
+        "woocommerce_price_num_decimals": "0",
+        "woocommerce_default_country": "BD:BD-13"
+      }
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; if ( function_exists( 'simple_bangla_run_demo_import' ) ) { simple_bangla_run_demo_import(); }"
+    }
+  ]
+}

@@ -2,6 +2,9 @@
 /**
  * The black logo bar: menu trigger, branding, product search, account and cart.
  *
+ * Account is icon-only and the cart sits in an outlined box showing the running total —
+ * both measured off the reference header rather than guessed.
+ *
  * @package Simple_Bangla
  */
 
@@ -15,6 +18,7 @@ defined( 'ABSPATH' ) || exit;
 			class="sb-header__burger"
 			aria-expanded="false"
 			aria-controls="sb-drawer"
+			data-sb-drawer-open
 		>
 			<?php simple_bangla_icon( 'menu' ); ?>
 			<span class="screen-reader-text"><?php esc_html_e( 'Open menu', 'simple-bangla' ); ?></span>
@@ -30,9 +34,9 @@ defined( 'ABSPATH' ) || exit;
 
 		<div class="sb-header__actions">
 
-			<a class="sb-header__action" href="<?php echo esc_url( simple_bangla_account_url() ); ?>">
-				<?php simple_bangla_icon( 'user' ); ?>
-				<span class="sb-header__action-label"><?php esc_html_e( 'Account', 'simple-bangla' ); ?></span>
+			<a class="sb-header__action sb-header__action--account" href="<?php echo esc_url( simple_bangla_account_url() ); ?>">
+				<?php simple_bangla_icon( 'user', 26 ); ?>
+				<span class="screen-reader-text"><?php esc_html_e( 'Account', 'simple-bangla' ); ?></span>
 			</a>
 
 			<?php simple_bangla_cart_link(); ?>

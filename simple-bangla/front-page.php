@@ -17,7 +17,7 @@ get_header();
 <main id="main" class="sb-home">
 
 	<?php
-	get_template_part( 'template-parts/home/hot-deals' );
+	get_template_part( 'template-parts/home/hero' );
 	get_template_part( 'template-parts/home/circles' );
 
 	/*

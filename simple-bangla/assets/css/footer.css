@@ -1,31 +1,55 @@
 /*
  * Simple Bangla — footer, mobile bottom bar and floating buttons.
  *
- * Loaded on every view.
+ * Loaded on every view. The measurements here come from the reference site's own stylesheet:
+ * column headings are Raleway 900 / 20px / underlined / #2D3134, the contact circles are
+ * #3C3A3A with a #F5735A hover, and the copyright sits in a full-bleed black bar.
  */
 
 .sb-footer {
 	margin-top: auto;
-	padding-block: var(--sb-space-6);
+	padding-top: var(--sb-space-6);
 	background: var(--sb-footer-bg);
-	border-top: 1px solid var(--sb-line);
 }
 
 /* ------------------------------------------------------------------ *
- * Brand row
+ * The one grid: brand · three link columns · map
  * ------------------------------------------------------------------ */
 
-.sb-footer__brand-row {
+.sb-footer__grid {
 	display: grid;
 	gap: var(--sb-space-5);
-	padding-bottom: var(--sb-space-5);
-	border-bottom: 1px solid var(--sb-line);
+	padding-bottom: var(--sb-space-6);
+}
+
+@media (min-width: 600px) {
+	.sb-footer__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1024px) {
+	.sb-footer__grid {
+		/* Brand and map both need more room than a link column. */
+		grid-template-columns: 1.5fr 1fr 1fr 1fr 1.4fr;
+		gap: var(--sb-space-6);
+	}
+}
+
+/* -- Brand cell -- */
+
+.sb-footer__brand {
+	display: grid;
+	justify-items: start;
+	gap: var(--sb-space-3);
+	align-content: start;
 }
 
 .sb-footer__site-name {
-	margin: 0 0 var(--sb-space-2);
+	margin: 0;
 	font-family: var(--sb-font-heading);
-	font-size: var(--sb-text-xl);
+	font-size: var(--sb-text-2xl);
+	line-height: 1.1;
 }
 
 .sb-footer__site-name a {
@@ -34,109 +58,88 @@
 }
 
 .sb-footer__brand .custom-logo {
-	max-height: 64px;
+	max-height: 72px;
 	width: auto;
-	margin-bottom: var(--sb-space-3);
 }
 
-.sb-footer__tagline {
-	margin: 0 0 var(--sb-space-2);
-	color: var(--sb-muted);
-	font-size: var(--sb-text-sm);
-	max-width: 44ch;
-}
-
+.sb-footer__contact-item,
 .sb-footer__address {
-	display: flex;
-	align-items: center;
-	gap: var(--sb-space-2);
-	margin: 0;
-	color: var(--sb-muted);
-	font-size: var(--sb-text-sm);
-}
-
-.sb-footer__contact {
-	display: grid;
-	gap: var(--sb-space-3);
-	align-content: start;
-}
-
-.sb-footer__contact-item {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--sb-space-2);
+	margin: 0;
 	color: var(--sb-ink);
-	font-size: var(--sb-text-sm);
+	font-size: var(--sb-text-base);
+	font-weight: 600;
 	text-decoration: none;
+}
+
+.sb-footer__address {
+	font-weight: 400;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-footer__contact-item:hover {
+	color: var(--sb-footer-accent);
 }
 
 .sb-footer__social {
 	display: flex;
+	flex-wrap: wrap;
 	gap: var(--sb-space-2);
 	list-style: none;
+	margin-top: var(--sb-space-1);
 }
 
 .sb-footer__social a {
 	display: grid;
 	place-items: center;
-	width: 38px;
-	height: 38px;
+	width: 42px;
+	height: 42px;
 	border-radius: var(--sb-radius-pill);
-	background: var(--sb-bg-alt);
-	color: var(--sb-ink);
-	transition: background-color var(--sb-transition), color var(--sb-transition);
+	background: var(--sb-footer-circle);
+	color: #ffffff;
+	transition: background-color var(--sb-transition);
 }
 
 .sb-footer__social a:hover,
 .sb-footer__social a:focus-visible {
-	background: var(--sb-brand);
-	color: var(--sb-on-brand);
+	background: var(--sb-footer-accent);
+	color: #ffffff;
 }
 
-@media (min-width: 768px) {
-	.sb-footer__brand-row {
-		grid-template-columns: minmax(0, 1fr) auto;
-		align-items: start;
-	}
-
-	.sb-footer__contact {
-		justify-items: end;
-	}
-}
-
-/* ------------------------------------------------------------------ *
- * Link columns
- * ------------------------------------------------------------------ */
-
-.sb-footer__columns {
-	display: grid;
-	gap: var(--sb-space-5);
-	padding-block: var(--sb-space-6);
-}
+/* -- Link columns -- */
 
 .sb-footer__heading {
-	margin-bottom: var(--sb-space-3);
-	font-family: var(--sb-font-heading);
-	font-size: var(--sb-text-lg);
-	color: #2d3134;
+	margin-bottom: var(--sb-space-4);
+	font-family: var(--sb-font-footer);
+	font-size: 20px;
+	font-weight: 900;
+	text-transform: capitalize;
+	text-decoration: underline;
+	text-underline-offset: 4px;
+	color: var(--sb-footer-ink);
 }
 
 .sb-footer__menu {
 	list-style: none;
 	display: grid;
-	gap: var(--sb-space-2);
-	font-size: var(--sb-text-sm);
+	gap: var(--sb-space-3);
+	font-size: var(--sb-text-base);
 }
 
 .sb-footer__menu a {
-	color: var(--sb-muted);
+	color: var(--sb-ink);
 	text-decoration: none;
 }
 
 .sb-footer__menu a:hover,
 .sb-footer__menu a:focus-visible {
-	color: var(--sb-ink);
+	color: var(--sb-footer-accent);
 }
+
+/* -- Map -- */
 
 .sb-footer__map {
 	aspect-ratio: 4 / 3;
@@ -151,26 +154,24 @@
 	border: 0;
 }
 
-.sb-footer__map-empty {
-	margin: 0;
+.sb-footer__map--empty {
+	display: grid;
+	place-content: center;
+	justify-items: center;
+	gap: var(--sb-space-2);
+	padding: var(--sb-space-4);
 	color: var(--sb-muted);
+	text-align: center;
+}
+
+.sb-footer__map--empty p {
+	margin: 0;
 	font-size: var(--sb-text-xs);
-}
-
-@media (min-width: 600px) {
-	.sb-footer__columns {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-}
-
-@media (min-width: 1024px) {
-	.sb-footer__columns {
-		grid-template-columns: repeat(3, minmax(0, 1fr)) 1.2fr;
-	}
+	max-width: 26ch;
 }
 
 /* ------------------------------------------------------------------ *
- * Payments and copyright
+ * Payments and the black copyright bar
  * ------------------------------------------------------------------ */
 
 .sb-footer__payments {
@@ -183,11 +184,15 @@
 	margin-inline: auto;
 }
 
+/* Full-bleed black band, exactly as the reference ends its page. */
+.sb-footer__bar {
+	background: #000000;
+}
+
 .sb-footer__copyright {
 	margin: 0;
-	padding-top: var(--sb-space-4);
-	border-top: 1px solid var(--sb-line);
-	color: var(--sb-muted);
+	padding-block: var(--sb-space-4);
+	color: #808080;
 	font-size: var(--sb-text-sm);
 	text-align: center;
 }

@@ -109,11 +109,21 @@
 	opacity: 0.85;
 }
 
-.sb-header__action-label {
-	display: none;
+/* -- Cart: an outlined box carrying the running total, as the reference has it -- */
+
+.sb-cart-link {
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-2) var(--sb-space-3);
+	border: 1px solid rgb(255 255 255 / 35%);
+	border-radius: var(--sb-radius-sm);
+	font-weight: 700;
+	transition: border-color var(--sb-transition);
 }
 
-/* -- Cart -- */
+.sb-cart-link:hover {
+	border-color: var(--sb-on-brand);
+	opacity: 1;
+}
 
 .sb-cart-link__icon {
 	position: relative;
@@ -122,17 +132,17 @@
 
 .sb-cart-link__count {
 	position: absolute;
-	top: -6px;
-	right: -8px;
-	min-width: 18px;
-	height: 18px;
+	top: -8px;
+	right: -9px;
+	min-width: 17px;
+	height: 17px;
 	padding-inline: 4px;
 	border-radius: var(--sb-radius-pill);
 	background: var(--sb-bg);
 	color: var(--sb-brand);
-	font-size: 11px;
+	font-size: 10px;
 	font-weight: 700;
-	line-height: 18px;
+	line-height: 17px;
 	text-align: center;
 }
 
@@ -141,19 +151,20 @@
 	display: none;
 }
 
-.sb-cart-link__total {
-	display: block;
-	font-weight: 700;
-}
-
 .sb-cart-link__total .woocommerce-Price-amount {
 	white-space: nowrap;
 }
 
-.sb-cart-link__word {
-	display: block;
-	opacity: 0.75;
-	font-size: var(--sb-text-xs);
+/* The total is the whole point of the box; on a narrow phone the icon alone will do. */
+@media (max-width: 479px) {
+	.sb-cart-link {
+		padding-inline: var(--sb-space-2);
+		gap: var(--sb-space-2);
+	}
+
+	.sb-cart-link__total {
+		display: none;
+	}
 }
 
 /* ------------------------------------------------------------------ *
@@ -244,8 +255,35 @@
 .sb-nav__inner {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	gap: var(--sb-space-4);
+}
+
+/*
+ * The reference's burger, kept as a labelled button. It opens the same drawer the phone
+ * layout uses, so the full three-level tree is one click away at every width.
+ */
+.sb-nav__categories {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	flex: 0 0 auto;
+	padding: var(--sb-space-2) var(--sb-space-4);
+	border: 0;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+	font-family: var(--sb-font-heading);
+	font-size: 0.9375rem;
+	white-space: nowrap;
+	transition: background-color var(--sb-transition);
+}
+
+.sb-nav__categories:hover {
+	background: var(--sb-brand-dark);
+}
+
+.sb-nav__list {
+	margin-right: auto;
 }
 
 .sb-nav__list {
@@ -286,17 +324,6 @@
 	color: inherit;
 }
 
-.sb-nav__hotline {
-	display: none;
-	align-items: center;
-	gap: var(--sb-space-2);
-	color: var(--sb-ink);
-	font-family: var(--sb-font-heading);
-	font-size: var(--sb-text-sm);
-	text-decoration: none;
-	white-space: nowrap;
-}
-
 /* -- Dropdown and mega panel -- */
 
 .sb-nav__sub {
@@ -307,10 +334,6 @@
 
 	.sb-nav {
 		display: block;
-	}
-
-	.sb-nav__hotline {
-		display: inline-flex;
 	}
 
 	.sb-header__burger {
@@ -328,12 +351,8 @@
 		justify-self: center;
 	}
 
-	.sb-header__action-label {
-		display: block;
-	}
-
 	/* The chevron only means anything where a panel can open. */
-	.sb-nav__item--has-children > .sb-nav__link::after {
+	.sb-nav .sb-nav__item--has-children > .sb-nav__link::after {
 		content: "";
 		width: 6px;
 		height: 6px;
@@ -343,7 +362,7 @@
 		transform: translateY(-2px) rotate(45deg);
 	}
 
-	.sb-nav__item--depth-0 > .sb-nav__sub {
+	.sb-nav .sb-nav__item--depth-0 > .sb-nav__sub {
 		position: absolute;
 		top: 100%;
 		left: 0;
@@ -364,23 +383,23 @@
 		transition: opacity var(--sb-transition), transform var(--sb-transition), visibility var(--sb-transition);
 	}
 
-	.sb-nav__item--depth-0:hover > .sb-nav__sub,
-	.sb-nav__item--depth-0:focus-within > .sb-nav__sub,
-	.sb-nav__item--depth-0 > .sb-nav__toggle[aria-expanded="true"] + .sb-nav__sub {
+	.sb-nav .sb-nav__item--depth-0:hover > .sb-nav__sub,
+	.sb-nav .sb-nav__item--depth-0:focus-within > .sb-nav__sub,
+	.sb-nav .sb-nav__item--depth-0 > .sb-nav__toggle[aria-expanded="true"] + .sb-nav__sub {
 		visibility: visible;
 		opacity: 1;
 		transform: none;
 	}
 
 	/* A branch with grandchildren becomes a column grid instead of a stacked list. */
-	.sb-nav__sub--mega {
+	.sb-nav .sb-nav__sub--mega {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 		gap: var(--sb-space-2) var(--sb-space-5);
 		min-width: min(760px, 90vw);
 	}
 
-	.sb-nav__sub .sb-nav__link {
+	.sb-nav .sb-nav__sub .sb-nav__link {
 		padding: var(--sb-space-2);
 		border-radius: var(--sb-radius-sm);
 		font-family: var(--sb-font-body);
@@ -388,47 +407,47 @@
 		white-space: normal;
 	}
 
-	.sb-nav__sub .sb-nav__link:hover,
-	.sb-nav__sub .sb-nav__link:focus-visible {
+	.sb-nav .sb-nav__sub .sb-nav__link:hover,
+	.sb-nav .sb-nav__sub .sb-nav__link:focus-visible {
 		background: var(--sb-bg-alt);
 	}
 
-	.sb-nav__sub .sb-nav__icon {
+	.sb-nav .sb-nav__sub .sb-nav__icon {
 		width: 20px;
 		height: 20px;
 	}
 
 	/* Inside a mega panel the second level is the column heading, not another dropdown. */
-	.sb-nav__sub--mega > .sb-nav__item > .sb-nav__link {
+	.sb-nav .sb-nav__sub--mega > .sb-nav__item > .sb-nav__link {
 		font-family: var(--sb-font-heading);
 		font-size: var(--sb-text-base);
 		color: var(--sb-ink);
 	}
 
-	.sb-nav__sub--mega > .sb-nav__item > .sb-nav__link::after {
+	.sb-nav .sb-nav__sub--mega > .sb-nav__item > .sb-nav__link::after {
 		content: none;
 	}
 
-	.sb-nav__sub--depth-2 {
+	.sb-nav .sb-nav__sub--depth-2 {
 		margin-left: var(--sb-space-2);
 		padding-left: var(--sb-space-2);
 		border-left: 1px solid var(--sb-line);
 	}
 
-	.sb-nav__sub--depth-2 .sb-nav__link {
+	.sb-nav .sb-nav__sub--depth-2 .sb-nav__link {
 		color: var(--sb-muted);
 	}
 
-	.sb-nav__sub--depth-2 .sb-nav__link:hover {
+	.sb-nav .sb-nav__sub--depth-2 .sb-nav__link:hover {
 		color: var(--sb-ink);
 	}
 
 	/* A third level inside a plain dropdown flies out sideways instead. */
-	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children {
+	.sb-nav .sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children {
 		position: relative;
 	}
 
-	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__sub {
+	.sb-nav .sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__sub {
 		position: absolute;
 		top: 0;
 		left: 100%;
@@ -444,8 +463,8 @@
 		transition: opacity var(--sb-transition), visibility var(--sb-transition);
 	}
 
-	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children:hover > .sb-nav__sub,
-	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children:focus-within > .sb-nav__sub {
+	.sb-nav .sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children:hover > .sb-nav__sub,
+	.sb-nav .sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children:focus-within > .sb-nav__sub {
 		visibility: visible;
 		opacity: 1;
 	}
@@ -608,12 +627,10 @@
 	text-decoration: none;
 }
 
-/* The drawer is a mobile affordance; a wide viewport already has the full nav row. */
-@media (min-width: 1024px) {
-	.sb-drawer {
-		display: none;
-	}
-}
+/*
+ * The drawer is reachable at every width: the burger on phones, the "All Categories" button
+ * on desktop. It is only ever in the DOM once, so both triggers drive the same panel.
+ */
 
 /* Stop the page behind the drawer from scrolling with it. */
 body.sb-drawer-open {
