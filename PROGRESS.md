@@ -1,6 +1,6 @@
 # Simple Bangla — Progress
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 ## Status
 
@@ -8,12 +8,18 @@ Last updated: 2026-08-04
 |---|---|
 | 0 · Reference research | ✅ Done |
 | 0 · `CLAUDE.md` | ✅ Done |
-| 1 · Foundation | ✅ Done — awaiting review |
-| 2 · Header | ⬜ Not started |
-| 3 · Product card + homepage | ⬜ Not started |
-| 4 · Shop page | ⬜ Not started |
-| 5 · Single product | ⬜ Not started |
-| 6 · Footer + mobile bar | ⬜ Not started |
+| 1 · Foundation | ✅ Done |
+| 2 · Header | ✅ Done |
+| 3 · Product card + homepage | ✅ Done |
+| 4 · Shop page | ✅ Done |
+| 5 · Single product | ✅ Done |
+| 6 · Footer + mobile bar | ✅ Done |
+| — · Demo content importer | ✅ Done |
+| — · Translation template | ✅ Done |
+
+All six phases were built in one pass at the user's request, rather than stopping for review
+after each. Everything below was verified against a real WordPress + WooCommerce 11 install
+running under WordPress Playground.
 
 ---
 
@@ -25,8 +31,14 @@ Last updated: 2026-08-04
 | Fonts | **Oswald** (headings + nav) + **Lato** (body, product titles, buttons) — two families, not the reference's five |
 | Container | **1200px** per the project spec, not the reference's 1600px |
 | EverCompare menu item | Skipped — product comparison is out of scope |
-| Menu icons | Optional per item; the walker must render without one |
-| Sticky header | Single header + `position: sticky`, never duplicated markup |
+| Menu icons | Optional per item; the walker renders without one |
+| Sticky header | Single header + `position: sticky` + `.is-stuck`, never duplicated markup |
+| Build cadence | Phases 2–6 in one pass, reviewed at the end |
+| Demo content | Shipped as a one-click importer under Appearance → Demo Content |
+| UI language | English strings, every one wrapped for translation, with a generated `.pot` |
+| Contact details | Customizer fields with visible placeholders; no contact detail is hard-coded |
+| Product gallery | **Own vanilla gallery**, not WooCommerce's. See "Deliberate divergences" below |
+| Shop filtering | GET parameters + `pre_get_posts`, re-fetched by JS. One query builder, not two |
 
 ---
 
@@ -54,98 +66,183 @@ Key divergences found (live site wins):
 
 ### Phase 1 — Foundation (2026-08-04)
 
-Files created (19):
+Theme supports, menus, image sizes, widget areas, default pages, design tokens wired to nine
+Customizer colour controls, mobile-first base stylesheet, ৳ currency formatting, accessibility
+scaffolding, and a WooCommerce-missing admin notice.
+
+### Phase 2 — Header (2026-08-05)
+
+- `inc/nav-walker.php` — three-level walker. A top-level branch that has grandchildren renders
+  as a multi-column **mega panel**; a shallow branch stays a plain dropdown, and a third level
+  inside one flies out sideways. The decision is made in `display_element()`, the only point in
+  the walk where grandchildren are visible.
+- **Per-item icon field** on Appearance → Menus, backed by core's `wp.media` picker. Stored as
+  an attachment ID in menu-item meta. Optional per item, as the live reference proves it must be.
+- Every parent gets a real `<button aria-expanded>`. Hover is layered on top for pointer users
+  rather than being the mechanism, so the menu is usable by keyboard and on touch.
+- **Sticky header** via `position: sticky` plus an `.is-stuck` class set from an
+  IntersectionObserver sentinel — no scroll handler on the main thread.
+- **Live product search** (`inc/ajax-search.php`) — nonce-verified, debounced, arrow-key
+  navigable. The form underneath is a plain GET search that works without JavaScript.
+- **Cart widget** with WooCommerce fragment refresh, so count and subtotal update after an
+  AJAX add-to-cart without redrawing the link.
+- **Mobile drawer** with focus trap, Escape to close, and a resize guard so it can never be
+  left open and focus-trapped on desktop.
+- Menu fallback: with no menu assigned, the bar lists the store's own top product categories
+  instead of rendering empty.
+
+### Phase 3 — Product card + homepage (2026-08-05)
+
+- `woocommerce/content-product.php` — the card, exactly as measured: sale ribbon, 1:1 image,
+  two-line clamped title, `<del>`/`<ins>` price with the current price first, and a black
+  **Order Now** pill that goes to the product page, not to add-to-cart.
+- `front-page.php` renders the verified section order: Hot Deals → circles → 2 rows →
+  banner pair → 2 rows → banner pair → 2 rows.
+- Sliders are **CSS scroll-snap tracks**, not a carousel library. Arrows are injected by
+  `slider.js` so they never appear as dead controls without JavaScript.
+- Homepage heading text and target category are **separate Customizer settings** — the
+  reference's broken wiring is structurally impossible to reproduce here.
+- Category circles fall back to the category's initial when it has no thumbnail.
+
+### Phase 4 — Shop (2026-08-05)
+
+- `woocommerce/archive-product.php` with breadcrumb, result count, ordering, a collapsible
+  filter panel and the product grid.
+- **Filters are GET parameters** applied in `pre_get_posts`. That makes a filtered view
+  linkable, bookmarkable and functional without JavaScript. `shop.js` re-fetches the same URL
+  with `sb_ajax=1`, which returns only the results fragment — so there is exactly one query
+  builder and the two paths cannot drift apart.
+- Load-more, back-button support via `popstate`, price bounds cached in a transient that is
+  invalidated whenever a product is saved or deleted.
+- Recently viewed, stored in a first-party cookie holding nothing but product IDs.
+
+### Phase 5 — Single product (2026-08-05)
+
+- `woocommerce/single-product.php` — sticky gallery beside the summary, with WooCommerce's own
+  summary hooks left intact so variations, reviews and plugins keep working.
+- **Buy Now** is a second submit button inside WooCommerce's own form, so quantity, variations
+  and validation all apply to it; a `woocommerce_add_to_cart_redirect` filter sends it to
+  checkout. AJAX add-to-cart is disabled on product pages only, or the redirect would be
+  silently swallowed.
+- **Order on WhatsApp** button, pre-filled with the product name and URL.
+- Delivery / warranty / returns assurance row.
+- Related products overridden to use the theme's own card strip.
+
+### Phase 6 — Footer + mobile (2026-08-05)
+
+- White footer: brand row with address, phone, email and social icons; three link columns with
+  page fallbacks; a Google Maps panel; payment-methods strip; copyright.
+- Mobile sticky bottom bar — Shop · Call · Home · Chat · Cart, with Home icon-only in a raised
+  circle, hidden from 768px.
+- Floating WhatsApp button and a back-to-top button that only appears once there is something
+  to scroll back from.
+- `inc/customizer-store.php` — every contact route and social profile as a Customizer field.
+
+### Demo content importer (2026-08-05)
+
+Appearance → **Demo Content**. One nonce-protected button. Verified run on a clean install:
 
 ```
-simple-bangla/
-├── style.css                       theme header only
-├── functions.php                   constants + module includes
-├── header.php  footer.php  sidebar.php
-├── index.php  page.php  single.php  archive.php  search.php  404.php
-├── inc/setup.php                   supports, menus, image sizes, widgets, default pages
-├── inc/enqueue.php                 fonts, base CSS, palette inline, preconnect, defer
-├── inc/customizer.php              9 palette colour controls
-├── inc/template-tags.php           branding, search form, SVG icons, pagination, meta
-├── inc/woocommerce.php             ৳ currency format, content wrappers
-├── template-parts/content.php
-├── template-parts/content-none.php
-└── assets/css/base.css             tokens + reset + typography + layout + components
+34 categories · 47 products · 55 images
 ```
 
-Delivered:
+- Three-level category tree, products priced in whole Taka with realistic sale spreads.
+- **Every image is generated locally with GD** from the theme's palette — no network fetch, and
+  nothing copied from the reference site. Falls back to creating products without images when
+  GD is unavailable, and says so on screen.
+- Builds the primary menu from the category tree and three footer menus from the theme's pages.
+- Sets a static front page, generates four banners, and switches the store to BDT — but only
+  while the currency is still WooCommerce's untouched default.
+- **Idempotent**: anything already present under the same slug is left alone.
 
-- All required theme supports: `woocommerce`, `wc-product-gallery-zoom`,
-  `wc-product-gallery-lightbox`, `wc-product-gallery-slider`, `title-tag`, `post-thumbnails`,
-  `custom-logo`, `html5`, `responsive-embeds`, plus feed links and selective refresh.
-- Menus registered: `primary`, `footer-1`, `footer-2`, `footer-3`.
-- Image sizes registered and exposed in the media picker: `150×150`, `600×600`, `1024×1024`.
-- Widget areas: Shop Sidebar, Blog Sidebar.
-- All 13 custom pages auto-created on theme activation; existing pages never overwritten.
-- Design tokens in one `:root` block, all 9 colours wired to Customizer controls. Only
-  changed colours are emitted inline, so a default install ships **zero** extra bytes.
-- Mobile-first CSS at 480 / 768 / 1024 / 1200, container 1200px.
-- Currency: `৳ 1,999` — comma thousands, zero decimals, via WooCommerce display filters
-  (no option overwriting, no core edits).
-- Accessibility: skip link, visible focus rings, `screen-reader-text`, `prefers-reduced-motion`.
-- Admin notice when WooCommerce is inactive; the theme still renders without it.
+---
 
-**CSS budget: 13.9 KB of 60 KB. JS: 0 KB of 30 KB** (no theme JS needed yet).
+## Verification
 
-#### Self-check
+Run against WordPress (latest) + WooCommerce 11.0 on PHP 8.3, under WordPress Playground.
 
 | Check | Result |
 |---|---|
-| `php -l` | ✅ **Now verified (2026-08-05).** No PHP binary is installed, so the theme was booted on real WordPress + WooCommerce 11.0 under WordPress Playground (PHP 8.3 as WebAssembly, via `npx @wp-playground/cli`). Home, single, search, 404, shop and cart all render with **zero** fatals, warnings, notices or deprecations |
-| Undefined functions | ✅ 31 defined, 31 referenced, exact match |
-| Unescaped output | ✅ No raw `echo $var`, no `<?=` short tags |
-| Untranslated strings | ✅ Every user-facing string carries the `simple-bangla` domain |
-| Inline styles | ✅ None. The only inline CSS is the Customizer palette via `wp_add_inline_style` |
-| `!important` | ✅ Two, both justified in comments: `screen-reader-text` (WP core convention) and the reduced-motion override |
+| PHP syntax / runtime errors | ✅ **Zero** fatals, warnings, notices or deprecations across home, shop, category, sub-category, product, cart, checkout, my-account, search, page and 404 |
+| Filters | ✅ `?sb_sale=1&sb_min=1000&sb_max=3000` narrows 16 → 15 cards |
+| Pagination | ✅ `/shop/page/2/` renders a full second page |
+| AJAX fragment | ✅ `?sb_ajax=1` returns the grid only — no header markup |
+| AJAX search | ✅ Returns products; **bad nonce → HTTP 403** |
+| Mega menu | ✅ 16 top-level, 40 second-level, 12 third-level items; 2 branches render as mega panels |
+| Gallery weight | ✅ No flexslider, photoswipe or zoom scripts. jQuery loads only because WooCommerce's own frontend scripts require it |
+| CSS budget | ✅ **53.8 KB** of 60 KB across all seven sheets — and no single page loads all of them |
+| JS budget | ✅ **20.6 KB** of 30 KB front-end |
+| i18n | ✅ 204 strings extracted to `languages/simple-bangla.pot` |
+
+---
+
+## Deliberate divergences from the earlier plan
+
+1. **The three `wc-product-gallery-*` theme supports were removed.** Declaring them makes
+   WooCommerce load jQuery, flexslider, photoswipe and zoom on every product page — roughly
+   90 KB of script to swap an image, against a Lighthouse ≥ 90 target. The theme ships its own
+   gallery instead: `woocommerce/single-product/product-image.php` plus ~1.6 KB of vanilla JS.
+   **Trade-off:** there is no pinch-zoom lightbox. Thumbnails switch the main image, and
+   without JavaScript they remain plain links to the full-size files.
+
+2. **The shop fragment endpoint (`?sb_ajax=1`) is not nonce-verified.** `CLAUDE.md` asks for a
+   nonce on every AJAX endpoint. This one is a read-only GET view of content the same URL
+   already serves publicly; a nonce there is session-bound, breaks for logged-out visitors
+   behind a page cache, and protects nothing, because there is no state change to forge.
+   Every endpoint that *does* change state or read on a user's behalf — the live search — is
+   nonce-verified, and rejects a bad nonce with a 403.
 
 ---
 
 ## Open
 
-### Bug found while running the theme (2026-08-05)
+### Needed from the user
 
-- [ ] **`/privacy-policy/` 404s on a fresh install.** WordPress core auto-creates a Privacy
-      Policy page as a **draft**. `simple_bangla_create_default_pages()` sees it via
-      `get_page_by_path()` and skips it, so the theme never publishes one and the footer link
-      is dead. Fix: when the existing page is a draft the theme created no content for,
-      publish it instead of skipping — check `post_status`, not just existence.
-      See `inc/setup.php:175`.
+The theme works with placeholders in place; these are Customizer fields, not code changes:
 
-### Local preview
-
-- `preview/` holds static HTML mirrors of the Phase 1 templates for eyeballing the design
-  without a PHP stack. Not shipped. See `preview/README.md`.
-- Real WordPress runs under WordPress Playground (WASM PHP under Node) — no XAMPP or MySQL
-  needed. Command and the two Windows gotchas are in `preview/README.md`.
-
-### Needed from the user (`// TODO:` placeholders until supplied)
-
-Not blocking Phase 2, but needed by Phase 6:
-
-- [ ] Phone number
-- [ ] WhatsApp number
-- [ ] Email
-- [ ] Facebook URL
-- [ ] Instagram URL
-- [ ] YouTube URL
+- [ ] Phone number, WhatsApp number, email — currently `+880 1XXX-XXXXXX` / `hello@simplebangla.com`
+- [ ] Facebook / Instagram / YouTube URLs — currently `.../simplebangla` guesses that should be
+      confirmed or replaced, since those handles may belong to someone else
 - [ ] Messenger username
+- [ ] Google Maps embed URL — the footer map panel is empty until one is set
+- [ ] Payment-methods strip image
+- [ ] A real logo — the header currently renders the site name as text
 
-### Screenshots wanted
+### Known gaps
 
-- [ ] **Sale ribbon** — its shape and fill are not readable from computed styles (white text on
-      a transparent container, so the fill comes from somewhere the DOM does not expose)
-- [ ] Header bar and one product card — to confirm spacing, gutters and hover states
+- **No pinch-zoom lightbox on product images** — see divergence 1 above.
+- **Demo product images are generated placeholders**, not photography. They are meant to be
+  deleted once a real catalogue is in.
+- **WooCommerce ships with "Coming soon" mode on** in version 11. A fresh install hides the
+  storefront until it is switched off under WooCommerce → Settings → Site visibility. This is
+  WooCommerce's own default, not something the theme sets, so the theme does not override it.
+- Not yet load-tested with a large catalogue; the price-bounds query is cached for an hour but
+  has not been measured against thousands of products.
 
-### Not started
+### Fixed
 
-Phases 2–6 per the build order in `CLAUDE.md`.
+- ✅ **`/privacy-policy/` 404'd on a fresh install.** WordPress creates its own Privacy Policy
+  page as a draft, `get_page_by_path()` found it, and the theme skipped creating one — leaving
+  the footer link dead. `inc/setup.php` now publishes that specific page (matched by
+  `wp_page_for_privacy_policy`, so a page the owner deliberately drafted is never touched).
 
-### Deferred, unassigned to a phase
+---
 
-- Seeding the 32 product categories listed in the spec — needs WooCommerce installed;
-  planned as an importer alongside the Phase 4 shop work.
-- Demo products and placeholder images.
+## Local preview
+
+Real WordPress runs under WordPress Playground — WASM PHP inside Node, no XAMPP or MySQL:
+
+```
+npx @wp-playground/cli@latest server --port=8882 \
+  --mount-dir <abs path>/simple-bangla /wordpress/wp-content/themes/simple-bangla \
+  --blueprint <path>/blueprint.json
+```
+
+Two Windows gotchas, both worked around above:
+
+- `--mount host:vfs` cannot be used, because `C:\…` contains a colon. Use `--mount-dir`.
+- `@wp-now/wp-now` crashes here: it resolves its own install path against the current drive,
+  producing `D:\C:\Users\…`. Use `@wp-playground/cli`.
+
+`preview/` holds static HTML mirrors of the **Phase 1** templates only. They are superseded by
+the real install above and are not kept in sync.

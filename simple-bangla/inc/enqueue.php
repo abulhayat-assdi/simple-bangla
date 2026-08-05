@@ -86,7 +86,60 @@ function simple_bangla_fonts_url() {
 }
 
 /**
+ * Is the current request a WooCommerce archive that renders product cards?
+ *
+ * @return bool
+ */
+function simple_bangla_is_product_listing() {
+
+	if ( ! function_exists( 'is_shop' ) ) {
+		return false;
+	}
+
+	return is_shop() || is_product_category() || is_product_tag() || is_product_taxonomy();
+}
+
+/**
+ * Register one theme stylesheet.
+ *
+ * Every sheet depends on the base one, so the cascade order is declared rather than
+ * accidental — tokens and the reset always land first.
+ *
+ * @param string $handle   Handle suffix, e.g. 'header'.
+ * @param string $filename File under assets/css/.
+ */
+function simple_bangla_enqueue_style( $handle, $filename ) {
+
+	wp_enqueue_style(
+		'simple-bangla-' . $handle,
+		SIMPLE_BANGLA_URI . 'assets/css/' . $filename,
+		array( 'simple-bangla-base' ),
+		simple_bangla_asset_version( 'assets/css/' . $filename )
+	);
+}
+
+/**
+ * Register one theme script.
+ *
+ * @param string $handle   Handle suffix, e.g. 'header'.
+ * @param string $filename File under assets/js/.
+ */
+function simple_bangla_enqueue_script( $handle, $filename ) {
+
+	wp_enqueue_script(
+		'simple-bangla-' . $handle,
+		SIMPLE_BANGLA_URI . 'assets/js/' . $filename,
+		array(),
+		simple_bangla_asset_version( 'assets/js/' . $filename ),
+		true
+	);
+}
+
+/**
  * Enqueue front-end styles and scripts.
+ *
+ * Sheets and scripts are split by view so a shopper on a product page never downloads the
+ * homepage slider or the shop filter code. Only base, header and footer are unconditional.
  */
 function simple_bangla_enqueue_assets() {
 
@@ -110,6 +163,78 @@ function simple_bangla_enqueue_assets() {
 	if ( $palette ) {
 		wp_add_inline_style( 'simple-bangla-base', $palette );
 	}
+
+	simple_bangla_enqueue_style( 'header', 'header.css' );
+	simple_bangla_enqueue_style( 'footer', 'footer.css' );
+
+	$is_listing = simple_bangla_is_product_listing();
+	$is_product = function_exists( 'is_product' ) && is_product();
+	$is_home    = is_front_page();
+
+	// The card appears on the homepage rows, every archive, search results and the
+	// "related products" strip, so its sheet follows all four.
+	if ( $is_home || $is_listing || $is_product || is_search() ) {
+		simple_bangla_enqueue_style( 'card', 'card.css' );
+	}
+
+	if ( $is_home ) {
+		simple_bangla_enqueue_style( 'home', 'home.css' );
+	}
+
+	// Strips appear on the homepage rows, under a product (related + recently viewed) and
+	// under the shop archive (recently viewed), so the arrows follow all three.
+	if ( $is_home || $is_product || $is_listing ) {
+		simple_bangla_enqueue_script( 'slider', 'slider.js' );
+		wp_localize_script(
+			'simple-bangla-slider',
+			'simpleBanglaSlider',
+			array(
+				'i18n' => array(
+					'prev' => __( 'Previous products', 'simple-bangla' ),
+					'next' => __( 'Next products', 'simple-bangla' ),
+				),
+			)
+		);
+	}
+
+	if ( $is_listing ) {
+		simple_bangla_enqueue_style( 'shop', 'shop.css' );
+		simple_bangla_enqueue_script( 'shop', 'shop.js' );
+		wp_localize_script(
+			'simple-bangla-shop',
+			'simpleBanglaShop',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'simple_bangla_filter' ),
+				'i18n'    => array(
+					'loading' => __( 'Loading…', 'simple-bangla' ),
+					'noMore'  => __( 'That is everything.', 'simple-bangla' ),
+					'error'   => __( 'Something went wrong. Please try again.', 'simple-bangla' ),
+				),
+			)
+		);
+	}
+
+	if ( $is_product ) {
+		simple_bangla_enqueue_style( 'product', 'product.css' );
+		simple_bangla_enqueue_script( 'product', 'product.js' );
+	}
+
+	simple_bangla_enqueue_script( 'header', 'header.js' );
+	wp_localize_script(
+		'simple-bangla-header',
+		'simpleBanglaHeader',
+		array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'simple_bangla_search' ),
+			'i18n'    => array(
+				'noResults' => __( 'No products matched.', 'simple-bangla' ),
+				'viewAll'   => __( 'See all results', 'simple-bangla' ),
+			),
+		)
+	);
+
+	simple_bangla_enqueue_script( 'ui', 'ui.js' );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );

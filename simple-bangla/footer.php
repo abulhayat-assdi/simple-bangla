@@ -2,8 +2,8 @@
 /**
  * Site footer.
  *
- * Phase 1 baseline only. Phase 6 replaces the inner blocks with the four-column footer,
- * the payment strip, the scroll-to-top button, the mobile sticky bar and the WhatsApp float.
+ * White background with dark headings, matching the reference — a dark footer would fight the
+ * black header bar for weight at opposite ends of the page.
  *
  * @package Simple_Bangla
  */
@@ -12,40 +12,33 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 	<footer id="colophon" class="sb-footer">
+
+		<?php get_template_part( 'template-parts/footer/brand' ); ?>
+		<?php get_template_part( 'template-parts/footer/columns' ); ?>
+
+		<?php
+		$simple_bangla_payment = (int) get_theme_mod( 'simple_bangla_payment_strip', 0 );
+
+		if ( $simple_bangla_payment ) :
+			?>
+			<div class="sb-container sb-footer__payments">
+				<?php
+				echo wp_kses_post(
+					wp_get_attachment_image(
+						$simple_bangla_payment,
+						'large',
+						false,
+						array(
+							'alt'     => esc_attr__( 'Accepted payment methods', 'simple-bangla' ),
+							'loading' => 'lazy',
+						)
+					)
+				);
+				?>
+			</div>
+		<?php endif; ?>
+
 		<div class="sb-container">
-
-			<?php if ( has_nav_menu( 'footer-1' ) || has_nav_menu( 'footer-2' ) || has_nav_menu( 'footer-3' ) ) : ?>
-				<div class="sb-footer__columns">
-					<?php
-					$simple_bangla_footer_menus = array(
-						'footer-1' => __( 'Simple Bangla', 'simple-bangla' ),
-						'footer-2' => __( 'Helps', 'simple-bangla' ),
-						'footer-3' => __( 'Customer Service', 'simple-bangla' ),
-					);
-
-					foreach ( $simple_bangla_footer_menus as $simple_bangla_location => $simple_bangla_heading ) :
-
-						if ( ! has_nav_menu( $simple_bangla_location ) ) {
-							continue;
-						}
-						?>
-						<div class="sb-footer__column">
-							<h2 class="sb-footer__heading"><?php echo esc_html( $simple_bangla_heading ); ?></h2>
-							<?php
-							wp_nav_menu(
-								array(
-									'theme_location' => $simple_bangla_location,
-									'container'      => false,
-									'menu_class'     => 'sb-footer__menu',
-									'depth'          => 1,
-								)
-							);
-							?>
-						</div>
-					<?php endforeach; ?>
-				</div>
-			<?php endif; ?>
-
 			<p class="sb-footer__copyright">
 				<?php
 				printf(
@@ -58,9 +51,12 @@ defined( 'ABSPATH' ) || exit;
 				);
 				?>
 			</p>
-
 		</div>
+
 	</footer>
+
+	<?php get_template_part( 'template-parts/footer/floats' ); ?>
+	<?php get_template_part( 'template-parts/footer/mobile-bar' ); ?>
 
 </div><!-- #page -->
 

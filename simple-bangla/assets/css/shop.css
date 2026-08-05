@@ -1,0 +1,232 @@
+/*
+ * Simple Bangla — shop and product category archives.
+ *
+ * The cards themselves live in card.css. This sheet is the frame around them: breadcrumb,
+ * toolbar, filter panel and the load-more control.
+ */
+
+.sb-shop {
+	padding-block: var(--sb-space-5) var(--sb-space-7);
+}
+
+/* -- Breadcrumb -- */
+
+.sb-breadcrumb {
+	margin-bottom: var(--sb-space-4);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-breadcrumb a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.sb-breadcrumb a:hover {
+	color: var(--sb-ink);
+}
+
+.sb-breadcrumb__sep {
+	margin-inline: var(--sb-space-2);
+	opacity: 0.5;
+}
+
+/* -- Layout -- */
+
+.sb-shop__layout {
+	display: grid;
+	gap: var(--sb-space-5);
+	align-items: start;
+}
+
+.sb-shop__main {
+	min-width: 0;
+}
+
+/* -- Toolbar -- */
+
+.sb-shop__toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--sb-space-3);
+	margin-bottom: var(--sb-space-4);
+	padding-bottom: var(--sb-space-3);
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-shop__toolbar .woocommerce-result-count {
+	margin: 0;
+	margin-right: auto;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-shop__toolbar .woocommerce-ordering {
+	margin: 0;
+}
+
+.sb-shop__toolbar select {
+	padding: var(--sb-space-2) var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg);
+	font-size: var(--sb-text-sm);
+}
+
+/* -- Filter panel -- */
+
+/*
+ * Visible by default so the filters are usable with scripting off. shop.js announces itself
+ * with .js-sb-shop, and only then does the panel collapse behind its toggle on small screens.
+ */
+.sb-shop__filter-toggle {
+	display: none;
+}
+
+.js-sb-shop .sb-shop__filter-toggle {
+	display: inline-flex;
+}
+
+.js-sb-shop .sb-shop__sidebar {
+	display: none;
+}
+
+.js-sb-shop .sb-shop__sidebar.is-open {
+	display: block;
+	padding: var(--sb-space-4);
+	border-radius: var(--sb-radius);
+	background: var(--sb-bg-alt);
+}
+
+.sb-filters__group + .sb-filters__group,
+.sb-filters__actions {
+	margin-top: var(--sb-space-4);
+}
+
+.sb-filters__title {
+	margin-bottom: var(--sb-space-2);
+	font-size: var(--sb-text-base);
+}
+
+.sb-filters__range {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+}
+
+.sb-filters__range input {
+	width: 100%;
+	min-width: 0;
+	padding: var(--sb-space-2);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-filters__dash {
+	color: var(--sb-muted);
+}
+
+.sb-filters__hint {
+	margin: var(--sb-space-2) 0 0;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+}
+
+.sb-filters__check {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	font-size: var(--sb-text-sm);
+	cursor: pointer;
+}
+
+.sb-filters__actions {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+}
+
+.sb-filters__clear {
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-filters__cats {
+	margin-top: var(--sb-space-6);
+}
+
+.sb-filters__cats a {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+}
+
+.sb-filters__cats a[aria-current] {
+	font-weight: 700;
+}
+
+.sb-filters__count {
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+}
+
+/* -- Results -- */
+
+.sb-shop__results[aria-busy="true"] {
+	opacity: 0.5;
+	transition: opacity var(--sb-transition);
+}
+
+.sb-shop__more {
+	display: flex;
+	justify-content: center;
+	margin-top: var(--sb-space-6);
+}
+
+.sb-shop__more--done {
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-shop__error {
+	margin-top: var(--sb-space-4);
+	color: var(--sb-sale);
+	font-size: var(--sb-text-sm);
+	text-align: center;
+}
+
+/*
+ * Once the numbered pagination has a JS-driven "load more" above it, showing both is
+ * duplicated navigation. It stays in the DOM for crawlers and no-JS visitors, and is only
+ * hidden when the script has actually taken over.
+ */
+.js-sb-shop .sb-shop__pagination {
+	display: none;
+}
+
+@media (min-width: 1024px) {
+
+	.sb-shop__layout {
+		grid-template-columns: 260px minmax(0, 1fr);
+		gap: var(--sb-space-6);
+	}
+
+	/* At this width the panel is a permanent column, so its toggle is meaningless. */
+	.sb-shop__sidebar,
+	.js-sb-shop .sb-shop__sidebar,
+	.js-sb-shop .sb-shop__sidebar.is-open {
+		display: block;
+		position: sticky;
+		top: 140px;
+		padding: 0;
+		background: none;
+	}
+
+	.sb-shop__filter-toggle,
+	.js-sb-shop .sb-shop__filter-toggle {
+		display: none;
+	}
+}

@@ -55,30 +55,13 @@ function simple_bangla_format_price( $amount ) {
 	return get_woocommerce_currency_symbol() . ' ' . number_format( (float) $amount, 0, '.', ',' );
 }
 
-/**
- * Remove WooCommerce's default page wrappers.
- *
- * The theme supplies its own container in woocommerce/ and the header/footer templates,
- * so the stock <div id="primary"> would nest a second, conflicting layout.
+/*
+ * The theme overrides archive-product.php and single-product.php outright and supplies its own
+ * containers there, so WooCommerce's <div id="primary"> wrapper is never wanted. These removals
+ * are belt-and-braces for any WooCommerce template the theme has not overridden.
  */
 remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
 remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
-
-/**
- * Open the theme's own WooCommerce content wrapper.
- */
-function simple_bangla_wrapper_start() {
-	echo '<div class="sb-container sb-shop"><main id="main" class="sb-shop__main">';
-}
-add_action( 'woocommerce_before_main_content', 'simple_bangla_wrapper_start', 10 );
-
-/**
- * Close the theme's WooCommerce content wrapper.
- */
-function simple_bangla_wrapper_end() {
-	echo '</main></div>';
-}
-add_action( 'woocommerce_after_main_content', 'simple_bangla_wrapper_end', 10 );
 
 /**
  * Hide the stock WooCommerce sidebar.
@@ -87,3 +70,168 @@ add_action( 'woocommerce_after_main_content', 'simple_bangla_wrapper_end', 10 );
  * panel and the widget area share one collapsible container on mobile.
  */
 remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
+
+/**
+ * How many products a shop or category page lists before paginating.
+ *
+ * @return int
+ */
+function simple_bangla_products_per_page() {
+	return 16;
+}
+add_filter( 'loop_shop_per_page', 'simple_bangla_products_per_page', 20 );
+
+/**
+ * Columns per row in the product loop.
+ *
+ * The number is only advisory — the grid is CSS, not columns markup — but WooCommerce uses it
+ * for the shortcode and for the related-products count, so it should agree with the stylesheet.
+ *
+ * @return int
+ */
+function simple_bangla_loop_columns() {
+	return 4;
+}
+add_filter( 'loop_shop_columns', 'simple_bangla_loop_columns' );
+
+/*
+ * The theme's gallery draws its own sale ribbon, so WooCommerce's floating .onsale span would
+ * be a second badge in the same corner.
+ */
+remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10 );
+
+/**
+ * Add a Buy Now button beside Add to Cart.
+ *
+ * It is a second submit inside WooCommerce's own form, not a separate link, so variations,
+ * quantity and validation all apply to it exactly as they do to Add to Cart. The only
+ * difference is where the shopper lands afterwards.
+ */
+function simple_bangla_buy_now_button() {
+
+	global $product;
+
+	// A product that has to be configured elsewhere cannot be bought in one step.
+	if ( ! $product || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		return;
+	}
+
+	printf(
+		'<button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-btn--ghost sb-buy-now">%s</button>',
+		esc_html__( 'Buy Now', 'simple-bangla' )
+	);
+}
+add_action( 'woocommerce_after_add_to_cart_button', 'simple_bangla_buy_now_button', 20 );
+
+/**
+ * Send a Buy Now purchase straight to checkout.
+ *
+ * @param string $url Where WooCommerce intended to send the shopper.
+ * @return string
+ */
+function simple_bangla_buy_now_redirect( $url ) {
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WooCommerce has already
+	// validated this add-to-cart request; this only reads which button submitted it.
+	if ( empty( $_REQUEST['sb_buy_now'] ) ) {
+		return $url;
+	}
+
+	return wc_get_checkout_url();
+}
+add_filter( 'woocommerce_add_to_cart_redirect', 'simple_bangla_buy_now_redirect' );
+
+/**
+ * Buy Now has to be a real form round trip, not an AJAX add.
+ *
+ * WooCommerce's AJAX add-to-cart intercepts the button and stays on the page, which would
+ * silently swallow the redirect. Disabling AJAX add-to-cart on single product pages only
+ * leaves the archive behaviour untouched — and the archive card links to the product anyway.
+ *
+ * @param bool $enabled Whether AJAX adding is on.
+ * @return bool
+ */
+function simple_bangla_disable_ajax_add_to_cart( $enabled ) {
+	return is_product() ? false : $enabled;
+}
+add_filter( 'woocommerce_is_ajax_add_to_cart_enabled', 'simple_bangla_disable_ajax_add_to_cart' );
+
+/**
+ * Offer WhatsApp as an ordering route under the add-to-cart form.
+ *
+ * Ordering over WhatsApp is how a large share of Bangladeshi storefronts actually take orders,
+ * so the message is pre-filled with the product name and its URL.
+ */
+function simple_bangla_whatsapp_order_button() {
+
+	global $product;
+
+	if ( ! $product ) {
+		return;
+	}
+
+	$url = simple_bangla_whatsapp_url(
+		sprintf(
+			/* translators: 1: product name, 2: product URL. */
+			__( 'Hello! I would like to order: %1$s (%2$s)', 'simple-bangla' ),
+			$product->get_name(),
+			$product->get_permalink()
+		)
+	);
+
+	if ( ! $url ) {
+		return;
+	}
+
+	printf(
+		'<a class="sb-btn sb-whatsapp-order" href="%1$s" target="_blank" rel="noopener">%2$s<span>%3$s</span></a>',
+		esc_url( $url ),
+		// wp_kses_post() strips <svg> and <path> outright, so the theme's own icon markup is
+		// echoed as-is. It contains no dynamic input.
+		simple_bangla_get_icon( 'whatsapp', 20 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		esc_html__( 'Order on WhatsApp', 'simple-bangla' )
+	);
+}
+add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_whatsapp_order_button', 20 );
+
+/**
+ * Show the breadcrumb the theme's own templates render, with the theme's markup.
+ *
+ * @param array $args Existing breadcrumb arguments.
+ * @return array
+ */
+function simple_bangla_breadcrumb_args( $args ) {
+
+	$args['delimiter']   = '<span class="sb-breadcrumb__sep" aria-hidden="true">/</span>';
+	$args['wrap_before'] = '<nav class="sb-breadcrumb" aria-label="' . esc_attr__( 'Breadcrumb', 'simple-bangla' ) . '">';
+	$args['wrap_after']  = '</nav>';
+	$args['before']      = '';
+	$args['after']       = '';
+
+	return $args;
+}
+add_filter( 'woocommerce_breadcrumb_defaults', 'simple_bangla_breadcrumb_args' );
+
+/**
+ * Keep the header cart link in sync after an AJAX add-to-cart.
+ *
+ * WooCommerce replaces each matched selector's outerHTML with the string we return, so both
+ * callbacks have to re-render the same element they are keyed on — hence the output buffering
+ * around the template tags rather than a bespoke second copy of the markup.
+ *
+ * @param array $fragments Selector => markup.
+ * @return array
+ */
+function simple_bangla_cart_fragments( $fragments ) {
+
+	ob_start();
+	simple_bangla_cart_count();
+	$fragments['.sb-cart-link__count'] = ob_get_clean();
+
+	ob_start();
+	simple_bangla_cart_total();
+	$fragments['.sb-cart-link__total'] = ob_get_clean();
+
+	return $fragments;
+}
+add_filter( 'woocommerce_add_to_cart_fragments', 'simple_bangla_cart_fragments' );

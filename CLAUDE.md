@@ -52,31 +52,44 @@ to them.
 
 ## File structure
 
+As built (59 files):
+
 ```
 simple-bangla/
-├── style.css                     theme header + import order only
+├── style.css                     theme header only
 ├── functions.php                 constants, includes
 ├── index.php  header.php  footer.php  sidebar.php
 ├── front-page.php                homepage section builder
 ├── page.php  single.php  archive.php  search.php  404.php
 ├── inc/
-│   ├── setup.php                 theme supports, menus, image sizes
-│   ├── enqueue.php               css/js registration
-│   ├── customizer.php            all theme options
-│   ├── nav-walker.php            3-level mega menu walker + icon field
-│   ├── woocommerce.php           hooks, Buy Now handler, cart fragments
-│   ├── ajax-filter.php           shop page filtering
-│   └── template-tags.php         reusable render helpers
+│   ├── setup.php                 theme supports, menus, image sizes, default pages
+│   ├── enqueue.php               per-view css/js registration
+│   ├── customizer.php            colour palette
+│   ├── customizer-store.php      contact routes, socials, map, payment strip
+│   ├── customizer-home.php       homepage rows, banners, circles
+│   ├── nav-walker.php            3-level mega menu walker + per-item icon field
+│   ├── template-tags.php         reusable render helpers, icon set, product loops
+│   ├── ajax-search.php           live product search endpoint
+│   ├── ajax-filter.php           shop filtering + the sb_ajax fragment
+│   ├── recently-viewed.php       cookie-backed recently viewed strip
+│   ├── woocommerce.php           currency, Buy Now, WhatsApp, cart fragments
+│   └── demo-content.php          one-click demo importer + GD image generator
 ├── woocommerce/
 │   ├── archive-product.php
 │   ├── single-product.php
 │   ├── content-product.php       ← the product card
-│   └── single-product/…
+│   └── single-product/           product-image.php · related.php
 ├── template-parts/
-│   ├── header/…
-│   ├── home/…
-│   └── footer/…
-└── assets/  css/  js/  images/
+│   ├── header/                   bar.php · nav.php · drawer.php
+│   ├── home/                     hot-deals · circles · product-row · banner-pair
+│   ├── shop/                     filters.php · results.php
+│   ├── product/                  assurances.php
+│   ├── footer/                   brand · columns · mobile-bar · floats
+│   └── content.php  content-none.php
+├── languages/simple-bangla.pot   204 strings
+└── assets/
+    ├── css/   base · header · footer · card · home · shop · product   (53.8 KB)
+    └── js/    header · slider · shop · product · ui   (20.6 KB) + admin-menu-icon
 ```
 
 ---
@@ -284,14 +297,18 @@ One `:root` block, every token wired to a Customizer colour control.
 
 ## Build order
 
-One phase at a time. **Stop for feedback after each.**
+All six phases are **complete** as of 2026-08-05. See `PROGRESS.md` for what each one shipped
+and how it was verified.
 
-1. **Foundation** — scaffold, theme supports, menus, image sizes, tokens, base CSS
-2. **Header** — mega menu walker + icon field, sticky, AJAX search, cart widget, hamburger
-3. **Product card + homepage** — card, `front-page.php`, Hot Deals slider, circles, banners
-4. **Shop** — AJAX filters, infinite scroll, recently viewed
-5. **Single product** — gallery, Buy Now handler, WhatsApp button, tabs, related
-6. **Footer + mobile** — 4-column footer, payment strip, scroll-to-top, bottom bar, WhatsApp float
+1. ~~**Foundation**~~ — scaffold, theme supports, menus, image sizes, tokens, base CSS
+2. ~~**Header**~~ — mega menu walker + icon field, sticky, AJAX search, cart widget, hamburger
+3. ~~**Product card + homepage**~~ — card, `front-page.php`, Hot Deals slider, circles, banners
+4. ~~**Shop**~~ — filters, load more, recently viewed
+5. ~~**Single product**~~ — gallery, Buy Now handler, WhatsApp button, tabs, related
+6. ~~**Footer + mobile**~~ — 4-column footer, payment strip, scroll-to-top, bottom bar, WhatsApp float
+
+The "stop for feedback after each phase" rule was **lifted by the user on 2026-08-05** in
+favour of a single pass. Reinstate it for any future work unless told otherwise.
 
 ## Decisions log
 
@@ -302,3 +319,31 @@ One phase at a time. **Stop for feedback after each.**
 - **Heading text and target category stay separate Customizer fields** — the reference site's
   wiring is broken and we are not reproducing the bug.
 - **Six product rows**, matching both the spec and the live site.
+- **Own vanilla product gallery** instead of WooCommerce's. The three `wc-product-gallery-*`
+  theme supports are deliberately not declared, because they pull in jQuery, flexslider,
+  photoswipe and zoom — about 90 KB of script to swap an image. Cost: no pinch-zoom lightbox.
+- **Shop filters are GET parameters applied in `pre_get_posts`**, and the AJAX path re-fetches
+  the same URL rather than calling a second query builder. One source of truth; filtered views
+  stay linkable and work without JavaScript.
+- **The `?sb_ajax=1` shop fragment carries no nonce.** It is a read-only GET view of already
+  public content, so there is nothing to forge; a nonce there would only break page caching for
+  logged-out shoppers. Every state-changing or user-scoped endpoint is still nonce-verified.
+- **Demo images are generated with GD at import time**, never fetched and never copied from the
+  reference site.
+
+## Local development
+
+No PHP, MySQL, XAMPP or Docker is installed on this machine. Use WordPress Playground — WASM
+PHP inside Node:
+
+```
+npx @wp-playground/cli@latest server --port=8882 \
+  --mount-dir <abs>/simple-bangla /wordpress/wp-content/themes/simple-bangla \
+  --blueprint <path>/blueprint.json
+```
+
+- Use `--mount-dir`, not `--mount host:vfs` — a Windows path contains a colon.
+- Do **not** use `@wp-now/wp-now`; it resolves its install path against the current drive and
+  crashes with `D:\C:\Users\…`.
+- WooCommerce 11 ships with **Coming soon mode on**. Turn it off under
+  WooCommerce → Settings → Site visibility or the storefront renders as a placeholder page.

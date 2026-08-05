@@ -48,14 +48,13 @@ function simple_bangla_setup() {
 	/*
 	 * WooCommerce.
 	 *
-	 * The gallery supports below are what turn the single-product images into a zoomable,
-	 * swipeable lightbox gallery. They are declared here (not in inc/woocommerce.php) because
-	 * add_theme_support() is harmless without WooCommerce and this keeps all supports in one place.
+	 * The three wc-product-gallery-* supports are deliberately NOT declared. Turning them on
+	 * makes WooCommerce load jQuery, flexslider, photoswipe and zoom on every product page —
+	 * roughly 90 KB of script to swap an image. The theme ships its own gallery instead
+	 * (woocommerce/single-product/product-image.php plus assets/js/product.js), which is a
+	 * few hundred bytes of vanilla JS and degrades to a plain list of images without it.
 	 */
 	add_theme_support( 'woocommerce' );
-	add_theme_support( 'wc-product-gallery-zoom' );
-	add_theme_support( 'wc-product-gallery-lightbox' );
-	add_theme_support( 'wc-product-gallery-slider' );
 
 	register_nav_menus(
 		array(
@@ -170,9 +169,32 @@ function simple_bangla_default_pages() {
  */
 function simple_bangla_create_default_pages() {
 
+	$privacy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+
 	foreach ( simple_bangla_default_pages() as $slug => $title ) {
 
-		if ( get_page_by_path( $slug ) ) {
+		$existing = get_page_by_path( $slug );
+
+		if ( $existing ) {
+
+			/*
+			 * WordPress creates its own Privacy Policy page as a draft. get_page_by_path()
+			 * finds it, so the theme used to skip creating one — and the footer link 404'd on
+			 * every fresh install. Publishing that specific page fixes it without ever
+			 * touching a page the store owner has deliberately left unpublished.
+			 */
+			if (
+				$existing->ID === $privacy_page_id
+				&& in_array( $existing->post_status, array( 'draft', 'auto-draft' ), true )
+			) {
+				wp_update_post(
+					array(
+						'ID'          => $existing->ID,
+						'post_status' => 'publish',
+					)
+				);
+			}
+
 			continue;
 		}
 

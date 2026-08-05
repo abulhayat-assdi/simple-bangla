@@ -68,6 +68,22 @@
 	--sb-radius-pill: 999px;
 
 	--sb-transition: 150ms ease;
+
+	/*
+	 * Elevation. The cards themselves are deliberately flat, matching the reference; these are
+	 * only for things that float above the page — dropdowns, the drawer, the stuck header.
+	 */
+	--sb-shadow: 0 4px 16px rgb(0 0 0 / 8%);
+	--sb-shadow-lg: 0 12px 32px rgb(0 0 0 / 14%);
+
+	/*
+	 * Stacking order, declared in one place so a new floating element never has to guess.
+	 * Header sits under its own dropdowns but over page content; the drawer covers everything.
+	 */
+	--sb-z-header: 100;
+	--sb-z-dropdown: 110;
+	--sb-z-float: 120;
+	--sb-z-drawer: 200;
 }
 
 @media (min-width: 768px) {
@@ -318,78 +334,51 @@ small,
 	font-size: var(--sb-text-xs);
 }
 
-/* -- Header (Phase 1 baseline; Phase 2 replaces this block) -- */
-
-.sb-header__bar {
-	background: var(--sb-brand);
-	color: var(--sb-on-brand);
-}
-
-.sb-header__inner {
+.sb-btn--block {
 	display: flex;
-	flex-wrap: wrap;
+	width: 100%;
+}
+
+.sb-btn[disabled],
+.sb-btn.is-busy {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+/* -- Section heading, shared by the homepage rows and the shop -- */
+
+.sb-section-head {
+	display: flex;
 	align-items: center;
-	gap: var(--sb-space-3);
-	padding-block: var(--sb-space-3);
+	justify-content: space-between;
+	gap: var(--sb-space-4);
+	margin-bottom: var(--sb-space-4);
 }
 
-.sb-header__brand {
-	flex: 0 0 auto;
-	margin-right: auto;
-}
-
-.sb-site-title {
+.sb-section-head__title {
 	margin: 0;
 	font-family: var(--sb-font-heading);
-	font-size: var(--sb-text-xl);
+	font-size: var(--sb-text-lg);
+	font-weight: 400;
+	color: var(--sb-muted);
+}
+
+.sb-section-head__link {
+	flex: 0 0 auto;
+	padding: var(--sb-space-1) var(--sb-space-3);
+	border: 2px solid var(--sb-bg);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-brand);
 	color: var(--sb-on-brand);
-}
-
-.sb-site-title a {
+	font-size: var(--sb-text-xs);
 	text-decoration: none;
-	color: inherit;
+	white-space: nowrap;
 }
 
-.sb-header__brand .custom-logo {
-	max-height: 44px;
-	width: auto;
-}
-
-/* Search drops to its own full-width row on phones, where it needs the space most. */
-.sb-header__search {
-	order: 3;
-	flex: 1 0 100%;
-}
-
-.sb-header__actions {
-	display: flex;
-	align-items: center;
-	gap: var(--sb-space-4);
-}
-
-.sb-header__action {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--sb-space-2);
+.sb-section-head__link:hover,
+.sb-section-head__link:focus-visible {
+	background: var(--sb-brand-dark);
 	color: var(--sb-on-brand);
-	text-decoration: none;
-	font-size: var(--sb-text-sm);
-}
-
-.sb-header__action-label {
-	display: none;
-}
-
-@media (min-width: 768px) {
-	.sb-header__search {
-		order: 0;
-		flex: 1 1 auto;
-		max-width: 520px;
-	}
-
-	.sb-header__action-label {
-		display: inline;
-	}
 }
 
 /* -- Search form -- */
@@ -430,32 +419,6 @@ small,
 	border: 0;
 	background: var(--sb-brand);
 	color: var(--sb-on-brand);
-}
-
-/* -- Primary nav (Phase 1 baseline) -- */
-
-.sb-nav {
-	border-bottom: 1px solid var(--sb-line);
-	background: var(--sb-bg);
-}
-
-.sb-nav__list {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--sb-space-4);
-	list-style: none;
-	padding-block: var(--sb-space-3);
-	font-family: var(--sb-font-heading);
-	font-size: 0.9375rem; /* 15px, matching the reference nav */
-}
-
-.sb-nav__list a {
-	text-decoration: none;
-}
-
-/* Sub-levels are unstyled until the Phase 2 mega menu lands; hide them so the bar stays readable. */
-.sb-nav__list .sub-menu {
-	display: none;
 }
 
 /* -- Entries -- */

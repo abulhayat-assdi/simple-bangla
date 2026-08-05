@@ -27,7 +27,12 @@ define( 'SIMPLE_BANGLA_URI', trailingslashit( get_template_directory_uri() ) );
 require_once SIMPLE_BANGLA_DIR . 'inc/setup.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/enqueue.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/customizer.php';
+require_once SIMPLE_BANGLA_DIR . 'inc/customizer-store.php';
+require_once SIMPLE_BANGLA_DIR . 'inc/customizer-home.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/template-tags.php';
+require_once SIMPLE_BANGLA_DIR . 'inc/nav-walker.php';
+require_once SIMPLE_BANGLA_DIR . 'inc/ajax-search.php';
+require_once SIMPLE_BANGLA_DIR . 'inc/demo-content.php';
 
 /**
  * WooCommerce-specific code is only loaded when WooCommerce is actually active.
@@ -37,4 +42,6 @@ require_once SIMPLE_BANGLA_DIR . 'inc/template-tags.php';
  */
 if ( class_exists( 'WooCommerce' ) ) {
 	require_once SIMPLE_BANGLA_DIR . 'inc/woocommerce.php';
+	require_once SIMPLE_BANGLA_DIR . 'inc/recently-viewed.php';
+	require_once SIMPLE_BANGLA_DIR . 'inc/ajax-filter.php';
 }

@@ -1,0 +1,863 @@
+# Copyright (C) 2026 Simple Bangla
+# This file is distributed under the GNU General Public License v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Simple Bangla 1.0.0\n"
+"Report-Msgid-Bugs-To: https://simplebangla.com/\n"
+"POT-Creation-Date: 2026-08-05 16:53+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: simple-bangla\n"
+
+#: 404.php:21
+msgid "This page has moved on"
+msgstr ""
+
+#: 404.php:23
+msgid "The link may be out of date, or the product may have sold out. Try a search, or head back to the shop."
+msgstr ""
+
+#: 404.php:29
+msgid "Back to home"
+msgstr ""
+
+#: 404.php:33
+msgid "Browse the shop"
+msgstr ""
+
+#: footer.php:32
+msgid "Accepted payment methods"
+msgstr ""
+
+#. translators: 1: current year, 2: site name.
+#: footer.php:46
+msgid "© %1$s %2$s. All rights reserved."
+msgstr ""
+
+#: front-page.php:52
+msgid "Activate WooCommerce to fill this homepage with your products."
+msgstr ""
+
+#: header.php:27
+msgid "Skip to content"
+msgstr ""
+
+#: inc/customizer-home.php:32
+msgid "Best Selling"
+msgstr ""
+
+#: inc/customizer-home.php:36
+msgid "Microphone"
+msgstr ""
+
+#: inc/customizer-home.php:40
+msgid "Smart Watch"
+msgstr ""
+
+#: inc/customizer-home.php:44
+msgid "Headphone"
+msgstr ""
+
+#: inc/customizer-home.php:48
+msgid "Power Bank"
+msgstr ""
+
+#: inc/customizer-home.php:52
+msgid "Gadgets"
+msgstr ""
+
+#: inc/customizer-home.php:65
+msgid "— Any category —"
+msgstr ""
+
+#: inc/customizer-home.php:160
+msgid "Homepage sections"
+msgstr ""
+
+#: inc/customizer-home.php:161
+msgid "The homepage renders in a fixed order: Hot Deals, category circles, two product rows, a banner pair, two more rows, a second banner pair, then the last two rows."
+msgstr ""
+
+#: inc/customizer-home.php:187 template-parts/home/hot-deals.php:25 woocommerce/content-product.php:40 woocommerce/single-product/product-image.php:25
+msgid "Hot Deals"
+msgstr ""
+
+#: inc/customizer-home.php:190
+msgid "Hot Deals — heading"
+msgstr ""
+
+#: inc/customizer-home.php:200
+msgid "Hot Deals — how many products"
+msgstr ""
+
+#: inc/customizer-home.php:201
+msgid "Only products that are actually on sale appear here."
+msgstr ""
+
+#: inc/customizer-home.php:217
+msgid "Category circles — how many"
+msgstr ""
+
+#: inc/customizer-home.php:218
+msgid "Top-level product categories, shown as circular thumbnails."
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/customizer-home.php:239
+msgid "Row %d — show this row"
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/customizer-home.php:250
+msgid "Row %d — heading"
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/customizer-home.php:261
+msgid "Row %d — category"
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/customizer-home.php:262
+msgid "The heading above and the category here are separate on purpose. Set both."
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/customizer-home.php:274
+msgid "Row %d — how many products"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/customizer-home.php:309
+msgid "Banner pair %d — narrow image"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/customizer-home.php:311
+msgid "Banner pair %d — wide image"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/customizer-home.php:325
+msgid "Banner pair %d — narrow link"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/customizer-home.php:327
+msgid "Banner pair %d — wide link"
+msgstr ""
+
+#: inc/customizer-store.php:23
+msgid "Phone number"
+msgstr ""
+
+#: inc/customizer-store.php:24
+msgid "Shown in the footer, the menu drawer and the mobile Call button."
+msgstr ""
+
+#: inc/customizer-store.php:30
+msgid "WhatsApp number"
+msgstr ""
+
+#: inc/customizer-store.php:31
+msgid "Powers the floating WhatsApp button and the Order on WhatsApp button on each product."
+msgstr ""
+
+#: inc/customizer-store.php:37
+msgid "Email address"
+msgstr ""
+
+#: inc/customizer-store.php:38
+msgid "Shown in the footer contact row."
+msgstr ""
+
+#: inc/customizer-store.php:44
+msgid "Messenger username"
+msgstr ""
+
+#: inc/customizer-store.php:45
+msgid "Just the username, without m.me/. Used by the mobile Chat button."
+msgstr ""
+
+#: inc/customizer-store.php:51
+msgid "Facebook URL"
+msgstr ""
+
+#: inc/customizer-store.php:58
+msgid "Instagram URL"
+msgstr ""
+
+#: inc/customizer-store.php:65
+msgid "YouTube URL"
+msgstr ""
+
+#: inc/customizer-store.php:72
+msgid "Street address"
+msgstr ""
+
+#: inc/customizer-store.php:73
+msgid "One line. Shown under the footer logo."
+msgstr ""
+
+#: inc/customizer-store.php:79
+msgid "Google Maps embed URL"
+msgstr ""
+
+#: inc/customizer-store.php:80
+msgid "From Google Maps → Share → Embed a map, copy just the src URL. Leave empty to hide the map."
+msgstr ""
+
+#: inc/customizer-store.php:158
+msgid "Facebook"
+msgstr ""
+
+#: inc/customizer-store.php:159
+msgid "Instagram"
+msgstr ""
+
+#: inc/customizer-store.php:160
+msgid "YouTube"
+msgstr ""
+
+#: inc/customizer-store.php:193
+msgid "Store details"
+msgstr ""
+
+#: inc/customizer-store.php:194
+msgid "Contact routes and social profiles. These placeholders are wired through the whole theme — replace them with your real details before launch."
+msgstr ""
+
+#: inc/customizer-store.php:242
+msgid "Payment methods image"
+msgstr ""
+
+#: inc/customizer-store.php:243
+msgid "A single wide image showing the payment methods you accept. Shown near the bottom of the footer."
+msgstr ""
+
+#: inc/customizer.php:27
+msgid "Brand"
+msgstr ""
+
+#: inc/customizer.php:28
+msgid "Buttons, sale ribbon, active states."
+msgstr ""
+
+#: inc/customizer.php:33
+msgid "Brand (hover)"
+msgstr ""
+
+#: inc/customizer.php:34
+msgid "Button and link hover state."
+msgstr ""
+
+#: inc/customizer.php:39
+msgid "Text"
+msgstr ""
+
+#: inc/customizer.php:40
+msgid "Body copy, headings, current price."
+msgstr ""
+
+#: inc/customizer.php:45
+msgid "Muted text"
+msgstr ""
+
+#: inc/customizer.php:46
+msgid "Section headings, captions, secondary text."
+msgstr ""
+
+#: inc/customizer.php:51
+msgid "Original price"
+msgstr ""
+
+#: inc/customizer.php:52
+msgid "The struck-through price on a discounted product."
+msgstr ""
+
+#: inc/customizer.php:57
+msgid "Borders"
+msgstr ""
+
+#: inc/customizer.php:58
+msgid "Card borders, dividers, input outlines."
+msgstr ""
+
+#: inc/customizer.php:63
+msgid "Page background"
+msgstr ""
+
+#: inc/customizer.php:64
+msgid "The base background behind everything."
+msgstr ""
+
+#: inc/customizer.php:69
+msgid "Card background"
+msgstr ""
+
+#: inc/customizer.php:70
+msgid "Product cards and alternating sections."
+msgstr ""
+
+#: inc/customizer.php:75
+msgid "Footer background"
+msgstr ""
+
+#: inc/customizer.php:76
+msgid "Background of the site footer."
+msgstr ""
+
+#: inc/customizer.php:112
+msgid "Simple Bangla"
+msgstr ""
+
+#: inc/customizer.php:113
+msgid "Theme-wide options for layout, colour and store details."
+msgstr ""
+
+#: inc/customizer.php:121
+msgid "Colours"
+msgstr ""
+
+#: inc/customizer.php:122
+msgid "Every colour in the theme comes from this palette. Changing one here changes it everywhere."
+msgstr ""
+
+#. translators: %s: product name.
+#: inc/demo-content.php:500
+msgid "%s — demo product created by the Simple Bangla importer. Replace this copy with your own description."
+msgstr ""
+
+#. translators: %s: product name.
+#: inc/demo-content.php:506
+msgid "This is placeholder copy so the layout can be judged with realistic text in it. Every product created by the importer carries the same description; edit or delete them once your real catalogue is in."
+msgstr ""
+
+#: inc/demo-content.php:639
+msgid "Primary Menu"
+msgstr ""
+
+#: inc/demo-content.php:685
+msgid "Footer — Company"
+msgstr ""
+
+#: inc/demo-content.php:689
+msgid "Footer — Helps"
+msgstr ""
+
+#: inc/demo-content.php:693
+msgid "Footer — Customer Service"
+msgstr ""
+
+#: inc/demo-content.php:752 template-parts/footer/mobile-bar.php:36
+msgid "Home"
+msgstr ""
+
+#: inc/demo-content.php:783
+msgid "Simple Bangla Demo Content"
+msgstr ""
+
+#: inc/demo-content.php:784 inc/demo-content.php:813
+msgid "Demo Content"
+msgstr ""
+
+#: inc/demo-content.php:798
+msgid "You are not allowed to do that."
+msgstr ""
+
+#: inc/demo-content.php:817
+msgid "WooCommerce needs to be active before the catalogue can be imported."
+msgstr ""
+
+#: inc/demo-content.php:823
+msgid "PHP has no GD image support here, so products will be created without placeholder images."
+msgstr ""
+
+#. translators: 1: categories created, 2: products created, 3: images created.
+#: inc/demo-content.php:833
+msgid "Done. Created %1$d categories, %2$d products and %3$d images."
+msgstr ""
+
+#. translators: 1: categories created, 2: products created, 3: images created.
+#: inc/demo-content.php:844
+msgid "Fills the store with a demo catalogue so the design can be judged with real content in it: a three-level category tree, a few dozen products with sale prices, navigation menus, homepage banners and generated placeholder images."
+msgstr ""
+
+#: inc/demo-content.php:848
+msgid "Nothing is overwritten."
+msgstr ""
+
+#: inc/demo-content.php:849
+msgid "Anything that already exists under the same slug is left exactly as it is, so running this twice is harmless."
+msgstr ""
+
+#. translators: %s: human-readable date and time.
+#: inc/demo-content.php:857
+msgid "Last run: %s"
+msgstr ""
+
+#. translators: %s: human-readable date and time.
+#: inc/demo-content.php:868 inc/demo-content.php:895
+msgid "Import demo content"
+msgstr ""
+
+#: inc/demo-content.php:893
+msgid "Simple Bangla can fill your store with demo products so you can see the design working."
+msgstr ""
+
+#. translators: If Oswald does not render well in your language, translate this to 'off'.
+#: inc/enqueue.php:57
+msgctxt "Oswald font: on or off"
+msgid "on"
+msgstr ""
+
+#. translators: If Lato does not render well in your language, translate this to 'off'.
+#: inc/enqueue.php:63
+msgctxt "Lato font: on or off"
+msgid "on"
+msgstr ""
+
+#: inc/enqueue.php:193
+msgid "Previous products"
+msgstr ""
+
+#: inc/enqueue.php:194
+msgid "Next products"
+msgstr ""
+
+#: inc/enqueue.php:210
+msgid "Loading…"
+msgstr ""
+
+#: inc/enqueue.php:211
+msgid "That is everything."
+msgstr ""
+
+#: inc/enqueue.php:212
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: inc/enqueue.php:231
+msgid "No products matched."
+msgstr ""
+
+#: inc/enqueue.php:232
+msgid "See all results"
+msgstr ""
+
+#. translators: %s: the parent menu item's title, e.g. "Gadgets".
+#: inc/nav-walker.php:176
+msgid "Show submenu for %s"
+msgstr ""
+
+#: inc/nav-walker.php:267 template-parts/footer/mobile-bar.php:21
+msgid "Shop"
+msgstr ""
+
+#: inc/nav-walker.php:331
+msgid "Menu icon (optional)"
+msgstr ""
+
+#: inc/nav-walker.php:339
+msgid "Choose image"
+msgstr ""
+
+#: inc/nav-walker.php:340
+msgid "Remove"
+msgstr ""
+
+#: inc/nav-walker.php:400
+msgid "Choose a menu icon"
+msgstr ""
+
+#: inc/nav-walker.php:401
+msgid "Use this icon"
+msgstr ""
+
+#: inc/recently-viewed.php:114
+msgid "Recently viewed"
+msgstr ""
+
+#: inc/setup.php:61
+msgid "Primary Mega Menu"
+msgstr ""
+
+#: inc/setup.php:62
+msgid "Footer Column 1"
+msgstr ""
+
+#: inc/setup.php:63
+msgid "Footer Column 2"
+msgstr ""
+
+#: inc/setup.php:64
+msgid "Footer Column 3"
+msgstr ""
+
+#: inc/setup.php:91
+msgid "Category Icon (150×150)"
+msgstr ""
+
+#: inc/setup.php:92
+msgid "Product Gallery (600×600)"
+msgstr ""
+
+#: inc/setup.php:93
+msgid "Product Card (1024×1024)"
+msgstr ""
+
+#: inc/setup.php:114
+msgid "Shop Sidebar"
+msgstr ""
+
+#: inc/setup.php:116
+msgid "Shown beside the shop and product category archives."
+msgstr ""
+
+#: inc/setup.php:126
+msgid "Blog Sidebar"
+msgstr ""
+
+#: inc/setup.php:128
+msgid "Shown beside posts and non-shop archives."
+msgstr ""
+
+#: inc/setup.php:148
+msgid "Tutorials"
+msgstr ""
+
+#: inc/setup.php:149
+msgid "Special Deals"
+msgstr ""
+
+#: inc/setup.php:150
+msgid "User"
+msgstr ""
+
+#: inc/setup.php:151
+msgid "Login"
+msgstr ""
+
+#: inc/setup.php:152
+msgid "Register"
+msgstr ""
+
+#: inc/setup.php:153
+msgid "Password Reset"
+msgstr ""
+
+#: inc/setup.php:154
+msgid "Logout"
+msgstr ""
+
+#: inc/setup.php:155
+msgid "Warranty Policy"
+msgstr ""
+
+#: inc/setup.php:156
+msgid "About Us"
+msgstr ""
+
+#: inc/setup.php:157
+msgid "Privacy Policy"
+msgstr ""
+
+#: inc/setup.php:158
+msgid "Delivery &amp; Return Policy"
+msgstr ""
+
+#: inc/setup.php:159
+msgid "Contact Us"
+msgstr ""
+
+#: inc/setup.php:160
+msgid "Terms &amp; Conditions"
+msgstr ""
+
+#. translators: %s: the page title, e.g. "About Us".
+#: inc/setup.php:209
+msgid "Placeholder content for the %s page. Edit this page to add your own copy."
+msgstr ""
+
+#: inc/setup.php:232
+msgid "Simple Bangla needs WooCommerce for its shop, cart and product features. Everything else works without it."
+msgstr ""
+
+#: inc/template-tags.php:49
+msgid "Search products"
+msgstr ""
+
+#: inc/template-tags.php:57
+msgid "Search for products…"
+msgstr ""
+
+#: inc/template-tags.php:68
+msgid "Search"
+msgstr ""
+
+#: inc/template-tags.php:201 template-parts/footer/mobile-bar.php:53
+msgid "Cart"
+msgstr ""
+
+#. translators: %s: number of items in the cart.
+#: inc/template-tags.php:221
+msgid "item in cart"
+msgid_plural "items in cart"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/template-tags.php:388
+msgid "View All"
+msgstr ""
+
+#: inc/template-tags.php:403 single.php:24 template-parts/shop/results.php:72
+msgid "Previous"
+msgstr ""
+
+#: inc/template-tags.php:404 single.php:25 template-parts/shop/results.php:73
+msgid "Next"
+msgstr ""
+
+#: inc/template-tags.php:405
+msgid "Page navigation"
+msgstr ""
+
+#: inc/woocommerce.php:121
+msgid "Buy Now"
+msgstr ""
+
+#. translators: 1: product name, 2: product URL.
+#: inc/woocommerce.php:176
+msgid "Hello! I would like to order: %1$s (%2$s)"
+msgstr ""
+
+#: inc/woocommerce.php:192
+msgid "Order on WhatsApp"
+msgstr ""
+
+#: inc/woocommerce.php:206
+msgid "Breadcrumb"
+msgstr ""
+
+#. translators: %s: the search term.
+#: search.php:22
+msgid "Results for “%s”"
+msgstr ""
+
+#. translators: %s: number of results found.
+#: search.php:31
+msgid "%s result"
+msgid_plural "%s results"
+msgstr[0] ""
+msgstr[1] ""
+
+#: sidebar.php:19
+msgid "Sidebar"
+msgstr ""
+
+#: template-parts/content-none.php:12
+msgid "Nothing found"
+msgstr ""
+
+#: template-parts/content-none.php:16
+msgid "No results matched that search. Try a different spelling or a shorter phrase."
+msgstr ""
+
+#: template-parts/content-none.php:21
+msgid "There is nothing here yet. Try the shop, or search for what you need."
+msgstr ""
+
+#: template-parts/content.php:43
+msgid "Pages:"
+msgstr ""
+
+#: template-parts/content.php:52
+msgid "Read more"
+msgstr ""
+
+#: template-parts/footer/columns.php:20
+msgid "Helps"
+msgstr ""
+
+#: template-parts/footer/columns.php:24
+msgid "Customer Service"
+msgstr ""
+
+#: template-parts/footer/columns.php:75
+msgid "Find us"
+msgstr ""
+
+#: template-parts/footer/columns.php:81
+msgid "Store location on Google Maps"
+msgstr ""
+
+#: template-parts/footer/columns.php:89
+msgid "Add a Google Maps embed URL in the Customizer to show your shop here."
+msgstr ""
+
+#: template-parts/footer/floats.php:13
+msgid "Hello! I have a question about your products."
+msgstr ""
+
+#: template-parts/footer/floats.php:20
+msgid "Chat on WhatsApp"
+msgstr ""
+
+#: template-parts/footer/floats.php:26
+msgid "Back to top"
+msgstr ""
+
+#: template-parts/footer/mobile-bar.php:29
+msgid "Call"
+msgstr ""
+
+#: template-parts/footer/mobile-bar.php:44
+msgid "Chat"
+msgstr ""
+
+#: template-parts/footer/mobile-bar.php:62
+msgid "Quick links"
+msgstr ""
+
+#: template-parts/header/bar.php:20
+msgid "Open menu"
+msgstr ""
+
+#: template-parts/header/bar.php:35
+msgid "Account"
+msgstr ""
+
+#: template-parts/header/drawer.php:18
+msgid "Site menu"
+msgstr ""
+
+#: template-parts/header/drawer.php:21
+msgid "Menu"
+msgstr ""
+
+#: template-parts/header/drawer.php:24
+msgid "Close menu"
+msgstr ""
+
+#: template-parts/header/drawer.php:28
+msgid "Mobile"
+msgstr ""
+
+#: template-parts/header/drawer.php:35
+msgid "My Account"
+msgstr ""
+
+#: template-parts/header/nav.php:12
+msgid "Primary"
+msgstr ""
+
+#: template-parts/product/assurances.php:16
+msgid "Fast delivery"
+msgstr ""
+
+#: template-parts/product/assurances.php:17
+msgid "Next day inside Dhaka, 2–3 days elsewhere."
+msgstr ""
+
+#: template-parts/product/assurances.php:21
+msgid "Warranty covered"
+msgstr ""
+
+#: template-parts/product/assurances.php:22
+msgid "Every product carries its manufacturer warranty."
+msgstr ""
+
+#: template-parts/product/assurances.php:26
+msgid "Easy returns"
+msgstr ""
+
+#: template-parts/product/assurances.php:27
+msgid "Seven days to return anything unopened."
+msgstr ""
+
+#: template-parts/shop/filters.php:34
+msgid "Price"
+msgstr ""
+
+#: template-parts/shop/filters.php:37
+msgid "Minimum price"
+msgstr ""
+
+#: template-parts/shop/filters.php:48
+msgid "Maximum price"
+msgstr ""
+
+#. translators: 1: lowest price in the catalogue, 2: highest price.
+#: template-parts/shop/filters.php:64
+msgid "Everything in stock runs from %1$s to %2$s."
+msgstr ""
+
+#: template-parts/shop/filters.php:75
+msgid "On sale only"
+msgstr ""
+
+#: template-parts/shop/filters.php:80
+msgid "Apply"
+msgstr ""
+
+#: template-parts/shop/filters.php:83
+msgid "Clear"
+msgstr ""
+
+#: template-parts/shop/filters.php:91
+msgid "Product categories"
+msgstr ""
+
+#: template-parts/shop/filters.php:92
+msgid "Categories"
+msgstr ""
+
+#: template-parts/shop/results.php:19
+msgid "No products found"
+msgstr ""
+
+#: template-parts/shop/results.php:23
+msgid "Nothing matches those filters. Try widening the price range or clearing them."
+msgstr ""
+
+#: template-parts/shop/results.php:24
+msgid "There is nothing in this category yet. Have a look at the rest of the shop."
+msgstr ""
+
+#: template-parts/shop/results.php:30
+msgid "Clear filters"
+msgstr ""
+
+#: template-parts/shop/results.php:62
+msgid "Load more products"
+msgstr ""
+
+#: template-parts/shop/results.php:74
+msgid "Product pages"
+msgstr ""
+
+#: woocommerce/archive-product.php:45
+msgid "Filters"
+msgstr ""
+
+#: woocommerce/content-product.php:46
+msgid "Out of stock"
+msgstr ""
+
+#: woocommerce/content-product.php:81
+msgid "Order Now"
+msgstr ""
+
+#. translators: %d: image number within the gallery.
+#: woocommerce/single-product/product-image.php:90
+msgid "Show image %d"
+msgstr ""
+
+#: woocommerce/single-product/related.php:18
+msgid "You may also like"
+msgstr ""

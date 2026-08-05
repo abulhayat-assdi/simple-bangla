@@ -1,4 +1,10 @@
-# Preview harness
+# Preview harness — superseded
+
+> **These pages mirror the Phase 1 templates only and are no longer kept in sync.** The theme
+> now runs on real WordPress + WooCommerce under WordPress Playground — see the bottom of this
+> file, or `PROGRESS.md`. Use that instead. This folder is kept only as a way to eyeball the
+> base stylesheet without booting anything.
+
 
 Static HTML copies of the Phase 1 templates, for looking at the design without a PHP stack.
 **Not part of the theme** — this folder is never shipped and nothing inside it is loaded by

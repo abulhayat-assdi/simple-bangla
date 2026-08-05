@@ -1,0 +1,300 @@
+/*
+ * Simple Bangla — footer, mobile bottom bar and floating buttons.
+ *
+ * Loaded on every view.
+ */
+
+.sb-footer {
+	margin-top: auto;
+	padding-block: var(--sb-space-6);
+	background: var(--sb-footer-bg);
+	border-top: 1px solid var(--sb-line);
+}
+
+/* ------------------------------------------------------------------ *
+ * Brand row
+ * ------------------------------------------------------------------ */
+
+.sb-footer__brand-row {
+	display: grid;
+	gap: var(--sb-space-5);
+	padding-bottom: var(--sb-space-5);
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-footer__site-name {
+	margin: 0 0 var(--sb-space-2);
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-xl);
+}
+
+.sb-footer__site-name a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.sb-footer__brand .custom-logo {
+	max-height: 64px;
+	width: auto;
+	margin-bottom: var(--sb-space-3);
+}
+
+.sb-footer__tagline {
+	margin: 0 0 var(--sb-space-2);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+	max-width: 44ch;
+}
+
+.sb-footer__address {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	margin: 0;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-footer__contact {
+	display: grid;
+	gap: var(--sb-space-3);
+	align-content: start;
+}
+
+.sb-footer__contact-item {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	color: var(--sb-ink);
+	font-size: var(--sb-text-sm);
+	text-decoration: none;
+}
+
+.sb-footer__social {
+	display: flex;
+	gap: var(--sb-space-2);
+	list-style: none;
+}
+
+.sb-footer__social a {
+	display: grid;
+	place-items: center;
+	width: 38px;
+	height: 38px;
+	border-radius: var(--sb-radius-pill);
+	background: var(--sb-bg-alt);
+	color: var(--sb-ink);
+	transition: background-color var(--sb-transition), color var(--sb-transition);
+}
+
+.sb-footer__social a:hover,
+.sb-footer__social a:focus-visible {
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+}
+
+@media (min-width: 768px) {
+	.sb-footer__brand-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: start;
+	}
+
+	.sb-footer__contact {
+		justify-items: end;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * Link columns
+ * ------------------------------------------------------------------ */
+
+.sb-footer__columns {
+	display: grid;
+	gap: var(--sb-space-5);
+	padding-block: var(--sb-space-6);
+}
+
+.sb-footer__heading {
+	margin-bottom: var(--sb-space-3);
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-lg);
+	color: #2d3134;
+}
+
+.sb-footer__menu {
+	list-style: none;
+	display: grid;
+	gap: var(--sb-space-2);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-footer__menu a {
+	color: var(--sb-muted);
+	text-decoration: none;
+}
+
+.sb-footer__menu a:hover,
+.sb-footer__menu a:focus-visible {
+	color: var(--sb-ink);
+}
+
+.sb-footer__map {
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg-alt);
+}
+
+.sb-footer__map iframe {
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+.sb-footer__map-empty {
+	margin: 0;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+}
+
+@media (min-width: 600px) {
+	.sb-footer__columns {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1024px) {
+	.sb-footer__columns {
+		grid-template-columns: repeat(3, minmax(0, 1fr)) 1.2fr;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * Payments and copyright
+ * ------------------------------------------------------------------ */
+
+.sb-footer__payments {
+	padding-bottom: var(--sb-space-5);
+}
+
+.sb-footer__payments img {
+	max-width: min(100%, 520px);
+	height: auto;
+	margin-inline: auto;
+}
+
+.sb-footer__copyright {
+	margin: 0;
+	padding-top: var(--sb-space-4);
+	border-top: 1px solid var(--sb-line);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+	text-align: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * Floating buttons
+ * ------------------------------------------------------------------ */
+
+.sb-floats {
+	position: fixed;
+	right: var(--sb-space-4);
+	bottom: calc(var(--sb-space-4) + var(--sb-bottom-bar-height, 0px));
+	z-index: var(--sb-z-float);
+	display: grid;
+	gap: var(--sb-space-2);
+	justify-items: center;
+}
+
+.sb-float {
+	display: grid;
+	place-items: center;
+	width: 48px;
+	height: 48px;
+	border: 0;
+	border-radius: var(--sb-radius-pill);
+	box-shadow: var(--sb-shadow-lg);
+	cursor: pointer;
+	transition: transform var(--sb-transition);
+}
+
+.sb-float:hover {
+	transform: translateY(-2px);
+}
+
+.sb-float[hidden] {
+	display: none;
+}
+
+.sb-float--whatsapp {
+	background: #25d366;
+	color: #fff;
+}
+
+.sb-float--top {
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+}
+
+/* ------------------------------------------------------------------ *
+ * Mobile bottom bar
+ * ------------------------------------------------------------------ */
+
+.sb-bottom-bar {
+	position: fixed;
+	inset-inline: 0;
+	bottom: 0;
+	z-index: var(--sb-z-float);
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	padding: var(--sb-space-2) var(--sb-space-2) max(var(--sb-space-2), env(safe-area-inset-bottom));
+	background: var(--sb-bg);
+	border-top: 1px solid var(--sb-line);
+	box-shadow: 0 -2px 12px rgb(0 0 0 / 6%);
+}
+
+.sb-bottom-bar__item {
+	display: grid;
+	justify-items: center;
+	gap: 2px;
+	flex: 1 1 0;
+	padding-block: var(--sb-space-1);
+	color: var(--sb-muted);
+	text-decoration: none;
+}
+
+.sb-bottom-bar__label {
+	font-size: 11px;
+	line-height: 1.2;
+}
+
+/* Home is the anchor of the row: icon only, lifted into a filled circle. */
+.sb-bottom-bar__item--home {
+	flex: 0 0 auto;
+	width: 52px;
+	height: 52px;
+	margin-top: -22px;
+	place-content: center;
+	border-radius: var(--sb-radius-pill);
+	border: 4px solid var(--sb-bg);
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+}
+
+@media (max-width: 767px) {
+	body {
+		/* Reserve room so the bar never covers the last line of the footer. */
+		padding-bottom: 68px;
+	}
+
+	.sb-floats {
+		--sb-bottom-bar-height: 68px;
+	}
+}
+
+@media (min-width: 768px) {
+	.sb-bottom-bar {
+		display: none;
+	}
+}

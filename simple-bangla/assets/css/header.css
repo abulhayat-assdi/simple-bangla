@@ -1,0 +1,621 @@
+/*
+ * Simple Bangla — header, primary navigation, mega menu and mobile drawer.
+ *
+ * Loaded on every view. Depends on the tokens in base.css.
+ *
+ * The desktop nav row and the drawer are two presentations of the same one menu in the DOM.
+ * Below 1024px the row is hidden and the drawer is reachable; above it the reverse.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Header shell
+ * ------------------------------------------------------------------ */
+
+.sb-header {
+	position: sticky;
+	top: 0;
+	z-index: var(--sb-z-header);
+	background: var(--sb-bg);
+}
+
+/* Set by assets/js/header.js once the page has scrolled past the header's own height. */
+.sb-header.is-stuck {
+	box-shadow: var(--sb-shadow);
+}
+
+/* ------------------------------------------------------------------ *
+ * Logo bar
+ * ------------------------------------------------------------------ */
+
+.sb-header__bar {
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+}
+
+.sb-header__inner {
+	display: grid;
+	grid-template-areas:
+		"burger brand actions"
+		"search search  search";
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding-block: var(--sb-space-3);
+}
+
+.sb-header__burger {
+	grid-area: burger;
+	display: grid;
+	place-items: center;
+	padding: var(--sb-space-1);
+	border: 0;
+	background: transparent;
+	color: inherit;
+}
+
+.sb-header__brand {
+	grid-area: brand;
+	min-width: 0;
+}
+
+.sb-site-title {
+	margin: 0;
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-xl);
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	color: var(--sb-on-brand);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sb-site-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.sb-header__brand .custom-logo {
+	max-height: 44px;
+	width: auto;
+}
+
+/* On phones the field gets its own full-width row — it is the most used control here. */
+.sb-header__search {
+	grid-area: search;
+	position: relative;
+}
+
+.sb-header__actions {
+	grid-area: actions;
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-4);
+}
+
+.sb-header__action {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	color: var(--sb-on-brand);
+	font-size: var(--sb-text-sm);
+	text-decoration: none;
+	line-height: 1.2;
+}
+
+.sb-header__action:hover,
+.sb-header__action:focus-visible {
+	color: var(--sb-on-brand);
+	opacity: 0.85;
+}
+
+.sb-header__action-label {
+	display: none;
+}
+
+/* -- Cart -- */
+
+.sb-cart-link__icon {
+	position: relative;
+	display: inline-flex;
+}
+
+.sb-cart-link__count {
+	position: absolute;
+	top: -6px;
+	right: -8px;
+	min-width: 18px;
+	height: 18px;
+	padding-inline: 4px;
+	border-radius: var(--sb-radius-pill);
+	background: var(--sb-bg);
+	color: var(--sb-brand);
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 18px;
+	text-align: center;
+}
+
+/* An empty basket does not need a badge shouting zero at the shopper. */
+.sb-cart-link__count[data-empty] {
+	display: none;
+}
+
+.sb-cart-link__total {
+	display: block;
+	font-weight: 700;
+}
+
+.sb-cart-link__total .woocommerce-Price-amount {
+	white-space: nowrap;
+}
+
+.sb-cart-link__word {
+	display: block;
+	opacity: 0.75;
+	font-size: var(--sb-text-xs);
+}
+
+/* ------------------------------------------------------------------ *
+ * Live search results
+ * ------------------------------------------------------------------ */
+
+.sb-search-wrap {
+	position: relative;
+}
+
+.sb-search__results {
+	position: absolute;
+	inset-inline: 0;
+	top: calc(100% + 6px);
+	z-index: var(--sb-z-dropdown);
+	max-height: min(70vh, 420px);
+	overflow-y: auto;
+	padding: var(--sb-space-2);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg);
+	box-shadow: var(--sb-shadow-lg);
+	color: var(--sb-ink);
+}
+
+.sb-search__result {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-2);
+	border-radius: var(--sb-radius-sm);
+	color: inherit;
+	text-decoration: none;
+}
+
+.sb-search__result:hover,
+.sb-search__result:focus-visible,
+.sb-search__result.is-active {
+	background: var(--sb-bg-alt);
+	color: inherit;
+}
+
+.sb-search__result img {
+	width: 44px;
+	height: 44px;
+	flex: 0 0 auto;
+	border-radius: var(--sb-radius-sm);
+	object-fit: cover;
+}
+
+.sb-search__result-title {
+	display: block;
+	font-size: var(--sb-text-sm);
+	line-height: 1.35;
+}
+
+.sb-search__result-price {
+	display: block;
+	font-size: var(--sb-text-xs);
+	font-weight: 700;
+}
+
+.sb-search__all {
+	display: block;
+	padding: var(--sb-space-2);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+	text-align: center;
+	text-decoration: none;
+}
+
+.sb-search__empty {
+	padding: var(--sb-space-3);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+	text-align: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * Primary navigation (desktop)
+ * ------------------------------------------------------------------ */
+
+.sb-nav {
+	display: none;
+	border-bottom: 1px solid var(--sb-line);
+	background: var(--sb-bg);
+}
+
+.sb-nav__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sb-space-4);
+}
+
+.sb-nav__list {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	list-style: none;
+}
+
+.sb-nav__item {
+	position: relative;
+}
+
+.sb-nav__link {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	padding: var(--sb-space-3) var(--sb-space-3);
+	color: var(--sb-ink);
+	font-family: var(--sb-font-heading);
+	font-size: 0.9375rem; /* 15px, measured off the reference nav */
+	font-weight: 400;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.sb-nav__icon {
+	width: 24px;
+	height: 24px;
+	object-fit: contain;
+}
+
+.sb-nav__toggle {
+	display: none;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: inherit;
+}
+
+.sb-nav__hotline {
+	display: none;
+	align-items: center;
+	gap: var(--sb-space-2);
+	color: var(--sb-ink);
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-sm);
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+/* -- Dropdown and mega panel -- */
+
+.sb-nav__sub {
+	list-style: none;
+}
+
+@media (min-width: 1024px) {
+
+	.sb-nav {
+		display: block;
+	}
+
+	.sb-nav__hotline {
+		display: inline-flex;
+	}
+
+	.sb-header__burger {
+		display: none;
+	}
+
+	.sb-header__inner {
+		grid-template-areas: "brand search actions";
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: var(--sb-space-6);
+	}
+
+	.sb-header__search {
+		max-width: 560px;
+		justify-self: center;
+	}
+
+	.sb-header__action-label {
+		display: block;
+	}
+
+	/* The chevron only means anything where a panel can open. */
+	.sb-nav__item--has-children > .sb-nav__link::after {
+		content: "";
+		width: 6px;
+		height: 6px;
+		margin-left: 2px;
+		border-right: 1.5px solid currentColor;
+		border-bottom: 1.5px solid currentColor;
+		transform: translateY(-2px) rotate(45deg);
+	}
+
+	.sb-nav__item--depth-0 > .sb-nav__sub {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		z-index: var(--sb-z-dropdown);
+		min-width: 240px;
+		padding: var(--sb-space-3);
+		border-radius: 0 0 var(--sb-radius-sm) var(--sb-radius-sm);
+		background: var(--sb-bg);
+		box-shadow: var(--sb-shadow-lg);
+
+		/*
+		 * Hidden with visibility rather than display so the panel can be transitioned and so
+		 * assistive tech still sees a real, measurable subtree when it opens.
+		 */
+		visibility: hidden;
+		opacity: 0;
+		transform: translateY(4px);
+		transition: opacity var(--sb-transition), transform var(--sb-transition), visibility var(--sb-transition);
+	}
+
+	.sb-nav__item--depth-0:hover > .sb-nav__sub,
+	.sb-nav__item--depth-0:focus-within > .sb-nav__sub,
+	.sb-nav__item--depth-0 > .sb-nav__toggle[aria-expanded="true"] + .sb-nav__sub {
+		visibility: visible;
+		opacity: 1;
+		transform: none;
+	}
+
+	/* A branch with grandchildren becomes a column grid instead of a stacked list. */
+	.sb-nav__sub--mega {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+		gap: var(--sb-space-2) var(--sb-space-5);
+		min-width: min(760px, 90vw);
+	}
+
+	.sb-nav__sub .sb-nav__link {
+		padding: var(--sb-space-2);
+		border-radius: var(--sb-radius-sm);
+		font-family: var(--sb-font-body);
+		font-size: var(--sb-text-sm);
+		white-space: normal;
+	}
+
+	.sb-nav__sub .sb-nav__link:hover,
+	.sb-nav__sub .sb-nav__link:focus-visible {
+		background: var(--sb-bg-alt);
+	}
+
+	.sb-nav__sub .sb-nav__icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	/* Inside a mega panel the second level is the column heading, not another dropdown. */
+	.sb-nav__sub--mega > .sb-nav__item > .sb-nav__link {
+		font-family: var(--sb-font-heading);
+		font-size: var(--sb-text-base);
+		color: var(--sb-ink);
+	}
+
+	.sb-nav__sub--mega > .sb-nav__item > .sb-nav__link::after {
+		content: none;
+	}
+
+	.sb-nav__sub--depth-2 {
+		margin-left: var(--sb-space-2);
+		padding-left: var(--sb-space-2);
+		border-left: 1px solid var(--sb-line);
+	}
+
+	.sb-nav__sub--depth-2 .sb-nav__link {
+		color: var(--sb-muted);
+	}
+
+	.sb-nav__sub--depth-2 .sb-nav__link:hover {
+		color: var(--sb-ink);
+	}
+
+	/* A third level inside a plain dropdown flies out sideways instead. */
+	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children {
+		position: relative;
+	}
+
+	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__sub {
+		position: absolute;
+		top: 0;
+		left: 100%;
+		min-width: 220px;
+		padding: var(--sb-space-3);
+		border: 0;
+		margin: 0;
+		border-radius: var(--sb-radius-sm);
+		background: var(--sb-bg);
+		box-shadow: var(--sb-shadow-lg);
+		visibility: hidden;
+		opacity: 0;
+		transition: opacity var(--sb-transition), visibility var(--sb-transition);
+	}
+
+	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children:hover > .sb-nav__sub,
+	.sb-nav__sub:not(.sb-nav__sub--mega) .sb-nav__item--has-children:focus-within > .sb-nav__sub {
+		visibility: visible;
+		opacity: 1;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * Mobile drawer
+ * ------------------------------------------------------------------ */
+
+.sb-drawer {
+	position: fixed;
+	inset: 0;
+	z-index: var(--sb-z-drawer);
+}
+
+.sb-drawer[hidden] {
+	display: none;
+}
+
+.sb-drawer__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgb(0 0 0 / 45%);
+	opacity: 0;
+	transition: opacity var(--sb-transition);
+}
+
+.sb-drawer__panel {
+	position: absolute;
+	inset-block: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	width: min(88vw, 340px);
+	background: var(--sb-bg);
+	box-shadow: var(--sb-shadow-lg);
+	transform: translateX(-100%);
+	transition: transform var(--sb-transition);
+}
+
+.sb-drawer.is-open .sb-drawer__backdrop {
+	opacity: 1;
+}
+
+.sb-drawer.is-open .sb-drawer__panel {
+	transform: none;
+}
+
+.sb-drawer__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--sb-space-4);
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-drawer__title {
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-lg);
+}
+
+.sb-drawer__close {
+	display: grid;
+	place-items: center;
+	padding: var(--sb-space-1);
+	border: 0;
+	background: transparent;
+	color: inherit;
+}
+
+.sb-drawer__nav {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	padding: var(--sb-space-2) var(--sb-space-3);
+}
+
+.sb-drawer__nav .sb-nav__list {
+	display: block;
+	list-style: none;
+}
+
+.sb-drawer__nav .sb-nav__item {
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-drawer__nav .sb-nav__item:last-child {
+	border-bottom: 0;
+}
+
+/* The row is link + toggle side by side, so the whole label stays a plain link on touch. */
+.sb-drawer__nav .sb-nav__item--has-children {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+}
+
+.sb-drawer__nav .sb-nav__link {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-3) var(--sb-space-1);
+	color: var(--sb-ink);
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-base);
+	text-decoration: none;
+}
+
+.sb-drawer__nav .sb-nav__toggle {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border: 0;
+	border-radius: var(--sb-radius-sm);
+	background: transparent;
+	color: var(--sb-muted);
+	transition: transform var(--sb-transition);
+}
+
+.sb-drawer__nav .sb-nav__toggle[aria-expanded="true"] {
+	transform: rotate(180deg);
+}
+
+.sb-drawer__nav .sb-nav__sub {
+	grid-column: 1 / -1;
+	display: none;
+	padding-left: var(--sb-space-4);
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-drawer__nav .sb-nav__toggle[aria-expanded="true"] ~ .sb-nav__sub {
+	display: block;
+}
+
+.sb-drawer__nav .sb-nav__sub .sb-nav__link {
+	font-family: var(--sb-font-body);
+	font-size: var(--sb-text-sm);
+	color: var(--sb-muted);
+}
+
+.sb-drawer__nav .sb-nav__sub .sb-nav__icon {
+	width: 20px;
+	height: 20px;
+}
+
+.sb-drawer__foot {
+	display: grid;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-4);
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-drawer__phone {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--sb-space-2);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+	text-decoration: none;
+}
+
+/* The drawer is a mobile affordance; a wide viewport already has the full nav row. */
+@media (min-width: 1024px) {
+	.sb-drawer {
+		display: none;
+	}
+}
+
+/* Stop the page behind the drawer from scrolling with it. */
+body.sb-drawer-open {
+	overflow: hidden;
+}
