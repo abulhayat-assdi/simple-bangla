@@ -1,0 +1,21 @@
+# Local Claude Code settings
+.claude/settings.local.json
+
+# OS / editor cruft
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Build / dependency output (not used yet, kept for safety)
+node_modules/
+vendor/
+*.log
+
+# WordPress local install — the repo tracks only the theme
+wp-config.php
+wp-content/uploads/

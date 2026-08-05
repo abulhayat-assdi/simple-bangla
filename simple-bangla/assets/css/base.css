@@ -1,0 +1,716 @@
+/*
+ * Simple Bangla — base stylesheet.
+ *
+ * Load order inside this file:
+ *   1. Design tokens
+ *   2. Reset
+ *   3. Typography
+ *   4. Layout
+ *   5. Components
+ *   6. Accessibility utilities
+ *
+ * Mobile-first. Breakpoints: 480 / 768 / 1024 / 1200.
+ * Every colour is a custom property so the Customizer can re-skin the whole theme
+ * by overriding this one :root block. See inc/customizer.php.
+ */
+
+/* ------------------------------------------------------------------ *
+ * 1. Design tokens
+ * ------------------------------------------------------------------ */
+
+:root {
+	/* Palette — measured from the reference design. Customizer-controlled. */
+	--sb-brand: #000000;      /* buttons, sale ribbon, active states */
+	--sb-brand-dark: #2d3134; /* button and link hover */
+	--sb-ink: #333333;        /* body text, headings, current price */
+	--sb-muted: #7e7e7e;      /* section headings, secondary text */
+	--sb-sale: #ba5e5e;       /* struck-through original price */
+	--sb-line: #e5e7eb;       /* borders and dividers */
+	--sb-bg: #ffffff;         /* page background */
+	--sb-bg-alt: #fffcf7;     /* product cards, alternating sections */
+	--sb-footer-bg: #ffffff;  /* footer */
+
+	/* Derived colours. Kept out of the Customizer so the palette stays small. */
+	--sb-on-brand: #ffffff;
+	--sb-focus: #0067ff;
+
+	/* Type. The system stack is the fallback when web fonts are disabled or still loading. */
+	--sb-font-body: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--sb-font-heading: "Oswald", var(--sb-font-body);
+
+	--sb-text-xs: 0.75rem;   /* 12px — View All, badges */
+	--sb-text-sm: 0.875rem;  /* 14px — meta, captions */
+	--sb-text-base: 1rem;    /* 16px — body, card titles */
+	--sb-text-lg: 1.125rem;  /* 18px — section headings, current price */
+	--sb-text-xl: 1.375rem;
+	--sb-text-2xl: 1.75rem;
+
+	--sb-leading-tight: 1.3;
+	--sb-leading-body: 1.65;
+
+	/* Spacing — a 4px scale. */
+	--sb-space-1: 0.25rem;
+	--sb-space-2: 0.5rem;
+	--sb-space-3: 0.75rem;
+	--sb-space-4: 1rem;
+	--sb-space-5: 1.5rem;
+	--sb-space-6: 2rem;
+	--sb-space-7: 3rem;
+	--sb-space-8: 4rem;
+
+	/* Layout */
+	--sb-container: 1200px;
+	--sb-gutter: var(--sb-space-4);
+
+	/* Shape — 15px on cards and buttons, 8px on small controls. */
+	--sb-radius: 15px;
+	--sb-radius-sm: 8px;
+	--sb-radius-pill: 999px;
+
+	--sb-transition: 150ms ease;
+}
+
+@media (min-width: 768px) {
+	:root {
+		--sb-gutter: var(--sb-space-5);
+		--sb-text-2xl: 2rem;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. Reset
+ * ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	scroll-behavior: smooth;
+}
+
+/* Respect users who have asked the OS to stop moving things. */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important; /* the only way to defeat an author animation */
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+body {
+	margin: 0;
+	background: var(--sb-bg);
+	color: var(--sb-ink);
+	font-family: var(--sb-font-body);
+	font-size: var(--sb-text-base);
+	line-height: var(--sb-leading-body);
+	-webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video,
+canvas,
+svg,
+iframe {
+	display: block;
+	max-width: 100%;
+}
+
+img,
+video {
+	height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+ul,
+ol {
+	margin: 0;
+	padding: 0;
+}
+
+figure,
+blockquote {
+	margin: 0;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Typography
+ * ------------------------------------------------------------------ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0 0 var(--sb-space-3);
+	font-family: var(--sb-font-heading);
+	font-weight: 500;
+	line-height: var(--sb-leading-tight);
+	color: var(--sb-ink);
+	text-wrap: balance;
+}
+
+h1 { font-size: var(--sb-text-2xl); }
+h2 { font-size: var(--sb-text-xl); }
+h3 { font-size: var(--sb-text-lg); }
+h4, h5, h6 { font-size: var(--sb-text-base); }
+
+p {
+	margin: 0 0 var(--sb-space-4);
+}
+
+p:last-child {
+	margin-bottom: 0;
+}
+
+a {
+	color: inherit;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.15em;
+	transition: color var(--sb-transition);
+}
+
+a:hover {
+	color: var(--sb-brand-dark);
+}
+
+small,
+.sb-text-sm {
+	font-size: var(--sb-text-sm);
+}
+
+/* Keyboard focus must always be visible; mouse focus should not add noise. */
+:focus-visible {
+	outline: 2px solid var(--sb-focus);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Layout
+ * ------------------------------------------------------------------ */
+
+.sb-site {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+.sb-container {
+	width: 100%;
+	max-width: var(--sb-container);
+	margin-inline: auto;
+	padding-inline: var(--sb-gutter);
+}
+
+.sb-layout {
+	display: grid;
+	gap: var(--sb-space-6);
+	padding-block: var(--sb-space-6);
+	align-items: start;
+}
+
+.sb-layout--narrow {
+	max-width: 720px;
+}
+
+/* The sidebar only becomes a column once there is room for one. */
+@media (min-width: 1024px) {
+	.sb-layout:has(.sb-sidebar) {
+		grid-template-columns: minmax(0, 1fr) 280px;
+	}
+}
+
+.sb-layout__main {
+	min-width: 0; /* lets grid children shrink instead of forcing horizontal scroll */
+}
+
+.sb-page-header {
+	margin-bottom: var(--sb-space-6);
+	padding-bottom: var(--sb-space-4);
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-page-header__title {
+	margin: 0;
+}
+
+.sb-page-header__description {
+	margin-top: var(--sb-space-2);
+	color: var(--sb-muted);
+}
+
+/* ------------------------------------------------------------------ *
+ * 5. Components
+ * ------------------------------------------------------------------ */
+
+/* -- Buttons -- */
+
+.sb-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--sb-space-2);
+	padding: var(--sb-space-3) var(--sb-space-6);
+	border: 2px solid transparent;
+	border-radius: var(--sb-radius);
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+	font-family: var(--sb-font-body);
+	font-size: var(--sb-text-base);
+	font-weight: 600;
+	line-height: 1.2;
+	text-align: center;
+	text-decoration: none;
+	transition: background-color var(--sb-transition), color var(--sb-transition), border-color var(--sb-transition);
+}
+
+.sb-btn:hover,
+.sb-btn:focus-visible {
+	background: var(--sb-brand-dark);
+	color: var(--sb-on-brand);
+}
+
+.sb-btn--ghost {
+	background: transparent;
+	border-color: var(--sb-line);
+	color: var(--sb-ink);
+}
+
+.sb-btn--ghost:hover,
+.sb-btn--ghost:focus-visible {
+	background: transparent;
+	border-color: var(--sb-brand);
+	color: var(--sb-brand);
+}
+
+.sb-btn--sm {
+	padding: var(--sb-space-2) var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
+	font-size: var(--sb-text-xs);
+}
+
+/* -- Header (Phase 1 baseline; Phase 2 replaces this block) -- */
+
+.sb-header__bar {
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+}
+
+.sb-header__inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding-block: var(--sb-space-3);
+}
+
+.sb-header__brand {
+	flex: 0 0 auto;
+	margin-right: auto;
+}
+
+.sb-site-title {
+	margin: 0;
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-xl);
+	color: var(--sb-on-brand);
+}
+
+.sb-site-title a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.sb-header__brand .custom-logo {
+	max-height: 44px;
+	width: auto;
+}
+
+/* Search drops to its own full-width row on phones, where it needs the space most. */
+.sb-header__search {
+	order: 3;
+	flex: 1 0 100%;
+}
+
+.sb-header__actions {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-4);
+}
+
+.sb-header__action {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	color: var(--sb-on-brand);
+	text-decoration: none;
+	font-size: var(--sb-text-sm);
+}
+
+.sb-header__action-label {
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.sb-header__search {
+		order: 0;
+		flex: 1 1 auto;
+		max-width: 520px;
+	}
+
+	.sb-header__action-label {
+		display: inline;
+	}
+}
+
+/* -- Search form -- */
+
+.sb-search {
+	display: flex;
+	align-items: stretch;
+	width: 100%;
+	background: var(--sb-bg);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	overflow: hidden;
+}
+
+.sb-search__field {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: var(--sb-space-2) var(--sb-space-3);
+	border: 0;
+	background: transparent;
+	color: var(--sb-ink);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-search__field:focus {
+	outline: none;
+}
+
+.sb-search:focus-within {
+	outline: 2px solid var(--sb-focus);
+	outline-offset: 1px;
+}
+
+.sb-search__submit {
+	display: grid;
+	place-items: center;
+	padding-inline: var(--sb-space-3);
+	border: 0;
+	background: var(--sb-brand);
+	color: var(--sb-on-brand);
+}
+
+/* -- Primary nav (Phase 1 baseline) -- */
+
+.sb-nav {
+	border-bottom: 1px solid var(--sb-line);
+	background: var(--sb-bg);
+}
+
+.sb-nav__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sb-space-4);
+	list-style: none;
+	padding-block: var(--sb-space-3);
+	font-family: var(--sb-font-heading);
+	font-size: 0.9375rem; /* 15px, matching the reference nav */
+}
+
+.sb-nav__list a {
+	text-decoration: none;
+}
+
+/* Sub-levels are unstyled until the Phase 2 mega menu lands; hide them so the bar stays readable. */
+.sb-nav__list .sub-menu {
+	display: none;
+}
+
+/* -- Entries -- */
+
+.sb-entry-list {
+	display: grid;
+	gap: var(--sb-space-6);
+}
+
+.sb-entry {
+	padding-bottom: var(--sb-space-6);
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-entry:last-child {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.sb-entry__thumb {
+	display: block;
+	margin-bottom: var(--sb-space-4);
+	border-radius: var(--sb-radius);
+	overflow: hidden;
+}
+
+.sb-entry__title {
+	margin-bottom: var(--sb-space-2);
+}
+
+.sb-entry__title a {
+	text-decoration: none;
+}
+
+.sb-entry-meta {
+	margin-bottom: var(--sb-space-3);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-entry__content > :last-child {
+	margin-bottom: 0;
+}
+
+.sb-entry__content .sb-btn {
+	margin-top: var(--sb-space-4);
+}
+
+/* -- Sidebar & widgets -- */
+
+.sb-widget + .sb-widget {
+	margin-top: var(--sb-space-6);
+}
+
+.sb-widget__title {
+	margin-bottom: var(--sb-space-3);
+	font-size: var(--sb-text-lg);
+	color: var(--sb-muted);
+}
+
+.sb-widget ul {
+	list-style: none;
+	display: grid;
+	gap: var(--sb-space-2);
+}
+
+.sb-widget a {
+	text-decoration: none;
+}
+
+/* -- Pagination & post nav -- */
+
+.sb-pagination {
+	margin-top: var(--sb-space-6);
+	padding-top: var(--sb-space-4);
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-pagination .nav-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sb-space-2);
+	align-items: center;
+}
+
+.sb-pagination .page-numbers {
+	display: grid;
+	place-items: center;
+	min-width: 2.25rem;
+	min-height: 2.25rem;
+	padding-inline: var(--sb-space-2);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	text-decoration: none;
+	font-size: var(--sb-text-sm);
+}
+
+.sb-pagination .page-numbers.current {
+	background: var(--sb-brand);
+	border-color: var(--sb-brand);
+	color: var(--sb-on-brand);
+}
+
+.sb-post-nav {
+	margin-top: var(--sb-space-6);
+	padding-top: var(--sb-space-4);
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-post-nav .nav-links {
+	display: grid;
+	gap: var(--sb-space-4);
+}
+
+.sb-post-nav a {
+	text-decoration: none;
+}
+
+.sb-post-nav__label {
+	display: block;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+@media (min-width: 768px) {
+	.sb-post-nav .nav-links {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.sb-post-nav .nav-next {
+		text-align: right;
+	}
+}
+
+/* -- Empty states & 404 -- */
+
+.sb-no-results {
+	max-width: 46ch;
+	padding-block: var(--sb-space-6);
+}
+
+.sb-no-results .sb-search {
+	margin-block: var(--sb-space-4);
+}
+
+.sb-404__code {
+	margin: 0;
+	font-family: var(--sb-font-heading);
+	font-size: 4rem;
+	line-height: 1;
+	color: var(--sb-muted);
+}
+
+.sb-404__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sb-space-3);
+}
+
+/* -- Footer (Phase 1 baseline; Phase 6 replaces this block) -- */
+
+.sb-footer {
+	margin-top: auto;
+	padding-block: var(--sb-space-6);
+	background: var(--sb-footer-bg);
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-footer__columns {
+	display: grid;
+	gap: var(--sb-space-6);
+	margin-bottom: var(--sb-space-6);
+}
+
+.sb-footer__heading {
+	font-size: var(--sb-text-lg);
+	margin-bottom: var(--sb-space-3);
+}
+
+.sb-footer__menu {
+	list-style: none;
+	display: grid;
+	gap: var(--sb-space-2);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-footer__menu a {
+	text-decoration: none;
+	color: var(--sb-muted);
+}
+
+.sb-footer__menu a:hover {
+	color: var(--sb-ink);
+}
+
+.sb-footer__copyright {
+	margin: 0;
+	padding-top: var(--sb-space-4);
+	border-top: 1px solid var(--sb-line);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+@media (min-width: 768px) {
+	.sb-footer__columns {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+/* -- Icons -- */
+
+.sb-icon {
+	flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Accessibility utilities
+ * ------------------------------------------------------------------ */
+
+/* WordPress core markup expects this exact class name and behaviour. */
+.screen-reader-text {
+	position: absolute !important; /* core convention: must beat any theme positioning */
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.screen-reader-text:focus {
+	position: static !important;
+	width: auto;
+	height: auto;
+	margin: 0;
+	clip-path: none;
+	white-space: normal;
+}
+
+.skip-link:focus {
+	display: block;
+	padding: var(--sb-space-3) var(--sb-space-4);
+	background: var(--sb-bg);
+	color: var(--sb-ink);
+	font-weight: 600;
+	text-align: center;
+}
+
+/* Hidden from sighted users but kept for assistive tech and SEO. */
+.sb-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+}

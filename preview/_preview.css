@@ -1,0 +1,62 @@
+/*
+ * Preview harness only — NOT part of the theme, never shipped.
+ * Everything here is prefixed .sbp- so it cannot collide with the theme's .sb- namespace.
+ */
+
+.sbp-bar {
+	position: fixed;
+	left: 50%;
+	bottom: 16px;
+	transform: translateX(-50%);
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px;
+	border-radius: 999px;
+	background: rgba(20, 20, 20, 0.92);
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+	font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 13px;
+	backdrop-filter: blur(6px);
+}
+
+.sbp-bar__label {
+	padding: 0 10px 0 8px;
+	color: #9aa0a6;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.sbp-bar a {
+	padding: 6px 14px;
+	border-radius: 999px;
+	color: #e8eaed;
+	text-decoration: none;
+	transition: background-color 120ms ease;
+}
+
+.sbp-bar a:hover {
+	background: rgba(255, 255, 255, 0.12);
+	color: #fff;
+}
+
+.sbp-bar a[aria-current="page"] {
+	background: #fff;
+	color: #111;
+}
+
+/* Stand-in for the featured image, so layout can be judged without real media. */
+.sbp-thumb {
+	aspect-ratio: 16 / 9;
+	background:
+		linear-gradient(135deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.02)),
+		var(--sb-bg-alt);
+	display: grid;
+	place-items: center;
+	color: var(--sb-muted);
+	font-size: 13px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}

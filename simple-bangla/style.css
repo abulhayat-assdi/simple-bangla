@@ -1,0 +1,20 @@
+/*
+Theme Name:  Simple Bangla
+Theme URI:   https://simplebangla.com/
+Author:      Simple Bangla
+Author URI:  https://simplebangla.com/
+Description: A fast, dependency-free classic WordPress theme for a Bangladeshi gadget store. Built for WooCommerce with no page builder and no premium plugin requirements. Mobile-first, fully translatable, Bangla-ready.
+Version:     1.0.0
+Requires at least: 6.0
+Tested up to:      6.8
+Requires PHP:      7.4
+License:     GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: simple-bangla
+Tags:        e-commerce, woocommerce, custom-logo, custom-menu, translation-ready, responsive-layout, right-sidebar
+
+This file exists to carry the theme header above. It is intentionally almost empty:
+WordPress requires style.css to exist, but loading a second stylesheet just for the header
+would cost a request for nothing. All real styles live in assets/css/ and are enqueued from
+inc/enqueue.php.
+*/

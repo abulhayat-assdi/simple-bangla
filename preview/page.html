@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Static page — Simple Bangla preview</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Lato:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../simple-bangla/assets/css/base.css" />
+<link rel="stylesheet" href="_preview.css" />
+</head>
+
+<body class="page">
+
+<a class="skip-link screen-reader-text" href="#main">Skip to content</a>
+
+<div id="page" class="sb-site">
+
+	<header id="masthead" class="sb-header">
+
+		<div class="sb-header__bar">
+			<div class="sb-container sb-header__inner">
+
+				<div class="sb-header__brand">
+					<p class="sb-site-title"><a href="index.html" rel="home">Simple Bangla</a></p>
+				</div>
+
+				<div class="sb-header__search">
+					<form role="search" method="get" class="sb-search" action="#">
+						<label class="screen-reader-text" for="sb-search-1">Search products</label>
+						<input type="search" id="sb-search-1" class="sb-search__field" name="s" value="" placeholder="Search for products…" autocomplete="off" />
+						<input type="hidden" name="post_type" value="product" />
+						<button type="submit" class="sb-search__submit">
+							<span class="screen-reader-text">Search</span>
+							<svg class="sb-icon sb-icon--search" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+						</button>
+					</form>
+				</div>
+
+				<div class="sb-header__actions">
+					<a class="sb-header__action" href="#">
+						<svg class="sb-icon sb-icon--user" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+						<span class="sb-header__action-label">Account</span>
+					</a>
+					<a class="sb-header__action" href="#">
+						<svg class="sb-icon sb-icon--cart" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.55L21 7H6"/></svg>
+						<span class="sb-header__action-label">Cart</span>
+					</a>
+				</div>
+
+			</div>
+		</div>
+
+		<nav class="sb-nav" aria-label="Primary">
+			<div class="sb-container">
+				<ul class="sb-nav__list">
+					<li><a href="#">A-Z All Product</a></li>
+					<li><a href="#">Best Selling</a></li>
+					<li><a href="#">Microphone</a></li>
+					<li><a href="#">Gadgets</a></li>
+					<li><a href="#">Tutorials</a></li>
+					<li><a href="#">User</a></li>
+					<li><a href="#">Special Deals</a></li>
+				</ul>
+			</div>
+		</nav>
+
+	</header>
+
+<div class="sb-container sb-layout">
+
+	<main id="main" class="sb-layout__main">
+
+		<article class="sb-entry">
+			<div class="sb-entry__body">
+
+				<h1 class="sb-entry__title">Delivery &amp; Return</h1>
+
+				<div class="sb-entry__content">
+					<p>Orders placed before 4pm are dispatched the same working day. Inside Dhaka, delivery is usually next day; outside Dhaka it takes two to three days depending on the courier.</p>
+
+					<h2>Delivery charges</h2>
+					<table>
+						<thead>
+							<tr><th>Area</th><th>Charge</th><th>Time</th></tr>
+						</thead>
+						<tbody>
+							<tr><td>Inside Dhaka</td><td>৳ 60</td><td>1 day</td></tr>
+							<tr><td>Outside Dhaka</td><td>৳ 120</td><td>2–3 days</td></tr>
+						</tbody>
+					</table>
+
+					<h2>Returns</h2>
+					<p>You can return an unopened product within seven days of delivery. Opened products can be returned only if the item is faulty on arrival.</p>
+					<ol>
+						<li>Message us with your order number</li>
+						<li>Pack the item with everything it came with</li>
+						<li>Hand it to the courier we arrange</li>
+					</ol>
+
+					<p>Refunds are issued to the original payment method within five working days of the item reaching our warehouse.</p>
+				</div>
+
+			</div>
+		</article>
+
+	</main>
+
+
+</div>
+
+	<footer id="colophon" class="sb-footer">
+		<div class="sb-container">
+
+			<div class="sb-footer__columns">
+				<div class="sb-footer__column">
+					<h2 class="sb-footer__heading">Simple Bangla</h2>
+					<ul class="sb-footer__menu">
+						<li><a href="#">About Us</a></li>
+						<li><a href="#">Privacy Policy</a></li>
+						<li><a href="#">Delivery &amp; Return</a></li>
+						<li><a href="#">Terms &amp; Conditions</a></li>
+					</ul>
+				</div>
+				<div class="sb-footer__column">
+					<h2 class="sb-footer__heading">Helps</h2>
+					<ul class="sb-footer__menu">
+						<li><a href="#">Shop Now</a></li>
+						<li><a href="#">Checkout</a></li>
+						<li><a href="#">How to Order</a></li>
+						<li><a href="#">Warranty Policy</a></li>
+					</ul>
+				</div>
+				<div class="sb-footer__column">
+					<h2 class="sb-footer__heading">Customer Service</h2>
+					<ul class="sb-footer__menu">
+						<li><a href="#">Contact Us</a></li>
+						<li><a href="#">Membership</a></li>
+						<li><a href="#">Track Order</a></li>
+						<li><a href="#">Support</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<p class="sb-footer__copyright">© 2026 Simple Bangla. All rights reserved.</p>
+
+		</div>
+	</footer>
+
+</div><!-- #page -->
+
+<nav class="sbp-bar" aria-label="Preview navigation">
+	<span class="sbp-bar__label">Preview</span>
+	<a href="index.html">Blog index</a>
+	<a href="single.html">Single post</a>
+	<a href="page.html" aria-current="page">Page</a>
+	<a href="search.html">Empty search</a>
+	<a href="404.html">404</a>
+</nav>
+
+</body>
+</html>
