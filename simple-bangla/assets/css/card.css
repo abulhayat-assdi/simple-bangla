@@ -44,14 +44,11 @@
 }
 
 /*
- * Slider variant: one category, one line.
+ * Slider variant: one category, one line. Two cards fit on a phone and three on a desktop;
+ * the rest are reached by swiping, by the arrows, or by the five-second autoplay in slider.js.
  *
- * Exactly two cards fit on a phone and three on a desktop — the rest are reached by swiping,
- * by the arrows, or by the five-second autoplay in slider.js.
- *
- * Built on scroll-snap rather than a carousel library: it is scrollable by touch, trackpad,
- * scrollbar and keyboard for free, and with JavaScript blocked it degrades to a plain
- * horizontally scrolling row that still shows every product.
+ * Scroll-snap rather than a carousel library — scrollable by touch, trackpad, scrollbar and
+ * keyboard for free, and with JavaScript blocked it stays a plain row showing every product.
  */
 .sb-products--slider {
 	--sb-slide-gap: var(--sb-space-3);
@@ -102,11 +99,9 @@
 }
 
 /*
- * A fixed 4:3 frame, matching the reference. Product photography arrives at every aspect
- * ratio a supplier felt like, and letting that through is what makes a grid look broken.
- *
- * `contain`, not `cover`: a catalogue photo cropped to fill would lose the ends of a cable or
- * the legs of a tripod. Letterboxing against the card is the honest trade.
+ * A fixed 4:3 frame, matching the reference — supplier photos arrive at every ratio, and
+ * letting that through is what makes a grid look broken. `contain` rather than `cover`, or a
+ * crop-to-fill would lose the ends of a cable and the legs of a tripod.
  */
 .sb-card__image,
 .sb-card__media img {
