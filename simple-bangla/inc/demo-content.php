@@ -868,6 +868,26 @@ function simple_bangla_demo_checkout_setup() {
 		update_option( 'woocommerce_cod_settings', $cod );
 	}
 
+	/* -- Bangladesh only -- */
+
+	/*
+	 * Not merely a policy setting. With exactly one country allowed, WooCommerce renders the
+	 * checkout's country field as a fixed value beside a hidden input instead of a select
+	 * carrying all 250 countries — which is what the field should look like on a store that
+	 * ships to one, and about 15 KB less markup on the page.
+	 *
+	 * Only ever applied to a store still on WooCommerce's default, so an owner who has opened
+	 * up other countries is never rolled back.
+	 */
+	if ( 'all' === get_option( 'woocommerce_allowed_countries', 'all' ) ) {
+
+		update_option( 'woocommerce_allowed_countries', 'specific' );
+		update_option( 'woocommerce_specific_allowed_countries', array( 'BD' ) );
+
+		// Empty means "ship to whatever I sell to", so this stays true if the list is widened.
+		update_option( 'woocommerce_ship_to_countries', '' );
+	}
+
 	/* -- Classic cart and checkout, so woocommerce/ template overrides apply -- */
 
 	$shortcodes = array(

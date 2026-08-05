@@ -332,7 +332,7 @@ Judge the budget by what a visitor downloads:
 | Homepage | ~47 KB |
 | Shop / category | ~47 KB |
 | Single product | ~51 KB |
-| Cart / checkout | ~46 KB |
+| Cart / checkout | ~50 KB |
 
 Front-end JS is ~25 KB across five files, likewise split by view.
 
@@ -349,9 +349,35 @@ Front-end JS is ~25 KB across five files, likewise split by view.
   markup, never a page the owner has written.
 - **Checkout copy is Bangla**, unlike the rest of the site. It is the one page a customer types
   into. Strings still go through `__()`, so it stays translatable.
-- Store configuration — Cash on Delivery, the two flat rates, the page swap — lives in the demo
-  importer, never in the theme. A theme that rewrote a live store's payment settings on
-  activation would be a menace.
+- Store configuration — Cash on Delivery, the two flat rates, the page swap, selling to
+  Bangladesh only — lives in the demo importer, never in the theme. A theme that rewrote a live
+  store's payment settings on activation would be a menace.
+
+## Checkout layout (2026-08-06)
+
+Built to a screenshot the owner supplied. Two columns: the address on the left, the order on the
+right.
+
+- **The delivery-charge radios sit under the address, not in the totals table.** Choosing
+  "inside Dhaka" or "outside Dhaka" is part of saying where the parcel goes.
+  `template-parts/checkout/shipping.php` rebuilds WooCommerce's rate list keeping its input
+  names and `shipping_method` class, so the delegated change handler still recalculates the
+  total. It sits outside `#order_review` — the fragment WooCommerce replaces on every
+  recalculation — so the choice is never re-rendered under a finger mid-tap. The trade: a rate
+  list that changed with the address would go stale. These two never do, because they are a
+  choice rather than a zone matched from a state field.
+- **No delivery row in the order summary**, matching the screenshot. Subtotal, then Total. The
+  charge is visible beside the address instead. One row in `checkout/review-order.php` brings it
+  back if the owner wants it itemised.
+- **Labels are visually hidden and the placeholder asks the question**, asterisk included. On a
+  four-field form a label above each box asks it twice. The labels stay in the markup.
+- **The coupon form stays above the checkout form**, where WooCommerce puts it, styled down to a
+  single line. It cannot move into the order column: it is a `<form>`, the order column is
+  inside the checkout `<form>`, and a browser drops a nested form tag — which would leave
+  "Apply coupon" submitting the checkout itself.
+- **The country field is shown, not asked.** With one allowed country WooCommerce renders the
+  name plus a hidden input instead of a 250-option select — the right thing to show, and ~15 KB
+  less markup. Set by the importer; if it has not run, the select renders and still works.
 
 ## Reference measurements (2026-08-06)
 

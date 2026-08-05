@@ -60,16 +60,20 @@ defined( 'ABSPATH' ) || exit;
 					do_action( 'woocommerce_checkout_before_customer_details' );
 					?>
 
+					<?php
+					/*
+					 * One column, not WooCommerce's two. The second one held the separate
+					 * shipping address, which this store does not ask for, so it rendered as an
+					 * empty half. The `col2-set` and `col-1` classes and the `customer_details`
+					 * id stay because plugins and WooCommerce's own scripts look them up.
+					 */
+					?>
 					<div class="col2-set" id="customer_details">
 						<div class="col-1">
 							<?php
 							/** This hook is documented in woocommerce/templates/checkout/form-checkout.php */
 							do_action( 'woocommerce_checkout_billing' );
-							?>
-						</div>
 
-						<div class="col-2">
-							<?php
 							/** This hook is documented in woocommerce/templates/checkout/form-checkout.php */
 							do_action( 'woocommerce_checkout_shipping' );
 							?>

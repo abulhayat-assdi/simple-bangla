@@ -221,32 +221,39 @@ function simple_bangla_checkout_fields( $fields ) {
 		unset( $fields['billing'][ $unwanted ] );
 	}
 
+	/*
+	 * The placeholder carries the question and the label is hidden by the stylesheet, because
+	 * repeating each one twice on a four-field form is noise. The asterisk lives in the
+	 * placeholder text for the same reason — there is no visible label to hang it off.
+	 *
+	 * Name and phone sit side by side (first/last); everything longer takes a full line.
+	 */
 	$labels = array(
 		'billing_first_name' => array(
 			'label'       => __( 'আপনার নাম', 'simple-bangla' ),
-			'placeholder' => __( 'আপনার নাম লিখুন', 'simple-bangla' ),
+			'placeholder' => __( 'আপনার নাম লিখুন *', 'simple-bangla' ),
 			'priority'    => 10,
 			'required'    => true,
-			'class'       => array( 'form-row-wide' ),
+			'class'       => array( 'form-row-first' ),
 		),
 		'billing_phone'      => array(
 			'label'       => __( 'মোবাইল নাম্বার', 'simple-bangla' ),
-			'placeholder' => __( '০১XXXXXXXXX', 'simple-bangla' ),
+			'placeholder' => __( 'মোবাইল নাম্বার *', 'simple-bangla' ),
 			'priority'    => 20,
 			'required'    => true,
-			'class'       => array( 'form-row-wide' ),
+			'class'       => array( 'form-row-last' ),
 		),
 		'billing_address_1'  => array(
 			'label'       => __( 'সম্পূর্ণ ঠিকানা', 'simple-bangla' ),
-			'placeholder' => __( 'বাসা, রোড, এলাকা ও জেলা', 'simple-bangla' ),
+			'placeholder' => __( 'সম্পূর্ণ ঠিকানা (জেলা সহ) *', 'simple-bangla' ),
 			'priority'    => 30,
 			'required'    => true,
 			'class'       => array( 'form-row-wide' ),
 		),
 		'billing_email'      => array(
-			'label'       => __( 'ইমেইল (ঐচ্ছিক)', 'simple-bangla' ),
-			'placeholder' => __( 'you@example.com', 'simple-bangla' ),
-			'priority'    => 40,
+			'label'       => __( 'ইমেইল ঠিকানা', 'simple-bangla' ),
+			'placeholder' => __( 'ইমেইল ঠিকানা (ঐচ্ছিক)', 'simple-bangla' ),
+			'priority'    => 50,
 			'required'    => false,
 			'class'       => array( 'form-row-wide' ),
 		),
@@ -258,10 +265,17 @@ function simple_bangla_checkout_fields( $fields ) {
 		}
 	}
 
-	// The store only ships within Bangladesh, so the country picker is a question with one
-	// answer. It stays in the array — WooCommerce needs it — but hidden and prefilled.
+	/*
+	 * The country is shown, not asked. With Bangladesh the only country the store sells to,
+	 * WooCommerce renders this field as a fixed value plus a hidden input rather than a
+	 * 250-option select — so the customer sees where the parcel is going and the page carries
+	 * about 15 KB less markup. That single-country setting is store configuration, applied by
+	 * the demo importer; if the owner later opens up more countries the select comes back on
+	 * its own and still works.
+	 */
 	if ( isset( $fields['billing']['billing_country'] ) ) {
-		$fields['billing']['billing_country']['class'] = array( 'form-row-wide', 'sb-hidden-field' );
+		$fields['billing']['billing_country']['class']    = array( 'form-row-wide' );
+		$fields['billing']['billing_country']['priority'] = 40;
 	}
 
 	return $fields;
@@ -285,6 +299,44 @@ add_filter( 'woocommerce_enable_order_notes_field', 'simple_bangla_disable_order
  * needs_shipping_address().
  */
 add_filter( 'woocommerce_cart_needs_shipping_address', '__return_false' );
+
+/**
+ * Put the delivery-charge choice under the address, not inside the order summary.
+ *
+ * WooCommerce renders shipping rates as a row of the order-review table. Here the customer is
+ * choosing between "inside Dhaka" and "outside Dhaka" — that is part of saying where the parcel
+ * goes, so it belongs beside the address they just typed, not in the column that totals it up.
+ *
+ * The radios keep WooCommerce's own names and classes, and they are still inside the checkout
+ * form, so its delegated change handler recalculates the total exactly as before.
+ */
+function simple_bangla_checkout_shipping_choice() {
+	get_template_part( 'template-parts/checkout/shipping' );
+}
+add_action( 'woocommerce_checkout_after_customer_details', 'simple_bangla_checkout_shipping_choice' );
+
+/*
+ * The coupon form stays where WooCommerce puts it: above the checkout form, not inside the order
+ * summary where the design would rather have it. It is a `<form>` of its own, and the order
+ * summary sits inside the checkout `<form>` — nesting one form in another is invalid HTML, and a
+ * browser drops the inner tag, which would leave "Apply coupon" submitting the checkout itself.
+ * The stylesheet reduces it to a single line of text so it stops reading as a boxed prompt.
+ */
+
+/**
+ * Repeat the instruction where the customer is about to act on it.
+ *
+ * The same line runs across the top of the page, but by the time someone has filled the form in
+ * they have scrolled past it, and the button it names is the one right below this.
+ */
+function simple_bangla_checkout_submit_note() {
+
+	printf(
+		'<p class="sb-checkout__submit-note">%s</p>',
+		esc_html__( 'অর্ডারটি কনফার্ম করতে ফর্মটি সম্পূর্ণ পূরণ করে নিচের Place Order বাটনে ক্লিক করুন।', 'simple-bangla' )
+	);
+}
+add_action( 'woocommerce_review_order_before_submit', 'simple_bangla_checkout_submit_note' );
 
 /**
  * Show the breadcrumb the theme's own templates render, with the theme's markup.

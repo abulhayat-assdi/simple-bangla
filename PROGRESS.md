@@ -2,6 +2,44 @@
 
 Last updated: 2026-08-06
 
+## Checkout rebuilt to the owner's screenshot (2026-08-06)
+
+The owner sent a screenshot of the checkout they want. Before changing anything, the running
+Playground instance was checked against it — the theme's own banner and step bar were rendering
+and "আপনার অর্ডার" was already in Bangla, neither of which the screenshot shows, so the
+screenshot is a target rather than a report of a broken page. Everything above the instruction
+line is scrolled out of frame in it, so the banner and step bar were left alone.
+
+Rebuilt to match:
+
+- **Delivery charge moved out of the totals table** into a bordered two-row chooser under the
+  address — label left, price right, the whole row tappable.
+  (`template-parts/checkout/shipping.php`)
+- **Order summary** now carries a product thumbnail, the quantity on its own line and a remove
+  link, with Bangla column headings. No delivery row; subtotal then total, as in the screenshot.
+  (`woocommerce/checkout/review-order.php`)
+- **Billing block** heading is "ডেলিভারি তথ্য", which is what the address is for on a COD store.
+  Name and mobile share a line; address, country and email take full lines. Labels are visually
+  hidden — the placeholder carries the question and the asterisk.
+  (`woocommerce/checkout/form-billing.php`)
+- **Country is displayed, not chosen.** The importer now sells to Bangladesh only, so
+  WooCommerce prints the name and a hidden input instead of a 250-option select.
+- **Instruction line** is set as a headline closed by a rule, and repeated in small type directly
+  above the Place Order button.
+- **Cart notice** restyled: bordered, green tick, message left, button right in the theme's black
+  rather than WooCommerce's blue.
+- The empty second column — WooCommerce's separate shipping-address slot, which this store does
+  not use — is gone.
+
+**One bug caught in the build.** The coupon form was first moved into the order summary, where
+the screenshot has it. That put a `<form>` inside the checkout `<form>`; browsers drop the inner
+tag, so "Apply coupon" would have submitted the checkout instead. It is back above the form,
+styled down to a single line of text.
+
+Verified on the running install: checkout renders with no PHP notices, and a real order placed
+through it — order #181, ৳1,410 = ৳1,290 + ৳120 — confirms the relocated delivery radios still
+drive the total. Cart/checkout CSS is 50 KB of the 60 KB per-view budget.
+
 ## Ordering now works end to end (2026-08-06)
 
 The store owner reported that pressing Order did nothing. Two causes, both real:

@@ -97,12 +97,18 @@
 
 /* -- Instruction line -- */
 
+/*
+ * The one sentence telling a customer what this page wants from them, so it is set as a headline
+ * closed by a rule rather than boxed like a notice — a box would read as one more thing to
+ * dismiss, next to the cart notice that really is one.
+ */
 .sb-checkout__instruction {
 	margin: 0 0 var(--sb-space-5);
-	padding: var(--sb-space-4);
-	border-radius: var(--sb-radius);
-	background: var(--sb-bg);
-	font-weight: 600;
+	padding-bottom: var(--sb-space-4);
+	border-bottom: 1px solid var(--sb-line);
+	font-size: var(--sb-text-xl);
+	font-weight: 700;
+	line-height: 1.5;
 	text-align: center;
 }
 
@@ -116,25 +122,31 @@
 
 @media (min-width: 900px) {
 	.sb-checkout__form {
-		grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
 		gap: var(--sb-space-6);
 	}
 }
 
-.sb-checkout__details,
+/* The address and the delivery choice are two stacked cards, not one long panel. */
+.sb-checkout__details {
+	display: grid;
+	gap: var(--sb-space-4);
+}
+
+.sb-checkout__block,
 .sb-checkout__order {
 	padding: var(--sb-space-4);
+	border: 1px solid var(--sb-line);
 	border-radius: var(--sb-radius);
 	background: var(--sb-bg);
 }
 
-.sb-checkout__subtitle,
-.woocommerce-billing-fields h3,
-.woocommerce-shipping-fields h3,
-.woocommerce-additional-fields h3 {
-	margin-bottom: var(--sb-space-4);
+.sb-checkout__legend,
+.sb-checkout__subtitle {
+	margin: 0 0 var(--sb-space-4);
 	font-family: var(--sb-font-heading);
 	font-size: var(--sb-text-lg);
+	font-weight: 700;
 }
 
 /* -- Fields -- */
@@ -150,10 +162,8 @@
 		grid-template-columns: 1fr 1fr;
 	}
 
-	/* Address, and anything else asking for a full line, spans both columns. */
-	.woocommerce-billing-fields__field-wrapper .form-row-wide,
-	.woocommerce-billing-fields__field-wrapper #billing_address_1_field,
-	.woocommerce-billing-fields__field-wrapper #billing_address_2_field {
+	/* Name and phone share a line; the address and anything else take a full one. */
+	.woocommerce-billing-fields__field-wrapper .form-row-wide {
 		grid-column: 1 / -1;
 	}
 }
@@ -168,6 +178,24 @@
 	margin-bottom: var(--sb-space-1);
 	font-size: var(--sb-text-sm);
 	font-weight: 600;
+}
+
+/*
+ * On a four-field form the placeholder already asks the question, and a label above each box
+ * asks it a second time. The label stays in the markup for screen readers and for anyone
+ * clicking it; it is the duplication on screen that goes. Fields a plugin adds elsewhere on the
+ * page keep their visible labels.
+ */
+.sb-checkout .woocommerce-billing-fields__field-wrapper > .form-row > label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 .sb-checkout .required {
@@ -197,9 +225,77 @@
 	min-height: 90px;
 }
 
-/* Country is fixed to Bangladesh; the field stays in the DOM for WooCommerce, not for reading. */
-.sb-checkout .sb-hidden-field {
-	display: none;
+.sb-checkout ::placeholder {
+	color: var(--sb-muted);
+	opacity: 1;
+}
+
+.sb-checkout input:focus-visible,
+.sb-checkout textarea:focus-visible,
+.sb-checkout select:focus-visible {
+	outline: 2px solid var(--sb-brand);
+	outline-offset: 1px;
+}
+
+/*
+ * The store sells to one country, so WooCommerce prints its name beside a hidden input instead
+ * of a select. Dressed as a filled-in disabled field: it is information, not a blank.
+ */
+.sb-checkout #billing_country_field .woocommerce-input-wrapper strong {
+	display: block;
+	padding: 13px var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg-alt);
+	color: var(--sb-muted);
+	font-weight: 400;
+}
+
+/* -- Delivery charge -- */
+
+.sb-shipping {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	overflow: hidden;
+}
+
+.sb-shipping__option {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-3);
+}
+
+.sb-shipping__option + .sb-shipping__option {
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-shipping input[type="radio"] {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	accent-color: var(--sb-brand);
+}
+
+/* The whole row is the target, not just the eight-pixel dot. */
+.sb-shipping__option label {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	margin: 0;
+	font-size: var(--sb-text-base);
+	font-weight: 400;
+	cursor: pointer;
+}
+
+.sb-shipping__cost {
+	font-weight: 700;
+	white-space: nowrap;
 }
 
 /* -- Order review -- */
@@ -207,7 +303,6 @@
 .sb-checkout .shop_table {
 	width: 100%;
 	border-collapse: collapse;
-	margin-bottom: var(--sb-space-4);
 }
 
 .sb-checkout .shop_table th,
@@ -215,8 +310,12 @@
 	padding: var(--sb-space-3) 0;
 	border-bottom: 1px solid var(--sb-line);
 	text-align: left;
-	vertical-align: top;
+	vertical-align: middle;
 	font-size: var(--sb-text-sm);
+}
+
+.sb-checkout .shop_table thead th {
+	font-weight: 700;
 }
 
 .sb-checkout .shop_table td:last-child,
@@ -232,41 +331,98 @@
 	font-weight: 700;
 }
 
-.sb-checkout ul#shipping_method {
-	list-style: none;
-	display: grid;
+.sb-order-line {
+	display: flex;
+	align-items: center;
 	gap: var(--sb-space-2);
-	margin: 0;
 }
 
-.sb-checkout ul#shipping_method label {
-	display: inline;
+.sb-order-line__media img {
+	display: block;
+	width: 48px;
+	height: 48px;
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg);
+	object-fit: contain;
+}
+
+/*
+ * A way out of a wrong line without going back to the cart. Small and grey until hovered —
+ * removing something is not what this page is for.
+ */
+.sb-order-line__remove {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 20px;
+	height: 20px;
+	border-radius: var(--sb-radius-pill);
+	background: var(--sb-bg-alt);
+	color: var(--sb-muted);
+	font-size: 15px;
+	line-height: 1;
+	text-decoration: none;
+	transition: background-color var(--sb-transition), color var(--sb-transition);
+}
+
+.sb-order-line__remove:hover,
+.sb-order-line__remove:focus-visible {
+	background: var(--sb-sale);
+	color: #ffffff;
+}
+
+.sb-checkout .product-quantity {
+	display: block;
+	color: var(--sb-muted);
 	font-weight: 400;
 }
 
 /* -- Payment -- */
 
+.sb-checkout #payment {
+	margin-top: var(--sb-space-4);
+}
+
 .sb-checkout #payment ul.payment_methods {
 	list-style: none;
-	display: grid;
-	gap: var(--sb-space-2);
-	margin: 0 0 var(--sb-space-4);
-	padding: var(--sb-space-3);
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--sb-line);
 	border-radius: var(--sb-radius-sm);
-	background: var(--sb-bg-alt);
+}
+
+.sb-checkout #payment ul.payment_methods > li {
+	padding: var(--sb-space-3);
+}
+
+.sb-checkout #payment ul.payment_methods > li + li {
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-checkout #payment ul.payment_methods label {
+	display: inline;
+	font-size: var(--sb-text-base);
 }
 
 .sb-checkout #payment .payment_box {
-	margin-top: var(--sb-space-2);
+	margin-top: var(--sb-space-3);
 	padding: var(--sb-space-3);
 	border-radius: var(--sb-radius-sm);
-	background: var(--sb-bg);
+	background: var(--sb-bg-alt);
 	color: var(--sb-muted);
 	font-size: var(--sb-text-sm);
 }
 
 .sb-checkout #payment .payment_box p {
 	margin: 0;
+}
+
+.sb-checkout__submit-note {
+	margin: var(--sb-space-4) 0 var(--sb-space-3);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+	text-align: center;
 }
 
 /*
@@ -294,35 +450,100 @@
 	background: #15803d;
 }
 
-/* -- Coupon and notices -- */
+/* -- Coupon -- */
 
-.woocommerce-form-coupon-toggle,
-.checkout_coupon {
+/*
+ * Left as a plain line of text. It has to stay above the form — see the note in
+ * inc/woocommerce.php — but a bordered "enter a code" panel there is the first thing a customer
+ * meets on the page they came to complete, and mostly sends them off to hunt for a code.
+ */
+.woocommerce-form-coupon-toggle {
 	margin-bottom: var(--sb-space-4);
+}
+
+.woocommerce-form-coupon-toggle .woocommerce-info {
+	display: block;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	font-size: var(--sb-text-sm);
+}
+
+.woocommerce-form-coupon-toggle .woocommerce-info::before {
+	content: none;
 }
 
 .checkout_coupon {
 	display: grid;
 	gap: var(--sb-space-2);
+	margin-top: var(--sb-space-3);
 	padding: var(--sb-space-3);
 	border-radius: var(--sb-radius-sm);
 	background: var(--sb-bg-alt);
 }
 
+/* -- Notices -- */
+
 .woocommerce-message,
 .woocommerce-info,
 .woocommerce-error {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--sb-space-3);
 	list-style: none;
-	margin: 0 0 var(--sb-space-4);
+	margin: 0 0 var(--sb-space-5);
 	padding: var(--sb-space-3) var(--sb-space-4);
+	border: 1px solid var(--sb-ink);
 	border-radius: var(--sb-radius-sm);
-	background: var(--sb-bg-alt);
-	border-left: 4px solid var(--sb-brand);
+	background: var(--sb-bg);
 	font-size: var(--sb-text-sm);
 }
 
+.woocommerce-message::before,
+.woocommerce-error::before {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 22px;
+	height: 22px;
+	border-radius: var(--sb-radius-pill);
+	color: #ffffff;
+	font-size: 14px;
+	line-height: 1;
+}
+
+.woocommerce-message::before {
+	content: "\2713";
+	background: #16a34a;
+}
+
 .woocommerce-error {
-	border-left-color: var(--sb-sale);
+	border-color: var(--sb-sale);
+}
+
+.woocommerce-error::before {
+	content: "!";
+	background: var(--sb-sale);
+}
+
+/*
+ * WooCommerce prints the button before the message text, so it is ordered last and pushed to the
+ * far end rather than reordered in the markup, which would mean overriding the notice function.
+ */
+.woocommerce-message .button,
+.woocommerce-info .button {
+	order: 2;
+	margin-left: auto;
+	padding: var(--sb-space-2) var(--sb-space-4);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-brand);
+	color: #ffffff;
+	font-size: var(--sb-text-sm);
+	font-weight: 600;
+	text-decoration: none;
+	white-space: nowrap;
 }
 
 /* ------------------------------------------------------------------ *
