@@ -240,6 +240,11 @@ function simple_bangla_enqueue_assets() {
 		);
 	}
 
+	// Cart, checkout and the order-received page share one sheet.
+	if ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() ) ) {
+		simple_bangla_enqueue_style( 'checkout', 'checkout.css' );
+	}
+
 	if ( $is_product ) {
 		simple_bangla_enqueue_style( 'product', 'product.css' );
 		simple_bangla_enqueue_script( 'product', 'product.js' );

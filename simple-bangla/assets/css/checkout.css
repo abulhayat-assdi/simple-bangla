@@ -1,0 +1,491 @@
+/*
+ * Simple Bangla — cart, checkout and thank-you.
+ *
+ * Loaded only on those three views. Much of this restyles markup WooCommerce emits itself
+ * (.woocommerce-billing-fields, #order_review, .shop_table), because the form is left to
+ * WooCommerce so gateways and shipping plugins keep working.
+ */
+
+.sb-checkout {
+	padding-bottom: var(--sb-space-7);
+}
+
+/* -- Banner + step bar -- */
+
+.sb-checkout__banner {
+	margin-bottom: var(--sb-space-6);
+	padding-block: var(--sb-space-5);
+	background: #1f2740;
+	color: #ffffff;
+}
+
+.sb-checkout__title {
+	margin: 0 0 var(--sb-space-5);
+	font-family: var(--sb-font-display);
+	font-size: 1.75rem;
+	font-weight: 600;
+	letter-spacing: 1px;
+	text-align: center;
+	color: #ffffff;
+}
+
+.sb-steps {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 0;
+	list-style: none;
+	margin: 0 auto;
+	padding: 0;
+	max-width: 560px;
+}
+
+.sb-steps__item {
+	position: relative;
+	flex: 1 1 0;
+	text-align: center;
+}
+
+/*
+ * The connecting rule is drawn by each step except the first, reaching back to its neighbour.
+ * Doing it this way means the line is always exactly the gap between two markers.
+ */
+.sb-steps__item + .sb-steps__item::before {
+	content: "";
+	position: absolute;
+	top: 21px;
+	right: 50%;
+	left: -50%;
+	height: 2px;
+	background: rgb(255 255 255 / 25%);
+}
+
+.sb-steps__item--done::before,
+.sb-steps__item--current::before {
+	background: #22c55e;
+}
+
+.sb-steps__link {
+	position: relative;
+	display: grid;
+	justify-items: center;
+	gap: var(--sb-space-2);
+	color: rgb(255 255 255 / 60%);
+	font-size: var(--sb-text-sm);
+	text-decoration: none;
+}
+
+.sb-steps__marker {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: var(--sb-radius-pill);
+	background: rgb(255 255 255 / 15%);
+	color: #ffffff;
+}
+
+.sb-steps__item--done .sb-steps__link,
+.sb-steps__item--current .sb-steps__link {
+	color: #ffffff;
+}
+
+.sb-steps__item--done .sb-steps__marker,
+.sb-steps__item--current .sb-steps__marker {
+	background: #22c55e;
+}
+
+/* -- Instruction line -- */
+
+.sb-checkout__instruction {
+	margin: 0 0 var(--sb-space-5);
+	padding: var(--sb-space-4);
+	border-radius: var(--sb-radius);
+	background: var(--sb-bg);
+	font-weight: 600;
+	text-align: center;
+}
+
+/* -- Layout -- */
+
+.sb-checkout__form {
+	display: grid;
+	gap: var(--sb-space-5);
+	align-items: start;
+}
+
+@media (min-width: 900px) {
+	.sb-checkout__form {
+		grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+		gap: var(--sb-space-6);
+	}
+}
+
+.sb-checkout__details,
+.sb-checkout__order {
+	padding: var(--sb-space-4);
+	border-radius: var(--sb-radius);
+	background: var(--sb-bg);
+}
+
+.sb-checkout__subtitle,
+.woocommerce-billing-fields h3,
+.woocommerce-shipping-fields h3,
+.woocommerce-additional-fields h3 {
+	margin-bottom: var(--sb-space-4);
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-lg);
+}
+
+/* -- Fields -- */
+
+.woocommerce-billing-fields__field-wrapper,
+.woocommerce-shipping-fields__field-wrapper {
+	display: grid;
+	gap: var(--sb-space-3);
+}
+
+@media (min-width: 600px) {
+	.woocommerce-billing-fields__field-wrapper {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	/* Address, and anything else asking for a full line, spans both columns. */
+	.woocommerce-billing-fields__field-wrapper .form-row-wide,
+	.woocommerce-billing-fields__field-wrapper #billing_address_1_field,
+	.woocommerce-billing-fields__field-wrapper #billing_address_2_field {
+		grid-column: 1 / -1;
+	}
+}
+
+.sb-checkout .form-row {
+	margin: 0;
+	padding: 0;
+}
+
+.sb-checkout label {
+	display: block;
+	margin-bottom: var(--sb-space-1);
+	font-size: var(--sb-text-sm);
+	font-weight: 600;
+}
+
+.sb-checkout .required {
+	color: var(--sb-sale);
+	text-decoration: none;
+}
+
+.sb-checkout input[type="text"],
+.sb-checkout input[type="tel"],
+.sb-checkout input[type="email"],
+.sb-checkout input[type="password"],
+.sb-checkout textarea,
+.sb-checkout select,
+.sb-checkout .select2-selection {
+	width: 100%;
+	min-height: 46px;
+	padding: var(--sb-space-2) var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg);
+	color: var(--sb-ink);
+	font-family: inherit;
+	font-size: var(--sb-text-base);
+}
+
+.sb-checkout textarea {
+	min-height: 90px;
+}
+
+/* Country is fixed to Bangladesh; the field stays in the DOM for WooCommerce, not for reading. */
+.sb-checkout .sb-hidden-field {
+	display: none;
+}
+
+/* -- Order review -- */
+
+.sb-checkout .shop_table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: var(--sb-space-4);
+}
+
+.sb-checkout .shop_table th,
+.sb-checkout .shop_table td {
+	padding: var(--sb-space-3) 0;
+	border-bottom: 1px solid var(--sb-line);
+	text-align: left;
+	vertical-align: top;
+	font-size: var(--sb-text-sm);
+}
+
+.sb-checkout .shop_table td:last-child,
+.sb-checkout .shop_table th:last-child {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.sb-checkout .shop_table tfoot .order-total th,
+.sb-checkout .shop_table tfoot .order-total td {
+	border-bottom: 0;
+	font-size: var(--sb-text-lg);
+	font-weight: 700;
+}
+
+.sb-checkout ul#shipping_method {
+	list-style: none;
+	display: grid;
+	gap: var(--sb-space-2);
+	margin: 0;
+}
+
+.sb-checkout ul#shipping_method label {
+	display: inline;
+	font-weight: 400;
+}
+
+/* -- Payment -- */
+
+.sb-checkout #payment ul.payment_methods {
+	list-style: none;
+	display: grid;
+	gap: var(--sb-space-2);
+	margin: 0 0 var(--sb-space-4);
+	padding: var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg-alt);
+}
+
+.sb-checkout #payment .payment_box {
+	margin-top: var(--sb-space-2);
+	padding: var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg);
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-checkout #payment .payment_box p {
+	margin: 0;
+}
+
+/*
+ * Place order. Green rather than the theme's black, because on this one page the button is a
+ * commitment rather than navigation and it should not look like every other link.
+ */
+.sb-checkout #place_order {
+	display: block;
+	width: 100%;
+	padding: var(--sb-space-3) var(--sb-space-5);
+	border: 0;
+	border-radius: var(--sb-radius);
+	background: #16a34a;
+	color: #ffffff;
+	font-family: inherit;
+	font-size: var(--sb-text-lg);
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	cursor: pointer;
+	transition: background-color var(--sb-transition);
+}
+
+.sb-checkout #place_order:hover {
+	background: #15803d;
+}
+
+/* -- Coupon and notices -- */
+
+.woocommerce-form-coupon-toggle,
+.checkout_coupon {
+	margin-bottom: var(--sb-space-4);
+}
+
+.checkout_coupon {
+	display: grid;
+	gap: var(--sb-space-2);
+	padding: var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg-alt);
+}
+
+.woocommerce-message,
+.woocommerce-info,
+.woocommerce-error {
+	list-style: none;
+	margin: 0 0 var(--sb-space-4);
+	padding: var(--sb-space-3) var(--sb-space-4);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg-alt);
+	border-left: 4px solid var(--sb-brand);
+	font-size: var(--sb-text-sm);
+}
+
+.woocommerce-error {
+	border-left-color: var(--sb-sale);
+}
+
+/* ------------------------------------------------------------------ *
+ * Thank you
+ * ------------------------------------------------------------------ */
+
+.sb-thankyou__card {
+	display: grid;
+	justify-items: center;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-6) var(--sb-space-4);
+	border-radius: var(--sb-radius);
+	background: var(--sb-bg);
+	text-align: center;
+}
+
+.sb-thankyou__tick {
+	display: grid;
+	place-items: center;
+	width: 72px;
+	height: 72px;
+	border-radius: var(--sb-radius-pill);
+	background: #dcfce7;
+	color: #16a34a;
+}
+
+.sb-thankyou__lead {
+	margin: 0;
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-xl);
+}
+
+.sb-thankyou__lead--failed {
+	color: var(--sb-sale);
+}
+
+.sb-thankyou__note {
+	margin: 0;
+	max-width: 46ch;
+	color: var(--sb-muted);
+}
+
+.sb-thankyou__overview {
+	display: grid;
+	gap: var(--sb-space-3);
+	list-style: none;
+	margin: var(--sb-space-5) 0;
+	padding: var(--sb-space-4);
+	border-radius: var(--sb-radius);
+	background: var(--sb-bg);
+}
+
+.sb-thankyou__overview li {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	padding-bottom: var(--sb-space-2);
+	border-bottom: 1px solid var(--sb-line);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-thankyou__overview li:last-child {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.sb-thankyou__overview span {
+	color: var(--sb-muted);
+}
+
+.sb-thankyou__actions {
+	text-align: center;
+}
+
+@media (min-width: 600px) {
+	.sb-thankyou__overview {
+		grid-template-columns: 1fr 1fr;
+		gap: var(--sb-space-3) var(--sb-space-6);
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * Cart
+ * ------------------------------------------------------------------ */
+
+.woocommerce-cart-form {
+	margin-bottom: var(--sb-space-5);
+}
+
+.woocommerce-cart-form .shop_table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.woocommerce-cart-form th,
+.woocommerce-cart-form td {
+	padding: var(--sb-space-3);
+	border-bottom: 1px solid var(--sb-line);
+	text-align: left;
+	font-size: var(--sb-text-sm);
+	vertical-align: middle;
+}
+
+.woocommerce-cart-form img {
+	width: 64px;
+	height: auto;
+	border-radius: var(--sb-radius-sm);
+}
+
+.cart_totals {
+	padding: var(--sb-space-4);
+	border-radius: var(--sb-radius);
+	background: var(--sb-bg);
+}
+
+.cart_totals table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.cart_totals th,
+.cart_totals td {
+	padding: var(--sb-space-2) 0;
+	border-bottom: 1px solid var(--sb-line);
+	text-align: left;
+	font-size: var(--sb-text-sm);
+}
+
+.wc-proceed-to-checkout {
+	margin-top: var(--sb-space-4);
+}
+
+.wc-proceed-to-checkout .checkout-button {
+	display: block;
+	padding: var(--sb-space-3) var(--sb-space-5);
+	border-radius: var(--sb-radius);
+	background: #16a34a;
+	color: #ffffff;
+	font-weight: 700;
+	text-align: center;
+	text-decoration: none;
+}
+
+/* Small screens: the cart table stops being a table and becomes stacked rows. */
+@media (max-width: 599px) {
+	.woocommerce-cart-form thead {
+		display: none;
+	}
+
+	.woocommerce-cart-form tr {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: var(--sb-space-2);
+		padding-block: var(--sb-space-3);
+		border-bottom: 1px solid var(--sb-line);
+	}
+
+	.woocommerce-cart-form td {
+		padding: 0;
+		border: 0;
+	}
+
+	.woocommerce-cart-form .product-name {
+		font-weight: 600;
+	}
+}

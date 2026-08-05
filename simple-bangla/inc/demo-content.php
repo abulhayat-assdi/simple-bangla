@@ -802,6 +802,7 @@ function simple_bangla_run_demo_import() {
 		simple_bangla_demo_seed_best_selling( $term_ids['best-selling'] );
 	}
 
+	simple_bangla_demo_checkout_setup();
 	simple_bangla_demo_hero();
 	simple_bangla_demo_banners();
 	simple_bangla_demo_menus( $term_ids );
@@ -839,6 +840,120 @@ function simple_bangla_demo_seed_best_selling( $term_id ) {
 	foreach ( $products as $product_id ) {
 		wp_set_object_terms( $product_id, array( (int) $term_id ), 'product_cat', true );
 	}
+}
+
+/**
+ * Make the store able to actually take an order.
+ *
+ * A fresh WooCommerce install has no payment method enabled and no shipping rates, so the
+ * checkout renders but the order can never be completed. It also ships the Cart and Checkout
+ * pages as blocks, which render entirely client-side and cannot be templated by a classic
+ * theme — so the theme's checkout design would never appear.
+ *
+ * All three are fixed here rather than in the theme itself: they are store configuration, and
+ * a theme that rewrites a live store's payment settings on activation would be a menace.
+ */
+function simple_bangla_demo_checkout_setup() {
+
+	/* -- Cash on delivery, which is how most orders in Bangladesh are actually paid -- */
+
+	$cod = (array) get_option( 'woocommerce_cod_settings', array() );
+
+	if ( empty( $cod['enabled'] ) || 'yes' !== $cod['enabled'] ) {
+
+		$cod['enabled']     = 'yes';
+		$cod['title']       = __( 'Cash on delivery', 'simple-bangla' );
+		$cod['description'] = __( 'Pay with cash when your order arrives.', 'simple-bangla' );
+
+		update_option( 'woocommerce_cod_settings', $cod );
+	}
+
+	/* -- Classic cart and checkout, so woocommerce/ template overrides apply -- */
+
+	$shortcodes = array(
+		'woocommerce_cart_page_id'     => '[woocommerce_cart]',
+		'woocommerce_checkout_page_id' => '[woocommerce_checkout]',
+	);
+
+	foreach ( $shortcodes as $option => $shortcode ) {
+
+		$page_id = (int) get_option( $option );
+
+		if ( ! $page_id ) {
+			continue;
+		}
+
+		$page = get_post( $page_id );
+
+		// Only swap a page that still holds WooCommerce's own block markup. A page the store
+		// owner has written themselves is left alone.
+		if ( ! $page || false === strpos( $page->post_content, 'wp:woocommerce/' ) ) {
+			continue;
+		}
+
+		wp_update_post(
+			array(
+				'ID'           => $page_id,
+				'post_content' => $shortcode,
+			)
+		);
+	}
+
+	/* -- Shipping -- */
+
+	if ( ! class_exists( 'WC_Shipping_Zone' ) ) {
+		return;
+	}
+
+	/*
+	 * Both rates live in the catch-all zone so the customer picks between them, rather than
+	 * the zone being matched from a state field. That is how the reference store does it, and
+	 * it is what lets the checkout form stay as short as it does — no city, state or postcode
+	 * is needed for the right delivery charge to apply.
+	 */
+	// A one-shot flag rather than "has any method", so re-running the importer after the rates
+	// were changed here does not leave a half-configured zone behind.
+	if ( get_option( 'simple_bangla_shipping_ready' ) ) {
+		return;
+	}
+
+	// Clear out anything a previous run left, including named zones, so the two rates below
+	// are the only ones a customer is offered.
+	foreach ( WC_Shipping_Zones::get_zones() as $existing ) {
+		$old = new WC_Shipping_Zone( $existing['zone_id'] );
+		$old->delete();
+	}
+
+	$zone = new WC_Shipping_Zone( 0 );
+
+	foreach ( $zone->get_shipping_methods() as $method ) {
+		$zone->delete_shipping_method( $method->instance_id );
+	}
+
+	$rates = array(
+		array( __( 'ঢাকার ভেতরে', 'simple-bangla' ), '70' ),
+		array( __( 'ঢাকার বাইরে', 'simple-bangla' ), '120' ),
+	);
+
+	foreach ( $rates as $rate ) {
+
+		$instance = $zone->add_shipping_method( 'flat_rate' );
+
+		if ( ! $instance ) {
+			continue;
+		}
+
+		update_option(
+			'woocommerce_flat_rate_' . $instance . '_settings',
+			array(
+				'title'      => $rate[0],
+				'cost'       => $rate[1],
+				'tax_status' => 'none',
+			)
+		);
+	}
+
+	update_option( 'simple_bangla_shipping_ready', time() );
 }
 
 /**

@@ -205,6 +205,88 @@ function simple_bangla_whatsapp_order_button() {
 add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_whatsapp_order_button', 20 );
 
 /**
+ * Cut the checkout down to what a cash-on-delivery order actually needs.
+ *
+ * WooCommerce's default billing form asks for eleven fields. A courier in Bangladesh needs a
+ * name, a phone number and one written address; everything else is friction on the one page
+ * where friction costs orders. The delivery charge comes from the shipping choice rather than
+ * from a state field, so dropping city, state and postcode changes nothing about the total.
+ *
+ * @param array $fields Checkout fields.
+ * @return array
+ */
+function simple_bangla_checkout_fields( $fields ) {
+
+	foreach ( array( 'billing_last_name', 'billing_company', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode' ) as $unwanted ) {
+		unset( $fields['billing'][ $unwanted ] );
+	}
+
+	$labels = array(
+		'billing_first_name' => array(
+			'label'       => __( 'আপনার নাম', 'simple-bangla' ),
+			'placeholder' => __( 'আপনার নাম লিখুন', 'simple-bangla' ),
+			'priority'    => 10,
+			'required'    => true,
+			'class'       => array( 'form-row-wide' ),
+		),
+		'billing_phone'      => array(
+			'label'       => __( 'মোবাইল নাম্বার', 'simple-bangla' ),
+			'placeholder' => __( '০১XXXXXXXXX', 'simple-bangla' ),
+			'priority'    => 20,
+			'required'    => true,
+			'class'       => array( 'form-row-wide' ),
+		),
+		'billing_address_1'  => array(
+			'label'       => __( 'সম্পূর্ণ ঠিকানা', 'simple-bangla' ),
+			'placeholder' => __( 'বাসা, রোড, এলাকা ও জেলা', 'simple-bangla' ),
+			'priority'    => 30,
+			'required'    => true,
+			'class'       => array( 'form-row-wide' ),
+		),
+		'billing_email'      => array(
+			'label'       => __( 'ইমেইল (ঐচ্ছিক)', 'simple-bangla' ),
+			'placeholder' => __( 'you@example.com', 'simple-bangla' ),
+			'priority'    => 40,
+			'required'    => false,
+			'class'       => array( 'form-row-wide' ),
+		),
+	);
+
+	foreach ( $labels as $key => $overrides ) {
+		if ( isset( $fields['billing'][ $key ] ) ) {
+			$fields['billing'][ $key ] = array_merge( $fields['billing'][ $key ], $overrides );
+		}
+	}
+
+	// The store only ships within Bangladesh, so the country picker is a question with one
+	// answer. It stays in the array — WooCommerce needs it — but hidden and prefilled.
+	if ( isset( $fields['billing']['billing_country'] ) ) {
+		$fields['billing']['billing_country']['class'] = array( 'form-row-wide', 'sb-hidden-field' );
+	}
+
+	return $fields;
+}
+add_filter( 'woocommerce_checkout_fields', 'simple_bangla_checkout_fields', 20 );
+
+/**
+ * Order notes are noise on a phone-confirmed COD order.
+ *
+ * @return bool
+ */
+function simple_bangla_disable_order_notes() {
+	return false;
+}
+add_filter( 'woocommerce_enable_order_notes_field', 'simple_bangla_disable_order_notes' );
+
+/*
+ * Drop the separate "ship to a different address" form. The parcel goes to the one address the
+ * customer typed, and asking for a second one on a cash-on-delivery order is a second chance to
+ * get it wrong. Shipping *rates* are unaffected — those come from needs_shipping(), not from
+ * needs_shipping_address().
+ */
+add_filter( 'woocommerce_cart_needs_shipping_address', '__return_false' );
+
+/**
  * Show the breadcrumb the theme's own templates render, with the theme's markup.
  *
  * @param array $args Existing breadcrumb arguments.

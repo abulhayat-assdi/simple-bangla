@@ -23,6 +23,32 @@ if ( ! $product || ! $product->is_visible() ) {
 }
 
 $simple_bangla_permalink = $product->get_permalink();
+
+/*
+ * Where "Order Now" goes.
+ *
+ * A simple product that is purchasable and in stock is added to the cart and the shopper is
+ * taken straight to checkout, where it sits alongside anything already in the basket. Anything
+ * that has to be configured first — a variable product, a grouped one, an external listing, or
+ * something out of stock — goes to its own page instead, because ordering it in one click is
+ * not actually possible.
+ *
+ * The redirect to checkout is done by simple_bangla_buy_now_redirect() in inc/woocommerce.php,
+ * which watches for the sb_buy_now flag.
+ */
+$simple_bangla_one_click = $product->is_purchasable()
+	&& $product->is_in_stock()
+	&& ! $product->is_type( array( 'variable', 'grouped', 'external' ) );
+
+$simple_bangla_order_url = $simple_bangla_one_click
+	? add_query_arg(
+		array(
+			'add-to-cart' => $product->get_id(),
+			'sb_buy_now'  => 1,
+		),
+		wc_get_checkout_url()
+	)
+	: $simple_bangla_permalink;
 ?>
 <li <?php wc_product_class( 'sb-card', $product ); ?>>
 
@@ -77,8 +103,17 @@ $simple_bangla_permalink = $product->get_permalink();
 			</div>
 		<?php endif; ?>
 
-		<a class="sb-btn sb-card__cta" href="<?php echo esc_url( $simple_bangla_permalink ); ?>">
-			<?php esc_html_e( 'Order Now', 'simple-bangla' ); ?>
+		<a
+			class="sb-btn sb-card__cta"
+			href="<?php echo esc_url( $simple_bangla_order_url ); ?>"
+			<?php // Keeps crawlers from filling a cart by following every card on the page. ?>
+			<?php echo $simple_bangla_one_click ? 'rel="nofollow"' : ''; ?>
+		>
+			<?php
+			echo $simple_bangla_one_click
+				? esc_html__( 'Order Now', 'simple-bangla' )
+				: esc_html__( 'Choose Options', 'simple-bangla' );
+			?>
 			<span class="screen-reader-text"><?php echo esc_html( $product->get_name() ); ?></span>
 		</a>
 

@@ -2,6 +2,39 @@
 
 Last updated: 2026-08-06
 
+## Ordering now works end to end (2026-08-06)
+
+The store owner reported that pressing Order did nothing. Two causes, both real:
+
+1. **No payment method was enabled.** A fresh WooCommerce has every gateway off, so the
+   checkout rendered but no order could ever complete.
+2. **Cart and Checkout were WooCommerce 11's block pages**, which render entirely client-side
+   and cannot be templated by a classic theme — so the theme's checkout design never appeared.
+
+Fixed, and verified by placing real orders through the running site:
+
+- **Card "Order Now" now adds the product and goes straight to checkout**, where it sits
+  alongside anything already in the basket. Variable, grouped, external and out-of-stock
+  products still go to their own page, with the label changed to "Choose Options".
+- The product page's **Buy Now** already worked (it was the missing gateway that made it look
+  broken) and is unchanged.
+- **Cash on Delivery enabled**; **two flat rates** offered as a choice — ঢাকার ভেতরে ৳70 and
+  ঢাকার বাইরে ৳120 — rather than matching a zone from a state field, which is what lets the
+  form stay short.
+- **Cart and Checkout switched to the classic shortcodes**, so `woocommerce/` overrides apply.
+- **Checkout rebuilt in Bangla**: navy banner, three-step progress bar (কার্ট → অর্ডার →
+  সম্পন্ন), and four fields only — name, mobile, full address, optional email. Company,
+  second address line, city, state, postcode, order notes and the separate shipping-address
+  form are all removed. Country is fixed to Bangladesh and hidden.
+- **Thank-you page rebuilt in Bangla** with the last step marked done, a green tick, the order
+  number, date, mobile, total and payment method, and a line telling the customer a
+  representative will ring to confirm.
+
+Verified: `Order Now → checkout → Place Order → order #180 created → thank-you page`, total
+৳1,360 (৳1,290 + ৳70 delivery), zero PHP errors on every page.
+
+All store configuration is done by the demo importer, never by the theme itself.
+
 ## Reference-matching pass (2026-08-06)
 
 The user supplied screenshots of demarkt.com.bd showing the footer, header, hero and product

@@ -320,6 +320,39 @@ favour of a single pass. Reinstate it for any future work unless told otherwise.
   wiring is broken and we are not reproducing the bug.
 - **Six product rows**, matching both the spec and the live site.
 
+## The CSS budget is per view, not per repo (revised 2026-08-06)
+
+The original "CSS < 60 KB" was written before the theme had a checkout. Summed across all eight
+sheets it now reads 70 KB, but **no page loads more than about 51 KB** — base, header and footer
+are the only unconditional sheets, and card/home/shop/product/checkout are enqueued per view.
+Judge the budget by what a visitor downloads:
+
+| View | CSS |
+|---|---|
+| Homepage | ~47 KB |
+| Shop / category | ~47 KB |
+| Single product | ~51 KB |
+| Cart / checkout | ~46 KB |
+
+Front-end JS is ~25 KB across five files, likewise split by view.
+
+## Ordering (2026-08-06)
+
+- **"Order Now" on a card adds the product and goes straight to checkout** —
+  `/checkout/?add-to-cart=ID&sb_buy_now=1`. This replaces the earlier rule that the card CTA
+  should link to the product page; the store owner asked for one-click ordering. A variable,
+  grouped, external or out-of-stock product still goes to its own page and the label changes to
+  "Choose Options", because one-click ordering it is not actually possible.
+- **Checkout and Cart are the classic shortcodes, not the block versions.** WooCommerce 11
+  ships them as blocks that render client-side and cannot be templated by a classic theme, so
+  the importer swaps the page content — but only while it still holds WooCommerce's own block
+  markup, never a page the owner has written.
+- **Checkout copy is Bangla**, unlike the rest of the site. It is the one page a customer types
+  into. Strings still go through `__()`, so it stays translatable.
+- Store configuration — Cash on Delivery, the two flat rates, the page swap — lives in the demo
+  importer, never in the theme. A theme that rewrote a live store's payment settings on
+  activation would be a menace.
+
 ## Reference measurements (2026-08-06)
 
 `WebFetch` gets a 403 from demarkt.com.bd, but **plain `curl` with a desktop User-Agent gets
