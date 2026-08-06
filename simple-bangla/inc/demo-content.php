@@ -6,9 +6,12 @@
  * a few dozen products with real price and sale-price spreads, navigation menus wired to
  * match, and homepage banners.
  *
- * Every image is generated here with GD from the theme's own palette. Nothing is copied from
- * the reference site, and nothing is fetched over the network — an importer that needs an
- * internet connection is an importer that fails on a local install.
+ * Images come from the Unsplash API when a free Access Key is on file (Appearance > Demo
+ * Content), searched per category so a microphone product gets a real microphone photo. That
+ * is a deliberate exception to "nothing fetched over the network": it exists so a store owner
+ * can be shown a realistic preview before their own product photography is ready. Without a
+ * key nothing changes — the importer falls back to the original GD-drawn silhouettes, so a
+ * stock install still needs zero extra setup.
  *
  * @package Simple_Bangla
  */
@@ -20,6 +23,9 @@ const SIMPLE_BANGLA_DEMO_FLAG = 'simple_bangla_demo_imported';
 
 /** Meta key marking every post, term and attachment the importer created. */
 const SIMPLE_BANGLA_DEMO_MARK = '_simple_bangla_demo';
+
+/** Option holding the store owner's free Unsplash Access Key, if any. */
+const SIMPLE_BANGLA_UNSPLASH_KEY_OPTION = 'simple_bangla_unsplash_key';
 
 /**
  * The category tree. Slug => [name, parent slug].
@@ -240,6 +246,226 @@ function simple_bangla_demo_shapes() {
 		'computer-accessories' => 'keyboard',
 		'home-appliance'       => 'dryer',
 	);
+}
+
+/**
+ * Which Unsplash search phrase best represents a category's products.
+ *
+ * Used both for the category-circle photo and, by default, for every product filed under that
+ * category — rotating through a category's search results gives products in the same row
+ * different photos instead of one image repeated four times.
+ *
+ * @return array<string,string> Category slug => search phrase.
+ */
+function simple_bangla_demo_photo_queries() {
+	return array(
+		'best-selling'          => 'tech gadgets flatlay',
+		'microphone'            => 'podcast microphone',
+		'gadgets'               => 'tech gadgets flatlay',
+		'airpods'               => 'wireless earbuds',
+		'airpods-case'          => 'earbuds charging case',
+		'power-bank'            => 'power bank charger',
+		'smart-watch'           => 'smart watch',
+		'watch-strap'           => 'watch strap',
+		'headphone'             => 'headphones',
+		'bluetooth-headphones'  => 'bluetooth headphones',
+		'tws'                   => 'wireless earbuds',
+		'neckband'              => 'sports bluetooth earphones',
+		'mobile-charger'        => 'phone charger adapter',
+		'cable'                 => 'usb cable',
+		'bluetooth-speaker'     => 'bluetooth speaker',
+		'rechargeable-fan'      => 'portable fan',
+		'lighting'              => 'led ring light',
+		'ring-light'            => 'ring light',
+		'softbox'               => 'softbox studio lighting',
+		'led-panel'             => 'led panel light',
+		'tripods'               => 'camera tripod',
+		'selfie-stick'          => 'selfie stick',
+		'gimbal'                => 'gimbal stabilizer',
+		'phone-holder'          => 'phone holder stand',
+		'camera-accessories'    => 'camera accessories',
+		'memory-card'           => 'memory card',
+		'camera-bag'            => 'camera bag',
+		'computer-accessories'  => 'computer accessories',
+		'keyboard'              => 'mechanical keyboard',
+		'mouse'                 => 'computer mouse',
+		'usb-hub'               => 'usb hub',
+		'home-appliance'        => 'home appliance',
+		'trimmer'               => 'beard trimmer',
+		'hair-dryer'            => 'hair dryer',
+	);
+}
+
+/* ------------------------------------------------------------------ *
+ * Unsplash fetching
+ * ------------------------------------------------------------------ */
+
+/**
+ * The store owner's Unsplash Access Key, if one has been saved.
+ *
+ * @return string
+ */
+function simple_bangla_demo_unsplash_key() {
+	return trim( (string) get_option( SIMPLE_BANGLA_UNSPLASH_KEY_OPTION, '' ) );
+}
+
+/**
+ * Search Unsplash for a phrase and return its raw results.
+ *
+ * Called once per phrase per import run — results are cached in memory by the caller so a
+ * category with several products does not re-query Unsplash for every one of them.
+ *
+ * @param string $query Search phrase.
+ * @return array<int,array<string,mixed>> Unsplash photo objects, empty on any failure.
+ */
+function simple_bangla_demo_unsplash_search( $query ) {
+
+	$key = simple_bangla_demo_unsplash_key();
+
+	if ( ! $key || ! $query ) {
+		return array();
+	}
+
+	$url = add_query_arg(
+		array(
+			'query'          => rawurlencode( $query ),
+			'per_page'       => 10,
+			'orientation'    => 'squarish',
+			'content_filter' => 'high',
+		),
+		'https://api.unsplash.com/search/photos'
+	);
+
+	$response = wp_remote_get(
+		$url,
+		array(
+			'timeout' => 15,
+			'headers' => array( 'Authorization' => 'Client-ID ' . $key ),
+		)
+	);
+
+	if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+		return array();
+	}
+
+	$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+	return isset( $body['results'] ) && is_array( $body['results'] ) ? $body['results'] : array();
+}
+
+/**
+ * Download one photo matching a search phrase and add it to the media library.
+ *
+ * Rotates through the phrase's cached search results on repeat calls, so four products in the
+ * same category get four different photos instead of the same one four times.
+ *
+ * @param string $query    Search phrase, from simple_bangla_demo_photo_queries().
+ * @param string $filename Slug used for the file name.
+ * @param string $label    Alt text and title.
+ * @param int    $width    Crop width in pixels.
+ * @param int    $height   Crop height in pixels.
+ * @return int Attachment ID, or 0 if no key is set or the fetch failed.
+ */
+function simple_bangla_demo_unsplash_image( $query, $filename, $label, $width, $height ) {
+
+	static $cache = array();
+	static $index = array();
+
+	if ( ! $query || ! simple_bangla_demo_unsplash_key() ) {
+		return 0;
+	}
+
+	if ( ! isset( $cache[ $query ] ) ) {
+		$cache[ $query ] = simple_bangla_demo_unsplash_search( $query );
+		$index[ $query ] = 0;
+	}
+
+	$results = $cache[ $query ];
+
+	if ( ! $results ) {
+		return 0;
+	}
+
+	$photo = $results[ $index[ $query ] % count( $results ) ];
+	$index[ $query ]++;
+
+	$raw = isset( $photo['urls']['raw'] ) ? $photo['urls']['raw'] : '';
+
+	if ( ! $raw ) {
+		return 0;
+	}
+
+	// Unsplash's own imgix-backed CDN crops to an exact size — no local image editing needed.
+	$src = add_query_arg(
+		array(
+			'w'    => $width,
+			'h'    => $height,
+			'fit'  => 'crop',
+			'crop' => 'entropy',
+			'q'    => 80,
+			'fm'   => 'jpg',
+		),
+		$raw
+	);
+
+	$response = wp_remote_get( $src, array( 'timeout' => 20 ) );
+
+	if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+		return 0;
+	}
+
+	$binary = wp_remote_retrieve_body( $response );
+
+	if ( ! $binary ) {
+		return 0;
+	}
+
+	// Required by the Unsplash API guidelines: a download-tracking ping for every photo used,
+	// fired without waiting on the response since it does not affect the import itself.
+	if ( ! empty( $photo['links']['download_location'] ) ) {
+		wp_remote_get(
+			add_query_arg( 'client_id', simple_bangla_demo_unsplash_key(), $photo['links']['download_location'] ),
+			array(
+				'timeout'  => 5,
+				'blocking' => false,
+			)
+		);
+	}
+
+	$upload = wp_upload_bits( sanitize_file_name( $filename . '.jpg' ), null, $binary );
+
+	if ( ! empty( $upload['error'] ) ) {
+		return 0;
+	}
+
+	$attachment_id = wp_insert_attachment(
+		array(
+			'post_mime_type' => 'image/jpeg',
+			'post_title'     => $label,
+			'post_status'    => 'inherit',
+		),
+		$upload['file']
+	);
+
+	if ( is_wp_error( $attachment_id ) || ! $attachment_id ) {
+		return 0;
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+
+	wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $upload['file'] ) );
+	update_post_meta( $attachment_id, '_wp_attachment_image_alt', $label );
+	update_post_meta( $attachment_id, SIMPLE_BANGLA_DEMO_MARK, 1 );
+
+	if ( ! empty( $photo['user']['name'] ) ) {
+		update_post_meta(
+			$attachment_id,
+			'_simple_bangla_unsplash_credit',
+			sprintf( 'Photo by %s on Unsplash', sanitize_text_field( $photo['user']['name'] ) )
+		);
+	}
+
+	return (int) $attachment_id;
 }
 
 /**
@@ -495,20 +721,29 @@ function simple_bangla_demo_draw( $img, $shape, $size, $body, $accent, $paper ) 
 }
 
 /**
- * Draw a placeholder product image and add it to the media library.
+ * Get a product image and add it to the media library.
  *
- * Each category gets a recognisable silhouette — a watch for watches, a ring light for
- * lighting — on a soft tinted field, with the hue derived from the product name so no two
- * items in a row look identical. It is obviously artwork rather than photography, which is
- * the point: it fills the layout honestly until real photos replace it.
+ * Tries a real Unsplash photo first when a search phrase and an Access Key are both
+ * available. Otherwise — or if the fetch fails — falls back to a drawn silhouette: a watch for
+ * watches, a ring light for lighting, on a soft tinted field with the hue derived from the
+ * product name so no two items in a row look identical. That fallback is obviously artwork
+ * rather than photography, which is the point: it fills the layout honestly on installs with
+ * no Unsplash key configured.
  *
  * @param string $label    Product name.
  * @param string $filename Slug used for the file name.
  * @param int    $size     Square edge in pixels.
  * @param string $shape    Shape key; falls back to a neutral device.
+ * @param string $query    Unsplash search phrase; empty skips the photo lookup.
  * @return int Attachment ID, or 0 on failure.
  */
-function simple_bangla_demo_image( $label, $filename, $size = 800, $shape = 'default' ) {
+function simple_bangla_demo_image( $label, $filename, $size = 800, $shape = 'default', $query = '' ) {
+
+	$photo_id = simple_bangla_demo_unsplash_image( $query, $filename, $label, $size, $size );
+
+	if ( $photo_id ) {
+		return $photo_id;
+	}
 
 	if ( ! simple_bangla_can_draw() ) {
 		return 0;
@@ -534,15 +769,25 @@ function simple_bangla_demo_image( $label, $filename, $size = 800, $shape = 'def
 }
 
 /**
- * Draw a wide promotional banner.
+ * Get a wide promotional banner image.
+ *
+ * Tries a real Unsplash photo first, same as simple_bangla_demo_image(); falls back to a
+ * drawn two-disc composition when no key is set or the fetch fails.
  *
  * @param string $label    Banner caption.
  * @param string $filename File slug.
  * @param int    $width    Width in pixels.
  * @param int    $height   Height in pixels.
+ * @param string $query    Unsplash search phrase; empty skips the photo lookup.
  * @return int Attachment ID, or 0 on failure.
  */
-function simple_bangla_demo_banner( $label, $filename, $width, $height ) {
+function simple_bangla_demo_banner( $label, $filename, $width, $height, $query = '' ) {
+
+	$photo_id = simple_bangla_demo_unsplash_image( $query, $filename, $label, $width, $height );
+
+	if ( $photo_id ) {
+		return $photo_id;
+	}
 
 	if ( ! simple_bangla_can_draw() ) {
 		return 0;
@@ -701,12 +946,14 @@ function simple_bangla_run_demo_import() {
 		// Only top-level categories appear as homepage circles, so only they need artwork.
 		if ( ! $parent_slug ) {
 
-			$shapes = simple_bangla_demo_shapes();
-			$thumb  = simple_bangla_demo_image(
+			$shapes  = simple_bangla_demo_shapes();
+			$queries = simple_bangla_demo_photo_queries();
+			$thumb   = simple_bangla_demo_image(
 				$name,
 				'sb-cat-' . $slug,
 				300,
-				isset( $shapes[ $slug ] ) ? $shapes[ $slug ] : 'default'
+				isset( $shapes[ $slug ] ) ? $shapes[ $slug ] : 'default',
+				isset( $queries[ $slug ] ) ? $queries[ $slug ] : ''
 			);
 
 			if ( $thumb ) {
@@ -781,11 +1028,13 @@ function simple_bangla_run_demo_import() {
 		$created['products']++;
 
 		$shapes   = simple_bangla_demo_shapes();
+		$queries  = simple_bangla_demo_photo_queries();
 		$image_id = simple_bangla_demo_image(
 			$name,
 			'sb-product-' . $slug,
 			800,
-			isset( $shapes[ $category ] ) ? $shapes[ $category ] : 'default'
+			isset( $shapes[ $category ] ) ? $shapes[ $category ] : 'default',
+			isset( $queries[ $category ] ) ? $queries[ $category ] : ''
 		);
 
 		if ( $image_id ) {
@@ -812,6 +1061,93 @@ function simple_bangla_run_demo_import() {
 	update_option( SIMPLE_BANGLA_DEMO_FLAG, time() );
 
 	return $created;
+}
+
+/**
+ * Delete every product, category and image the importer created, and clear the hero/banner
+ * theme mods that point at generated images.
+ *
+ * Exists because the importer never touches anything that already exists under a given slug —
+ * so on a store that has already been imported once, saving an Unsplash key and re-running the
+ * import would create nothing new. This clears the slate first. Pages, menus and store
+ * settings (currency, shipping, payment) are left alone: they carry no image and are not what
+ * an owner means by "start over with the photos".
+ *
+ * @return array{products:int,categories:int,images:int} Counts of what was removed.
+ */
+function simple_bangla_demo_reset() {
+
+	$removed = array(
+		'products'   => 0,
+		'categories' => 0,
+		'images'     => 0,
+	);
+
+	$product_ids = get_posts(
+		array(
+			'post_type'      => 'product',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'meta_key'       => SIMPLE_BANGLA_DEMO_MARK, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Importer-only screen, small catalogue.
+		)
+	);
+
+	foreach ( $product_ids as $product_id ) {
+		if ( wp_delete_post( $product_id, true ) ) {
+			$removed['products']++;
+		}
+	}
+
+	$attachment_ids = get_posts(
+		array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'meta_key'       => SIMPLE_BANGLA_DEMO_MARK, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Importer-only screen, small catalogue.
+		)
+	);
+
+	foreach ( $attachment_ids as $attachment_id ) {
+		if ( wp_delete_attachment( $attachment_id, true ) ) {
+			$removed['images']++;
+		}
+	}
+
+	$term_ids = get_terms(
+		array(
+			'taxonomy'   => 'product_cat',
+			'hide_empty' => false,
+			'fields'     => 'ids',
+			'meta_key'   => SIMPLE_BANGLA_DEMO_MARK, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Importer-only screen, small catalogue.
+		)
+	);
+
+	if ( ! is_wp_error( $term_ids ) ) {
+		foreach ( $term_ids as $term_id ) {
+			if ( ! is_wp_error( wp_delete_term( $term_id, 'product_cat' ) ) ) {
+				$removed['categories']++;
+			}
+		}
+	}
+
+	foreach ( array( 1, 2, 3 ) as $slot ) {
+		remove_theme_mod( 'simple_bangla_hero_' . $slot . '_image' );
+		remove_theme_mod( 'simple_bangla_hero_' . $slot . '_link' );
+	}
+
+	foreach ( array( 1, 2 ) as $pair ) {
+		foreach ( array( 'small', 'wide' ) as $slot ) {
+			remove_theme_mod( 'simple_bangla_home_banner_' . $pair . '_' . $slot . '_image' );
+			remove_theme_mod( 'simple_bangla_home_banner_' . $pair . '_' . $slot . '_link' );
+		}
+	}
+
+	delete_option( SIMPLE_BANGLA_DEMO_FLAG );
+	delete_transient( 'simple_bangla_price_bounds' );
+
+	return $removed;
 }
 
 /**
@@ -984,21 +1320,22 @@ function simple_bangla_demo_hero() {
 	$shop = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/' );
 
 	$slides = array(
-		'Student Combo Offer',
-		'Special Offer — 30% Off',
-		'New Arrivals This Week',
+		array( 'Student Combo Offer', 'laptop desk gadgets' ),
+		array( 'Special Offer — 30% Off', 'earbuds sale shopping' ),
+		array( 'New Arrivals This Week', 'new tech gadgets unboxing' ),
 	);
 
-	foreach ( $slides as $index => $label ) {
+	foreach ( $slides as $index => $slide ) {
 
-		$slot = $index + 1;
+		list( $label, $query ) = $slide;
+		$slot                  = $index + 1;
 
 		if ( get_theme_mod( 'simple_bangla_hero_' . $slot . '_image' ) ) {
 			continue;
 		}
 
 		// 16:7, matching the aspect ratio the hero renders at on a desktop.
-		$image_id = simple_bangla_demo_banner( $label, 'sb-hero-' . $slot, 1400, 612 );
+		$image_id = simple_bangla_demo_banner( $label, 'sb-hero-' . $slot, 1400, 612, $query );
 
 		if ( ! $image_id ) {
 			continue;
@@ -1017,15 +1354,15 @@ function simple_bangla_demo_banners() {
 	$shop = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/' );
 
 	$banners = array(
-		array( 1, 'small', 'New Arrivals', 600, 280 ),
-		array( 1, 'wide', 'Up to 40% Off Audio', 1024, 512 ),
-		array( 2, 'small', 'Lighting Deals', 600, 280 ),
-		array( 2, 'wide', 'Free Delivery in Dhaka', 1024, 390 ),
+		array( 1, 'small', 'New Arrivals', 600, 280, 'new gadgets flatlay' ),
+		array( 1, 'wide', 'Up to 40% Off Audio', 1024, 512, 'headphones lifestyle' ),
+		array( 2, 'small', 'Lighting Deals', 600, 280, 'ring light photography' ),
+		array( 2, 'wide', 'Free Delivery in Dhaka', 1024, 390, 'package delivery box' ),
 	);
 
 	foreach ( $banners as $banner ) {
 
-		list( $pair, $slot, $label, $width, $height ) = $banner;
+		list( $pair, $slot, $label, $width, $height, $query ) = $banner;
 
 		$setting = 'simple_bangla_home_banner_' . $pair . '_' . $slot;
 
@@ -1033,7 +1370,7 @@ function simple_bangla_demo_banners() {
 			continue;
 		}
 
-		$image_id = simple_bangla_demo_banner( $label, 'sb-banner-' . $pair . '-' . $slot, $width, $height );
+		$image_id = simple_bangla_demo_banner( $label, 'sb-banner-' . $pair . '-' . $slot, $width, $height, $query );
 
 		if ( ! $image_id ) {
 			continue;
@@ -1219,7 +1556,25 @@ function simple_bangla_demo_screen() {
 		wp_die( esc_html__( 'You are not allowed to do that.', 'simple-bangla' ) );
 	}
 
+	$key_saved = false;
+
+	if ( isset( $_POST['simple_bangla_unsplash_save'] ) ) {
+
+		check_admin_referer( 'simple_bangla_unsplash_key' );
+
+		update_option( SIMPLE_BANGLA_UNSPLASH_KEY_OPTION, sanitize_text_field( wp_unslash( $_POST['simple_bangla_unsplash_key'] ?? '' ) ) );
+		$key_saved = true;
+	}
+
 	$result = null;
+	$reset  = null;
+
+	if ( isset( $_POST['simple_bangla_demo_reset'] ) ) {
+
+		check_admin_referer( 'simple_bangla_demo' );
+
+		$reset = simple_bangla_demo_reset();
+	}
 
 	if ( isset( $_POST['simple_bangla_demo_import'] ) ) {
 
@@ -1229,6 +1584,7 @@ function simple_bangla_demo_screen() {
 	}
 
 	$imported = (int) get_option( SIMPLE_BANGLA_DEMO_FLAG, 0 );
+	$unsplash = simple_bangla_demo_unsplash_key();
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'Demo Content', 'simple-bangla' ); ?></h1>
@@ -1239,9 +1595,15 @@ function simple_bangla_demo_screen() {
 			</div>
 		<?php endif; ?>
 
-		<?php if ( ! simple_bangla_can_draw() ) : ?>
+		<?php if ( ! simple_bangla_can_draw() && ! $unsplash ) : ?>
 			<div class="notice notice-warning">
-				<p><?php esc_html_e( 'PHP has no GD image support here, so products will be created without placeholder images.', 'simple-bangla' ); ?></p>
+				<p><?php esc_html_e( 'PHP has no GD image support here, so products will be created without placeholder images unless an Unsplash key is set below.', 'simple-bangla' ); ?></p>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( $key_saved ) : ?>
+			<div class="notice notice-success">
+				<p><?php esc_html_e( 'Unsplash key saved.', 'simple-bangla' ); ?></p>
 			</div>
 		<?php endif; ?>
 
@@ -1261,8 +1623,59 @@ function simple_bangla_demo_screen() {
 			</div>
 		<?php endif; ?>
 
+		<?php if ( is_array( $reset ) ) : ?>
+			<div class="notice notice-success">
+				<p>
+					<?php
+					printf(
+						/* translators: 1: categories removed, 2: products removed, 3: images removed. */
+						esc_html__( 'Removed %1$d categories, %2$d products and %3$d images. Click "Import demo content" below to rebuild the catalogue.', 'simple-bangla' ),
+						(int) $reset['categories'],
+						(int) $reset['products'],
+						(int) $reset['images']
+					);
+					?>
+				</p>
+			</div>
+		<?php endif; ?>
+
+		<h2><?php esc_html_e( 'Real product photos (optional)', 'simple-bangla' ); ?></h2>
+
 		<p>
-			<?php esc_html_e( 'Fills the store with a demo catalogue so the design can be judged with real content in it: a three-level category tree, a few dozen products with sale prices, navigation menus, homepage banners and generated placeholder images.', 'simple-bangla' ); ?>
+			<?php
+			printf(
+				/* translators: 1: opening link tag to unsplash.com/developers, 2: closing link tag. */
+				esc_html__( 'Paste a free Unsplash Access Key to have the importer fetch real, category-matched photos instead of drawn placeholders. Get one in about two minutes at %1$sunsplash.com/developers%2$s — no card required. Leave this blank to keep the drawn placeholders.', 'simple-bangla' ),
+				'<a href="https://unsplash.com/developers" target="_blank" rel="noopener noreferrer">',
+				'</a>'
+			);
+			?>
+		</p>
+
+		<form method="post">
+			<?php wp_nonce_field( 'simple_bangla_unsplash_key' ); ?>
+			<p>
+				<input
+					type="text"
+					name="simple_bangla_unsplash_key"
+					value="<?php echo esc_attr( $unsplash ); ?>"
+					class="regular-text"
+					placeholder="<?php esc_attr_e( 'Unsplash Access Key', 'simple-bangla' ); ?>"
+					autocomplete="off"
+				/>
+				<button type="submit" name="simple_bangla_unsplash_save" value="1" class="button">
+					<?php esc_html_e( 'Save key', 'simple-bangla' ); ?>
+				</button>
+			</p>
+			<p class="description">
+				<?php esc_html_e( 'Save the key before importing — it only affects products created after it is set. Products already imported keep whatever image they already have; use "Remove demo content" below and re-import to swap them for real photos.', 'simple-bangla' ); ?>
+			</p>
+		</form>
+
+		<hr />
+
+		<p>
+			<?php esc_html_e( 'Fills the store with a demo catalogue so the design can be judged with real content in it: a three-level category tree, a few dozen products with sale prices, navigation menus and homepage banners.', 'simple-bangla' ); ?>
 		</p>
 
 		<p>
@@ -1288,6 +1701,17 @@ function simple_bangla_demo_screen() {
 				<button type="submit" name="simple_bangla_demo_import" value="1" class="button button-primary">
 					<?php esc_html_e( 'Import demo content', 'simple-bangla' ); ?>
 				</button>
+				<?php if ( $imported ) : ?>
+					<button
+						type="submit"
+						name="simple_bangla_demo_reset"
+						value="1"
+						class="button button-secondary"
+						onclick="return confirm('<?php echo esc_js( __( 'Delete every demo product, category and image? This cannot be undone. Store settings and pages are kept.', 'simple-bangla' ) ); ?>');"
+					>
+						<?php esc_html_e( 'Remove demo content', 'simple-bangla' ); ?>
+					</button>
+				<?php endif; ?>
 			</p>
 		</form>
 	</div>

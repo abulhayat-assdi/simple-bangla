@@ -410,8 +410,37 @@ Confirmed from screenshots and rebuilt as `template-parts/home/hero.php`.
 - **The `?sb_ajax=1` shop fragment carries no nonce.** It is a read-only GET view of already
   public content, so there is nothing to forge; a nonce there would only break page caching for
   logged-out shoppers. Every state-changing or user-scoped endpoint is still nonce-verified.
-- **Demo images are generated with GD at import time**, never fetched and never copied from the
-  reference site.
+- **Demo images are generated with GD at import time by default** — see the revision below
+  (2026-08-06, "Real product photos for demo content") for the opt-in Unsplash path.
+
+## Real product photos for demo content (2026-08-06)
+
+The owner asked for a realistic client preview instead of the GD-drawn silhouettes, so the
+importer can now pull real photos from the **Unsplash API**. This revises the earlier "nothing
+is fetched over the network" decision — deliberately, and only for this one feature.
+
+- **Opt-in via a free Access Key**, entered on Appearance → Demo Content
+  (`simple_bangla_unsplash_key` option). No key set → behaviour is unchanged, drawn
+  placeholders, zero setup, no network call. This keeps the "stock install runs with zero
+  extra setup" hard constraint true; Unsplash is a convenience for showing a client a preview,
+  not a runtime dependency.
+- **Search phrases are per-category**, not per-product — `simple_bangla_demo_photo_queries()`
+  in `inc/demo-content.php` maps each category slug (`microphone`, `power-bank`, `smart-watch`,
+  …) to a query. Unsplash's search returns up to 10 photos per query, and the importer rotates
+  through them, so four products in the same row get four different photos instead of one
+  photo repeated.
+- **Cropped by Unsplash's own CDN**, not locally. The raw photo URL gets `w`, `h`, `fit=crop`
+  query params appended before download, so every product/category image arrives already at
+  the exact square (or banner) size needed — no local `WP_Image_Editor` crop step.
+- **Falls back to the GD silhouette on any failure** — no key, a failed search, a failed
+  download, an empty result set. The importer never partially fails a product over a photo.
+- **Fires Unsplash's download-tracking ping** (`links.download_location`) per the API
+  guidelines, non-blocking, whenever a photo is actually used.
+- Applies to product images, category-circle icons, the hero slider, and the two homepage
+  banner pairs — every place the GD placeholders showed up.
+- Saving the key only affects images generated *after* it is saved; the importer never
+  regenerates an image for a product, category or banner that already has one (same rule as
+  the rest of the importer — nothing already present is touched).
 
 ## Local development
 

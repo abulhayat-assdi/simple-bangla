@@ -221,6 +221,18 @@
 	font-size: var(--sb-text-base);
 }
 
+/*
+ * WooCommerce's enhanced country/state select (Select2) writes its own inline
+ * `width: Npx` on `.select2-container` at init time, computed from the hidden native
+ * <select> before the grid layout has settled — so it lands narrow and clips the
+ * selected country's name. `width: 100%` on `.select2-selection` above cannot fix this;
+ * it resolves against that same inline-widthed parent. An inline style is the one thing
+ * only `!important` can override, so it is used here and nowhere else in the theme.
+ */
+.sb-checkout .select2-container {
+	width: 100% !important;
+}
+
 .sb-checkout textarea {
 	min-height: 90px;
 }

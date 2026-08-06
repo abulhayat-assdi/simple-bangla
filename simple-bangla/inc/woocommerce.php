@@ -126,8 +126,12 @@ function simple_bangla_buy_now_button() {
 		return;
 	}
 
+	// A browser only submits the clicked button's name/value pair, so without this hidden
+	// field WooCommerce's own add-to-cart button never fires and $_REQUEST['add-to-cart']
+	// is empty — WC_Form_Handler::add_to_cart_action() bails before our redirect filter runs.
 	printf(
-		'<button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-btn--ghost sb-buy-now">%s</button>',
+		'<input type="hidden" name="add-to-cart" value="%1$d" /><button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-btn--ghost sb-buy-now">%2$s</button>',
+		absint( $product->get_id() ),
 		esc_html__( 'Buy Now', 'simple-bangla' )
 	);
 }
