@@ -190,9 +190,14 @@
  * row it expects to lay out itself. This theme lays the same two fields out with CSS Grid
  * instead (see `.woocommerce-billing-fields__field-wrapper` above), so without this override
  * the name field was shrinking twice: once to its grid cell, then again to 47% of that cell.
+ *
+ * Core's rule is `.woocommerce form .form-row-first` — two classes plus a type selector, which
+ * outranks a plain two-class override regardless of source order. Qualifying by the field
+ * wrapper (a class this theme controls) adds a third class so this one wins outright, without
+ * reaching for `!important`.
  */
-.sb-checkout .form-row-first,
-.sb-checkout .form-row-last {
+.sb-checkout .woocommerce-billing-fields__field-wrapper .form-row-first,
+.sb-checkout .woocommerce-billing-fields__field-wrapper .form-row-last {
 	float: none;
 	width: 100%;
 }

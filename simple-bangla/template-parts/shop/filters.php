@@ -15,11 +15,17 @@ $simple_bangla_filters = simple_bangla_active_filters();
 $simple_bangla_bounds  = simple_bangla_price_bounds();
 $simple_bangla_action  = simple_bangla_listing_base_url();
 
+/*
+ * hide_empty must stay false: WordPress only counts products assigned directly to a term, not
+ * to its children, so a container category like "Gadgets" — whose products all sit in child
+ * categories such as "Power Bank" — would otherwise vanish from this list even though it is a
+ * real, browsable category with a product-filled subtree.
+ */
 $simple_bangla_terms = get_terms(
 	array(
 		'taxonomy'   => 'product_cat',
 		'parent'     => 0,
-		'hide_empty' => true,
+		'hide_empty' => false,
 		'number'     => 12,
 	)
 );

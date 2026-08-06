@@ -306,13 +306,16 @@ add_filter( 'woocommerce_checkout_fields', 'simple_bangla_checkout_fields', 20 )
 /**
  * Render the delivery note after the shipping-charge choice.
  *
- * WooCommerce's own "Additional information" block (built around this same
- * `order_comments` field) lives in core's checkout/form-checkout.php, which this theme's
- * copy of that template does not call — so re-enabling `woocommerce_enable_order_notes_field`
- * alone would do nothing. The field is rendered directly instead, and posts under
- * WooCommerce's own 'order_comments' key, which `WC_Checkout::create_order()` already saves
- * as the order's customer note without any extra processing here.
+ * WooCommerce's own "Additional information" block (built around this same `order_comments`
+ * field) lives in core's checkout/form-shipping.php — a template this theme never overrides,
+ * so it still runs from the `woocommerce_checkout_shipping` hook in form-checkout.php and would
+ * render the field a second time, unstyled, if left enabled. It is switched off here and
+ * rendered directly instead, styled to match the address and shipping-charge boxes beside it.
+ * It still posts under WooCommerce's own 'order_comments' key, which `WC_Checkout::create_order()`
+ * already saves as the order's customer note without any extra processing here.
  */
+add_filter( 'woocommerce_enable_order_notes_field', '__return_false' );
+
 function simple_bangla_checkout_delivery_note() {
 	get_template_part( 'template-parts/checkout/delivery-note' );
 }
@@ -363,6 +366,16 @@ function simple_bangla_checkout_submit_note() {
 	);
 }
 add_action( 'woocommerce_review_order_before_submit', 'simple_bangla_checkout_submit_note' );
+
+/**
+ * Drop WooCommerce's default privacy-policy paragraph above Place Order.
+ *
+ * The Bangla submit note right below it already tells the customer what happens next; the
+ * English "Your personal data will be used…" boilerplate was a second, redundant notice in the
+ * wrong language for this page. Filtering the option (rather than clearing it in the database)
+ * leaves the store's own Accounts & Privacy setting untouched if the owner ever wants it back.
+ */
+add_filter( 'pre_option_woocommerce_checkout_privacy_policy_text', '__return_empty_string' );
 
 /**
  * Show the breadcrumb the theme's own templates render, with the theme's markup.

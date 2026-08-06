@@ -231,24 +231,31 @@ function simple_bangla_menu_icon_markup( $item_id, $depth = 0 ) {
 /**
  * Render the primary menu, or a sensible stand-in when none has been assigned.
  *
- * A brand-new install has no menu at all. Rather than show an empty bar, fall back to the
- * store's own top-level product categories so the navigation is useful from the first page load.
+ * A brand-new install has no menu at all, and neither does a site where WooCommerce's setup
+ * wizard (or a manual visit to Appearance → Menus) assigned an empty menu to this location
+ * before any items existed. has_nav_menu() only checks that *a* menu is assigned, not that it
+ * has items, so both cases need the same fallback: the store's own top-level product categories,
+ * so the navigation is useful from the first page load either way.
  */
 function simple_bangla_primary_menu() {
 
 	if ( has_nav_menu( 'primary' ) ) {
 
-		wp_nav_menu(
+		$simple_bangla_menu_output = wp_nav_menu(
 			array(
 				'theme_location' => 'primary',
 				'container'      => false,
 				'menu_class'     => 'sb-nav__list',
 				'depth'          => 3,
 				'walker'         => new Simple_Bangla_Nav_Walker(),
+				'echo'           => false,
 			)
 		);
 
-		return;
+		if ( $simple_bangla_menu_output ) {
+			echo $simple_bangla_menu_output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Built by Simple_Bangla_Nav_Walker, which escapes every value it writes.
+			return;
+		}
 	}
 
 	simple_bangla_primary_menu_fallback();
