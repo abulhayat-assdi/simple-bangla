@@ -270,6 +270,23 @@ function simple_bangla_checkout_fields( $fields ) {
 	}
 
 	/*
+	 * The order-notes field, relabelled as a delivery note and rendered by
+	 * template-parts/checkout/delivery-note.php rather than WooCommerce's own "Additional
+	 * information" block, which this theme's form-checkout.php never calls.
+	 */
+	if ( isset( $fields['order']['order_comments'] ) ) {
+		$fields['order']['order_comments'] = array_merge(
+			$fields['order']['order_comments'],
+			array(
+				'label'       => __( 'ডেলিভারি নোট', 'simple-bangla' ),
+				'placeholder' => __( 'ডেলিভারি সংক্রান্ত কোন নির্দেশনা থাকলে লিখুন (ঐচ্ছিক)', 'simple-bangla' ),
+				'required'    => false,
+				'class'       => array( 'form-row-wide' ),
+			)
+		);
+	}
+
+	/*
 	 * The country is shown, not asked. With Bangladesh the only country the store sells to,
 	 * WooCommerce renders this field as a fixed value plus a hidden input rather than a
 	 * 250-option select — so the customer sees where the parcel is going and the page carries
@@ -287,14 +304,19 @@ function simple_bangla_checkout_fields( $fields ) {
 add_filter( 'woocommerce_checkout_fields', 'simple_bangla_checkout_fields', 20 );
 
 /**
- * Order notes are noise on a phone-confirmed COD order.
+ * Render the delivery note after the shipping-charge choice.
  *
- * @return bool
+ * WooCommerce's own "Additional information" block (built around this same
+ * `order_comments` field) lives in core's checkout/form-checkout.php, which this theme's
+ * copy of that template does not call — so re-enabling `woocommerce_enable_order_notes_field`
+ * alone would do nothing. The field is rendered directly instead, and posts under
+ * WooCommerce's own 'order_comments' key, which `WC_Checkout::create_order()` already saves
+ * as the order's customer note without any extra processing here.
  */
-function simple_bangla_disable_order_notes() {
-	return false;
+function simple_bangla_checkout_delivery_note() {
+	get_template_part( 'template-parts/checkout/delivery-note' );
 }
-add_filter( 'woocommerce_enable_order_notes_field', 'simple_bangla_disable_order_notes' );
+add_action( 'woocommerce_checkout_after_customer_details', 'simple_bangla_checkout_delivery_note', 20 );
 
 /*
  * Drop the separate "ship to a different address" form. The parcel goes to the one address the

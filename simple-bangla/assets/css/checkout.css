@@ -133,6 +133,18 @@
 	gap: var(--sb-space-4);
 }
 
+/*
+ * WooCommerce core CSS floats `.col2-set .col-1` at 48% width, sized for its own two-column
+ * billing/shipping layout. This theme keeps the `col2-set`/`col-1` classes (see the note in
+ * form-checkout.php) but dropped `.col-2`, so without this override the billing box is stuck
+ * at half width instead of filling the column like the shipping and order boxes beside it.
+ */
+.sb-checkout .col2-set,
+.sb-checkout .col2-set .col-1 {
+	float: none;
+	width: 100%;
+}
+
 .sb-checkout__block,
 .sb-checkout__order {
 	padding: var(--sb-space-4);
@@ -173,6 +185,18 @@
 	padding: 0;
 }
 
+/*
+ * WooCommerce core CSS floats `.form-row-first` / `.form-row-last` at 47% width — sized for a
+ * row it expects to lay out itself. This theme lays the same two fields out with CSS Grid
+ * instead (see `.woocommerce-billing-fields__field-wrapper` above), so without this override
+ * the name field was shrinking twice: once to its grid cell, then again to 47% of that cell.
+ */
+.sb-checkout .form-row-first,
+.sb-checkout .form-row-last {
+	float: none;
+	width: 100%;
+}
+
 .sb-checkout label {
 	display: block;
 	margin-bottom: var(--sb-space-1);
@@ -186,7 +210,8 @@
  * clicking it; it is the duplication on screen that goes. Fields a plugin adds elsewhere on the
  * page keep their visible labels.
  */
-.sb-checkout .woocommerce-billing-fields__field-wrapper > .form-row > label {
+.sb-checkout .woocommerce-billing-fields__field-wrapper > .form-row > label,
+.sb-checkout__note > .form-row > label {
 	position: absolute;
 	width: 1px;
 	height: 1px;
@@ -247,6 +272,18 @@
 .sb-checkout select:focus-visible {
 	outline: 2px solid var(--sb-brand);
 	outline-offset: 1px;
+}
+
+/*
+ * Some browsers draw a red border/glow on an empty `required` field on their own — no rule of
+ * ours asks for it. Left alone, the name and address boxes look broken before the customer has
+ * touched anything. WooCommerce's own `.woocommerce-invalid` class (added after a failed submit)
+ * is untouched, so a genuine validation error still shows.
+ */
+.sb-checkout input:required:invalid,
+.sb-checkout textarea:required:invalid {
+	box-shadow: none;
+	border-color: var(--sb-line);
 }
 
 /*
