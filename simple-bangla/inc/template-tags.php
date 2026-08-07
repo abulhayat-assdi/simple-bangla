@@ -133,6 +133,8 @@ function simple_bangla_icons() {
 		'shield' => '<path d="M12 3l7 3v5.5c0 4.2-2.9 7.6-7 9.5-4.1-1.9-7-5.3-7-9.5V6Z"/><path d="m9 12 2 2 4-4"/>',
 		'refresh' => '<path d="M20 11A8 8 0 0 0 6.3 6.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 13a8 8 0 0 0 13.7 4.7L20 15.5"/><path d="M20 20v-4.5h-4.5"/>',
 		'check'  => '<path d="m5 12 5 5L20 7"/>',
+		'box'    => '<path d="M21 8.2 12 3 3 8.2v7.6L12 21l9-5.2Z"/><path d="m3 8.2 9 5.2 9-5.2M12 13.4V21"/>',
+		'card'   => '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h3"/>',
 		'plus'   => '<path d="M12 5v14M5 12h14"/>',
 		'minus'  => '<path d="M5 12h14"/>',
 		// Brand marks are filled shapes, so they are drawn with fill and no stroke.
@@ -141,6 +143,38 @@ function simple_bangla_icons() {
 		'instagram' => '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none"/>',
 		'youtube' => '<path fill="currentColor" stroke="none" d="M21.6 7.2a2.5 2.5 0 0 0-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.83.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.83-.43a2.5 2.5 0 0 0 1.77-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15.1V8.9l5.2 3.1Z"/>',
 	);
+}
+
+/**
+ * Whether this view draws its own headline and should not also print the entry title.
+ *
+ * The checkout and order-received pages open with a banner whose heading is the page's real h1.
+ * WooCommerce relabels the page title on the order-received endpoint, so page.php was printing an
+ * English "Order received" h1 directly above a Bangla banner saying the same thing.
+ *
+ * Deliberately narrow. Every other view — including the cart, and the "your cart is empty" version
+ * of the checkout — has no banner, so suppressing the title there would leave the page with no
+ * heading at all.
+ *
+ * @return bool
+ */
+function simple_bangla_hide_entry_title() {
+
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+		return false;
+	}
+
+	if ( is_wc_endpoint_url( 'order-received' ) ) {
+		return true;
+	}
+
+	// order-pay and the other checkout endpoints render WooCommerce's own markup, banner-less.
+	if ( is_wc_endpoint_url() ) {
+		return false;
+	}
+
+	// An empty cart replaces the checkout form — and its banner — with a notice.
+	return WC()->cart instanceof WC_Cart && ! WC()->cart->is_empty();
 }
 
 /**

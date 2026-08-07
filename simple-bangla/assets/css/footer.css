@@ -13,7 +13,7 @@
 }
 
 /* ------------------------------------------------------------------ *
- * The one grid: brand · three link columns · map
+ * The one grid: brand · three link columns
  * ------------------------------------------------------------------ */
 
 .sb-footer__grid {
@@ -30,8 +30,8 @@
 
 @media (min-width: 1024px) {
 	.sb-footer__grid {
-		/* Brand and map both need more room than a link column. */
-		grid-template-columns: 1.5fr 1fr 1fr 1fr 1.4fr;
+		/* The brand cell needs more room than a link column. */
+		grid-template-columns: 1.5fr 1fr 1fr 1fr;
 		gap: var(--sb-space-6);
 	}
 }
@@ -137,37 +137,6 @@
 .sb-footer__menu a:hover,
 .sb-footer__menu a:focus-visible {
 	color: var(--sb-footer-accent);
-}
-
-/* -- Map -- */
-
-.sb-footer__map {
-	aspect-ratio: 4 / 3;
-	overflow: hidden;
-	border-radius: var(--sb-radius-sm);
-	background: var(--sb-bg-alt);
-}
-
-.sb-footer__map iframe {
-	width: 100%;
-	height: 100%;
-	border: 0;
-}
-
-.sb-footer__map--empty {
-	display: grid;
-	place-content: center;
-	justify-items: center;
-	gap: var(--sb-space-2);
-	padding: var(--sb-space-4);
-	color: var(--sb-muted);
-	text-align: center;
-}
-
-.sb-footer__map--empty p {
-	margin: 0;
-	font-size: var(--sb-text-xs);
-	max-width: 26ch;
 }
 
 /* ------------------------------------------------------------------ *

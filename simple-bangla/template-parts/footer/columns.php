@@ -1,13 +1,10 @@
 <?php
 /**
- * Footer link columns and the map cell.
+ * Footer link columns.
  *
  * Each column renders its assigned menu; with none assigned — the state of every fresh
  * install — it falls back to the pages the theme created on activation, so the footer is
  * never three empty headings.
- *
- * The map cell carries no heading. The reference does not give it one, and a lone "Find us"
- * label above an embed is a label the map already provides.
  *
  * @package Simple_Bangla
  */
@@ -28,8 +25,6 @@ $simple_bangla_columns = array(
 		'fallback' => array( 'contact-us', 'register', 'terms-and-condition' ),
 	),
 );
-
-$simple_bangla_map = simple_bangla_get_contact( 'map' );
 ?>
 
 <?php foreach ( $simple_bangla_columns as $simple_bangla_location => $simple_bangla_column ) : ?>
@@ -72,22 +67,3 @@ $simple_bangla_map = simple_bangla_get_contact( 'map' );
 		?>
 	</div>
 <?php endforeach; ?>
-
-<div class="sb-footer__map-cell">
-	<?php if ( $simple_bangla_map ) : ?>
-		<div class="sb-footer__map">
-			<iframe
-				src="<?php echo esc_url( $simple_bangla_map ); ?>"
-				title="<?php esc_attr_e( 'Store location on Google Maps', 'simple-bangla' ); ?>"
-				loading="lazy"
-				referrerpolicy="no-referrer-when-downgrade"
-				allowfullscreen
-			></iframe>
-		</div>
-	<?php else : ?>
-		<div class="sb-footer__map sb-footer__map--empty">
-			<?php simple_bangla_icon( 'pin', 28 ); ?>
-			<p><?php esc_html_e( 'Add a Google Maps embed URL in the Customizer to show your shop here.', 'simple-bangla' ); ?></p>
-		</div>
-	<?php endif; ?>
-</div>

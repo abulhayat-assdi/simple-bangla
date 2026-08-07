@@ -1,6 +1,6 @@
 <?php
 /**
- * Store details: contact routes, social profiles, and the footer's map and payment strip.
+ * Store details: contact routes, social profiles, and the footer's payment strip.
  *
  * Everything the footer, the mobile bottom bar, the WhatsApp float and the product page's
  * "order on WhatsApp" button need comes from here, so none of it is ever hard-coded in a
@@ -74,13 +74,6 @@ function simple_bangla_contact_fields() {
 			'default'     => 'Dhaka, Bangladesh',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
-		),
-		'map'       => array(
-			'label'       => __( 'Google Maps embed URL', 'simple-bangla' ),
-			'description' => __( 'From Google Maps → Share → Embed a map, copy just the src URL. Leave empty to hide the map.', 'simple-bangla' ),
-			'default'     => '',
-			'sanitize'    => 'esc_url_raw',
-			'type'        => 'url',
 		),
 	);
 }

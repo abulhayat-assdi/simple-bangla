@@ -1198,8 +1198,16 @@ function simple_bangla_demo_checkout_setup() {
 	if ( empty( $cod['enabled'] ) || 'yes' !== $cod['enabled'] ) {
 
 		$cod['enabled']     = 'yes';
-		$cod['title']       = __( 'Cash on delivery', 'simple-bangla' );
-		$cod['description'] = __( 'Pay with cash when your order arrives.', 'simple-bangla' );
+		$cod['title']       = __( 'ক্যাশ অন ডেলিভারি', 'simple-bangla' );
+		$cod['description'] = __( 'পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানকে টাকা পরিশোধ করবেন।', 'simple-bangla' );
+
+		/*
+		 * Deliberately blank. WooCommerce prints this on the thank-you page, where the theme's own
+		 * payment card already says the same thing in Bangla with the amount filled in — leaving
+		 * the gateway default there meant the instruction appeared twice, the second time in
+		 * English. The field stays available to the owner in WooCommerce → Settings → Payments.
+		 */
+		$cod['instructions'] = '';
 
 		update_option( 'woocommerce_cod_settings', $cod );
 	}

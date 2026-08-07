@@ -19,7 +19,11 @@ defined( 'ABSPATH' ) || exit;
 
 		<?php
 		if ( is_singular() ) {
-			the_title( '<h1 class="sb-entry__title">', '</h1>' );
+
+			// Cart, checkout and order-received print their own banner headline instead.
+			if ( ! simple_bangla_hide_entry_title() ) {
+				the_title( '<h1 class="sb-entry__title">', '</h1>' );
+			}
 		} else {
 			the_title(
 				'<h2 class="sb-entry__title"><a href="' . esc_url( get_permalink() ) . '" rel="bookmark">',

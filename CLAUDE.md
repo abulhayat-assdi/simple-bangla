@@ -202,6 +202,9 @@ Row 4: payment methods image strip
 Row 5: © {year} … All rights reserved
 ```
 
+**We do not ship the map cell.** The owner asked for it removed on 2026-08-07, so row 3 is the
+brand block plus three link columns and there is no Google Maps Customizer field.
+
 Link targets: About Us `/about-us/`, Privacy Policy `/privacy-policy/`,
 Delivery & Return `/refund_returns/`, Shop Now `/shop/`, Checkout `/checkout/`,
 How to Order `/shop/`, Contact Us `/contact-us/`, Membership `/register/`,
@@ -332,9 +335,13 @@ Judge the budget by what a visitor downloads:
 | Homepage | ~47 KB |
 | Shop / category | ~47 KB |
 | Single product | ~51 KB |
-| Cart / checkout | ~50 KB |
+| Cart / checkout / thank-you | ~60 KB |
 
 Front-end JS is ~25 KB across five files, likewise split by view.
+
+The checkout sheet grew from ~50 KB to ~60 KB with the thank-you rebuild (2026-08-07) and is now
+the heaviest view. It is one sheet shared by three pages, so the cart pays for styles only the
+thank-you page uses; splitting it is the obvious move if that view ever needs trimming.
 
 ## Ordering (2026-08-06)
 
@@ -378,6 +385,58 @@ right.
 - **The country field is shown, not asked.** With one allowed country WooCommerce renders the
   name plus a hidden input instead of a 250-option select — the right thing to show, and ~15 KB
   less markup. Set by the importer; if it has not run, the select renders and still works.
+
+## Thank-you page (2026-08-07)
+
+Rebuilt to a second screenshot the owner supplied — a confirmation banner, then one card per
+question a customer actually has after ordering: where the parcel is going, what is in it, what
+will be paid.
+
+- **The reference is green; the page is black and cream.** The owner chose the site palette over
+  the reference's colour. Green is spent on exactly two things — the success tick and the total —
+  so it still reads as "it worked" without the page becoming a different site.
+- **Copy is Bangla**, matching the checkout. Same rule as before: the pages a customer transacts
+  on speak Bangla, everything else is English, and all of it goes through `__()`.
+- **The step bar stays** (the owner asked for it) at the top of the banner, above the tick. A
+  **failed** payment stops the bar at the order step rather than ticking "সম্পন্ন" green over a
+  page that says the payment did not go through.
+- **WooCommerce's own order-details and address tables are unhooked** —
+  `remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 )` in
+  `inc/woocommerce.php`. The theme's cards print every line those tables would, in Bangla; with
+  both on, every fact appeared twice, the second time in an unstyled English table.
+- **`woocommerce_thankyou` still fires**, so gateways and plugins keep their slot. Its output is
+  buffered and the wrapper is only printed when something hooked in — an empty div would still
+  claim a row of the grid. It is printed raw, not through `wp_kses_post`, which would strip the
+  forms and scripts a payment plugin legitimately renders there.
+- **Cash on delivery's `instructions` field is now blank**, set by the importer. WooCommerce
+  prints it on this page, where the theme's own payment card already says the same thing in
+  Bangla with the amount filled in. The COD title and description are Bangla for the same reason.
+  All three are store configuration, so they live in the importer and are only written when COD
+  is not already enabled — a live store's payment settings are never overwritten.
+- Two icons added to `simple_bangla_icons()`: `box` and `card`.
+
+**Sized down for phones (same day, after the owner saw it on a device).** The first build used one
+scale at every width and the banner alone filled a phone screen. The whole page is now mobile-first
+and steps up at 600px:
+
+- Banner: 52px medallion, `--sb-text-xl` title, `--sb-text-sm` subtitle, `space-5/space-4` padding —
+  roughly half its former height. At 600px it returns to 68px / `--sb-text-2xl`.
+- **The step bar is hidden below 600px.** It reports a journey already finished, so it was the
+  least useful thing in the banner and the most expensive in vertical space.
+- The banner is **rounded** now. It sits inside the page container rather than bleeding to the
+  edges, and square corners inside a margin read as a mistake.
+- Cards, facts, item rows and totals all drop one step on phones and come back at 600px.
+- **The WordPress entry title is suppressed on checkout and order-received** —
+  `simple_bangla_hide_entry_title()` in `inc/template-tags.php`, checked by
+  `template-parts/content.php`. WooCommerce relabels the page title on that endpoint, so an English
+  "Order received" h1 was printing directly above the Bangla banner. Deliberately narrow: the cart
+  and the empty-cart checkout have no banner, so suppressing the title there would leave those
+  pages with no heading at all.
+
+Verified with Chrome DevTools device emulation at 390 / 600 / 1280 px: `scrollWidth` equals the
+viewport at every width, so nothing overflows. Note that `chrome --headless --window-size` does
+**not** set the layout viewport — it produced convincing but wrong "content is cut off"
+screenshots. Use `Emulation.setDeviceMetricsOverride` over CDP.
 
 ## Reference measurements (2026-08-06)
 

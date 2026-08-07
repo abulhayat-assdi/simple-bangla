@@ -322,6 +322,17 @@ function simple_bangla_checkout_delivery_note() {
 add_action( 'woocommerce_checkout_after_customer_details', 'simple_bangla_checkout_delivery_note', 20 );
 
 /*
+ * Drop WooCommerce's own order-details and customer-address tables from the thank-you page.
+ *
+ * They are hooked onto `woocommerce_thankyou`, which the theme's thankyou.php still fires so that
+ * gateways and plugins keep their slot. Only these two default renderers are removed: the theme's
+ * own cards already show every line they would print — items, totals, payment method, address —
+ * in Bangla and in the page's own layout, so leaving them on meant every fact appearing twice, the
+ * second time in an unstyled English table.
+ */
+remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
+
+/*
  * Drop the separate "ship to a different address" form. The parcel goes to the one address the
  * customer typed, and asking for a second one on a cash-on-delivery order is a second chance to
  * get it wrong. Shipping *rates* are unaffected — those come from needs_shipping(), not from

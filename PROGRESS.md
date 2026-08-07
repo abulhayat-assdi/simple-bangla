@@ -1,6 +1,56 @@
 # Simple Bangla — Progress
 
-Last updated: 2026-08-06
+Last updated: 2026-08-07
+
+## Thank-you page rebuilt to the owner's screenshot (2026-08-07)
+
+The owner sent the current thank-you page beside a reference design and asked for the reference's
+layout. Four things were settled first: Bangla copy, the site's black-and-cream palette instead of
+the reference's green, keep the step bar, and drop WooCommerce's default tables.
+
+What shipped:
+
+- **Black gradient banner** — step bar, then a ringed green tick, "আপনার অর্ডারের জন্য ধন্যবাদ!"
+  and a one-line confirmation.
+- **Four cards**: order number / date / payment pill · কাস্টমারের তথ্য (name, mobile, email,
+  delivery address, delivery note) · অর্ডার করা পণ্য (thumbnail, unit price × quantity, variation
+  chips, line total, then subtotal / discount / fees / delivery charge / tax / সর্বমোট) ·
+  পেমেন্টের তথ্য (method, amount due, and for cash on delivery a line asking the customer to have
+  the money ready).
+- **WooCommerce's duplicate order and address tables removed**; its `woocommerce_thankyou` hooks
+  still fire, buffered so the wrapper only appears when a plugin actually renders something.
+- **A failed payment** gets its own banner — red-tinted mark, "পেমেন্টটি সম্পন্ন হয়নি", a retry
+  link — and the step bar stops at the order step instead of ticking "সম্পন্ন".
+- **Cash on delivery's title and description are now Bangla and its `instructions` field blank**,
+  set by the demo importer, because WooCommerce printed that English line on this page under a
+  Bangla card that already said it.
+- Two icons added (`box`, `card`); `.pot` regenerated at 274 strings.
+
+Verified in Playground against real orders: a two-item cash-on-delivery order with a delivery
+note (৳6,380 + ৳70 = ৳6,450), a single-item order, and a failed order — all three render with
+zero PHP notices, no duplicate tables, and the step bar in the right state for each.
+
+The checkout stylesheet is now ~26 KB, taking that view to ~60 KB of CSS. Noted in CLAUDE.md; it
+is one sheet shared by cart, checkout and thank-you, so splitting it is the fix if it grows again.
+
+### Sized down for phones (same day)
+
+The owner saw it on a device: the banner alone filled the screen and reading the page took a lot of
+scrolling. The first build used one scale at every width. Fixed by making the whole page
+mobile-first and stepping it up at 600px — medallion 78→52px, title `2xl`→`xl`, cards, item rows,
+totals and callouts each down one step, all restored above 600px. The step bar is hidden below
+600px (the owner's call), and the banner is rounded now that it plainly sits inside the page
+container rather than bleeding to the edges.
+
+Also removed the English "Order received" h1 that WordPress was printing directly above the Bangla
+banner — `simple_bangla_hide_entry_title()`, checked in `template-parts/content.php`. It is scoped
+to the checkout and order-received views only: the cart and the empty-cart checkout have no banner
+of their own, so suppressing the title there would have left them with no heading at all.
+
+Verified with Chrome DevTools device emulation at 390 / 600 / 1280 px — `scrollWidth` equals the
+viewport at each, nothing overflows, no PHP notices. **`chrome --headless --window-size` does not
+set the layout viewport**; it produced convincing screenshots of content apparently cut off at the
+right edge that CDP emulation then disproved. Use `Emulation.setDeviceMetricsOverride`.
 
 ## Checkout rebuilt to the owner's screenshot (2026-08-06)
 
@@ -261,7 +311,7 @@ scaffolding, and a WooCommerce-missing admin notice.
 ### Phase 6 — Footer + mobile (2026-08-05)
 
 - White footer: brand row with address, phone, email and social icons; three link columns with
-  page fallbacks; a Google Maps panel; payment-methods strip; copyright.
+  page fallbacks; payment-methods strip; copyright.
 - Mobile sticky bottom bar — Shop · Call · Home · Chat · Cart, with Home icon-only in a raised
   circle, hidden from 768px.
 - Floating WhatsApp button and a back-to-top button that only appears once there is something
@@ -334,7 +384,6 @@ The theme works with placeholders in place; these are Customizer fields, not cod
 - [ ] Facebook / Instagram / YouTube URLs — currently `.../simplebangla` guesses that should be
       confirmed or replaced, since those handles may belong to someone else
 - [ ] Messenger username
-- [ ] Google Maps embed URL — the footer map panel is empty until one is set
 - [ ] Payment-methods strip image
 - [ ] A real logo — the header currently renders the site name as text
 

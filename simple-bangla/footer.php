@@ -2,7 +2,7 @@
 /**
  * Site footer.
  *
- * One grid row: brand block, three link columns, map. Then the payment strip, then a
+ * One grid row: brand block, three link columns. Then the payment strip, then a
  * full-bleed black copyright bar. That is the reference's arrangement, measured off its own
  * markup and stylesheet rather than guessed from a screenshot.
  *
@@ -62,11 +62,21 @@ defined( 'ABSPATH' ) || exit;
 
 	</footer>
 
-	<?php get_template_part( 'template-parts/footer/floats' ); ?>
-	<?php get_template_part( 'template-parts/footer/mobile-bar' ); ?>
-
 </div><!-- #page -->
 
-<?php wp_footer(); ?>
+<?php
+/*
+ * Floats and the mobile bar are position: fixed to the screen, not to anything in the page
+ * flow, so they render as direct children of <body> here — outside #page — rather than
+ * nested inside .sb-site. Nesting them under a flex container is normally harmless, but it
+ * only takes one future ancestor style (a transform, a filter, a CSS containment rule) to
+ * turn "fixed" into "fixed relative to that ancestor's box," which is indistinguishable from
+ * the bar simply not being fixed at all. Sitting at the body level removes that risk entirely.
+ */
+get_template_part( 'template-parts/footer/floats' );
+get_template_part( 'template-parts/footer/mobile-bar' );
+
+wp_footer();
+?>
 </body>
 </html>

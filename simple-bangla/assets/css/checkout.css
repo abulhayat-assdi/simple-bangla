@@ -602,80 +602,516 @@
 
 /* ------------------------------------------------------------------ *
  * Thank you
+ *
+ * Built to the owner's reference: a confirmation banner, then one card per question a customer
+ * has after ordering — where is it going, what is in it, what will I pay. The reference is
+ * green throughout; here the page keeps the site's black-and-cream palette and green is spent
+ * only on the success tick, which is the one thing on the page that means "it worked".
+ *
+ * Sized mobile-first and deliberately tight (revised 2026-08-07): the first build used the same
+ * banner and card scale at every width, which on a phone pushed the order number below the fold.
+ * Everything here starts small and grows at 600px.
  * ------------------------------------------------------------------ */
 
-.sb-thankyou__card {
-	display: grid;
-	justify-items: center;
-	gap: var(--sb-space-3);
-	padding: var(--sb-space-6) var(--sb-space-4);
+.sb-thankyou {
+	/* Local to this page: the single success colour, and the tint its callouts sit on. */
+	--sb-ty-ok: #16a34a;
+	--sb-ty-tint: #f6f7f9;
+}
+
+/*
+ * Rounded, because this banner sits inside the page container rather than bleeding to the edges —
+ * square corners inside a margin read as a mistake, not as a full-width band.
+ */
+.sb-checkout__banner--thankyou {
+	margin-bottom: var(--sb-space-4);
+	padding: var(--sb-space-5) var(--sb-space-4);
 	border-radius: var(--sb-radius);
-	background: var(--sb-bg);
+	background: linear-gradient(160deg, #2d3134 0%, #000000 100%);
 	text-align: center;
 }
 
-.sb-thankyou__tick {
+/*
+ * Hidden on phones. It reports a journey already finished, so it is the least useful thing in the
+ * banner — and at three markers plus labels it was the most expensive in vertical space.
+ */
+.sb-checkout__banner--thankyou .sb-steps {
+	display: none;
+}
+
+.sb-thankyou__medallion {
 	display: grid;
 	place-items: center;
-	width: 72px;
-	height: 72px;
+	margin: 0 auto var(--sb-space-3);
+	width: 52px;
+	height: 52px;
+	border: 2px solid rgb(255 255 255 / 35%);
 	border-radius: var(--sb-radius-pill);
-	background: #dcfce7;
-	color: #16a34a;
+	background: rgb(255 255 255 / 10%);
+	/* A lighter green than the one used on white — #16a34a goes muddy against the black banner. */
+	color: #34d17f;
 }
 
-.sb-thankyou__lead {
-	margin: 0;
-	font-family: var(--sb-font-heading);
+/* The icon is printed at 40px; the medallion scales it rather than the template guessing a size. */
+.sb-thankyou__medallion .sb-icon {
+	width: 26px;
+	height: 26px;
+}
+
+.sb-thankyou__medallion--failed {
+	color: #fca5a5;
+}
+
+.sb-thankyou__title {
+	margin: 0 0 var(--sb-space-1);
+	color: #ffffff;
+	font-family: var(--sb-font-display);
 	font-size: var(--sb-text-xl);
+	font-weight: 600;
+	letter-spacing: 0.3px;
+	line-height: var(--sb-leading-tight);
 }
 
-.sb-thankyou__lead--failed {
-	color: var(--sb-sale);
-}
-
-.sb-thankyou__note {
+.sb-thankyou__subtitle {
 	margin: 0;
-	max-width: 46ch;
-	color: var(--sb-muted);
+	color: rgb(255 255 255 / 72%);
+	font-size: var(--sb-text-sm);
+	line-height: 1.5;
 }
 
-.sb-thankyou__overview {
+/* -- Cards -- */
+
+.sb-thankyou__body {
 	display: grid;
 	gap: var(--sb-space-3);
-	list-style: none;
-	margin: var(--sb-space-5) 0;
+	max-width: 860px;
+}
+
+.sb-ty-card {
 	padding: var(--sb-space-4);
+	border: 1px solid var(--sb-line);
 	border-radius: var(--sb-radius);
 	background: var(--sb-bg);
 }
 
-.sb-thankyou__overview li {
+.sb-ty-card__head {
 	display: flex;
-	justify-content: space-between;
+	align-items: center;
+	gap: var(--sb-space-2);
+	margin: 0 0 var(--sb-space-3);
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-base);
+}
+
+.sb-ty-card__icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 26px;
+	height: 26px;
+	border-radius: var(--sb-radius-pill);
+	background: var(--sb-ty-tint);
+	color: var(--sb-brand);
+}
+
+.sb-ty-card__icon .sb-icon {
+	width: 15px;
+	height: 15px;
+}
+
+/* Pushed to the far end so the heading reads as a title, not a title-plus-number phrase. */
+.sb-ty-card__count {
+	margin-left: auto;
+	color: var(--sb-muted);
+	font-family: var(--sb-font-body);
+	font-size: var(--sb-text-sm);
+	font-weight: 400;
+}
+
+.sb-ty-lead {
+	margin: 0 0 var(--sb-space-4);
+	text-align: center;
+}
+
+.sb-ty-lead:last-child {
+	margin-bottom: 0;
+}
+
+/* -- Order number / date / payment strip -- */
+
+.sb-ty-receipt__grid {
+	display: grid;
+	gap: var(--sb-space-2);
+	margin: 0;
+}
+
+.sb-ty-receipt__cell dt {
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+
+.sb-ty-receipt__cell dd {
+	margin: 0;
+	font-weight: 700;
+}
+
+.sb-ty-receipt__id {
+	font-family: var(--sb-font-heading);
+	font-size: var(--sb-text-base);
+}
+
+.sb-ty-receipt__pill {
+	display: inline-block;
+	margin: var(--sb-space-3) 0 0;
+	padding: 2px var(--sb-space-3);
+	border: 1px solid var(--sb-brand);
+	border-radius: var(--sb-radius-pill);
+	font-size: var(--sb-text-xs);
+	font-weight: 700;
+}
+
+/* -- Fact grids (customer details, payment details) -- */
+
+.sb-ty-facts {
+	display: grid;
 	gap: var(--sb-space-3);
-	padding-bottom: var(--sb-space-2);
-	border-bottom: 1px solid var(--sb-line);
+	margin: 0;
+}
+
+.sb-ty-fact dt {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-1);
+	margin-bottom: 2px;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+
+.sb-ty-fact dd {
+	margin: 0;
+	font-size: var(--sb-text-sm);
+	font-weight: 700;
+	line-height: 1.5;
+}
+
+/* WooCommerce formats an address with <br>, so the value block keeps its own line breaks. */
+.sb-ty-fact dd br {
+	line-height: inherit;
+}
+
+.sb-ty-fact__amount {
+	color: var(--sb-ty-ok);
+	font-size: var(--sb-text-base);
+}
+
+/* -- Ordered items -- */
+
+.sb-ty-items {
+	display: grid;
+	gap: var(--sb-space-2);
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.sb-ty-item {
+	display: grid;
+	grid-template-columns: 44px minmax(0, 1fr) auto;
+	gap: var(--sb-space-3);
+	align-items: start;
+	padding: var(--sb-space-2);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
 	font-size: var(--sb-text-sm);
 }
 
-.sb-thankyou__overview li:last-child {
-	border-bottom: 0;
-	padding-bottom: 0;
+.sb-ty-item__thumb {
+	overflow: hidden;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-bg-alt);
 }
 
-.sb-thankyou__overview span {
+.sb-ty-item__thumb img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1;
+	object-fit: cover;
+}
+
+.sb-ty-item__info {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+
+.sb-ty-item__name {
+	font-weight: 700;
+	line-height: 1.4;
+}
+
+.sb-ty-item__name a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.sb-ty-item__name a:hover {
+	text-decoration: underline;
+}
+
+.sb-ty-item__qty {
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+}
+
+.sb-ty-item__total {
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+/*
+ * Variation attributes. WooCommerce prints these as a <ul> of "Label: value" pairs; they are set
+ * as small chips so a size or a colour reads as a property of the line above, not as a sentence.
+ */
+.sb-ty-item .wc-item-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sb-space-1);
+	list-style: none;
+	margin: var(--sb-space-1) 0 0;
+	padding: 0;
+	font-size: var(--sb-text-xs);
+}
+
+.sb-ty-item .wc-item-meta li {
+	display: flex;
+	gap: 4px;
+	margin: 0;
+	padding: 2px var(--sb-space-2);
+	border-radius: var(--sb-radius-pill);
+	background: var(--sb-ty-tint);
+}
+
+.sb-ty-item .wc-item-meta strong {
+	color: var(--sb-muted);
+	font-weight: 400;
+}
+
+.sb-ty-item .wc-item-meta p {
+	margin: 0;
+	font-weight: 700;
+}
+
+/* -- Totals -- */
+
+.sb-ty-totals {
+	display: grid;
+	gap: var(--sb-space-2);
+	margin: var(--sb-space-3) 0 0;
+	padding: var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-ty-tint);
+}
+
+.sb-ty-totals__row {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-ty-totals__row dt {
 	color: var(--sb-muted);
 }
 
-.sb-thankyou__actions {
+/* The shipping method's own name, under the "delivery charge" label it explains. */
+.sb-ty-totals__row dt small {
+	display: block;
+	font-size: var(--sb-text-xs);
+}
+
+.sb-ty-totals__row dd {
+	margin: 0;
+	font-weight: 700;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.sb-ty-totals__row--grand {
+	margin-top: var(--sb-space-1);
+	padding-top: var(--sb-space-2);
+	border-top: 1px solid var(--sb-line);
+	font-size: var(--sb-text-base);
+}
+
+.sb-ty-totals__row--grand dt {
+	color: var(--sb-ink);
+	font-weight: 700;
+}
+
+.sb-ty-totals__row--grand dd {
+	color: var(--sb-ty-ok);
+}
+
+/* -- Callouts and closing actions -- */
+
+.sb-ty-callout {
+	margin: var(--sb-space-3) 0 0;
+	padding: var(--sb-space-2) var(--sb-space-3);
+	border-left: 3px solid var(--sb-ty-ok);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-ty-tint);
+	font-size: var(--sb-text-xs);
+	line-height: 1.6;
+}
+
+.sb-ty-followup {
+	margin: 0;
+	color: var(--sb-muted);
+	font-size: var(--sb-text-xs);
+	line-height: 1.6;
 	text-align: center;
 }
 
+/* Whatever a gateway or plugin adds, kept quiet so it never competes with the cards above it. */
+.sb-ty-hooks {
+	color: var(--sb-muted);
+	font-size: var(--sb-text-sm);
+}
+
+.sb-thankyou__actions {
+	margin: var(--sb-space-2) 0 0;
+	text-align: center;
+}
+
+/* Above a phone there is room to breathe, so the banner and the cards go back up a size. */
 @media (min-width: 600px) {
-	.sb-thankyou__overview {
+	.sb-checkout__banner--thankyou {
+		margin-bottom: var(--sb-space-5);
+		padding: var(--sb-space-5) var(--sb-space-5) var(--sb-space-6);
+	}
+
+	.sb-checkout__banner--thankyou .sb-steps {
+		display: flex;
+		margin-bottom: var(--sb-space-5);
+	}
+
+	.sb-thankyou__medallion {
+		margin-bottom: var(--sb-space-4);
+		width: 68px;
+		height: 68px;
+	}
+
+	.sb-thankyou__medallion .sb-icon {
+		width: 34px;
+		height: 34px;
+	}
+
+	.sb-thankyou__title {
+		margin-bottom: var(--sb-space-2);
+		font-size: var(--sb-text-2xl);
+		letter-spacing: 0.5px;
+	}
+
+	.sb-thankyou__subtitle {
+		font-size: var(--sb-text-base);
+	}
+
+	.sb-thankyou__body {
+		gap: var(--sb-space-4);
+	}
+
+	.sb-ty-card {
+		padding: var(--sb-space-5);
+	}
+
+	.sb-ty-card__head {
+		margin-bottom: var(--sb-space-4);
+		font-size: var(--sb-text-lg);
+	}
+
+	.sb-ty-card__icon {
+		width: 32px;
+		height: 32px;
+	}
+
+	.sb-ty-card__icon .sb-icon {
+		width: 18px;
+		height: 18px;
+	}
+
+	.sb-ty-receipt__grid {
 		grid-template-columns: 1fr 1fr;
-		gap: var(--sb-space-3) var(--sb-space-6);
+		gap: var(--sb-space-3);
+	}
+
+	.sb-ty-receipt__cell--end {
+		text-align: right;
+	}
+
+	.sb-ty-receipt__cell--end dt {
+		justify-content: flex-end;
+	}
+
+	.sb-ty-receipt__id {
+		font-size: var(--sb-text-lg);
+	}
+
+	.sb-ty-receipt__pill {
+		padding: var(--sb-space-1) var(--sb-space-4);
+		font-size: var(--sb-text-sm);
+	}
+
+	.sb-ty-facts {
+		grid-template-columns: 1fr 1fr;
+		gap: var(--sb-space-4) var(--sb-space-5);
+	}
+
+	.sb-ty-fact--wide {
+		grid-column: 1 / -1;
+	}
+
+	.sb-ty-fact dd {
+		font-size: var(--sb-text-base);
+	}
+
+	.sb-ty-fact__amount {
+		font-size: var(--sb-text-lg);
+	}
+
+	.sb-ty-item {
+		grid-template-columns: 64px minmax(0, 1fr) auto;
+		gap: var(--sb-space-4);
+		padding: var(--sb-space-3);
+		font-size: var(--sb-text-base);
+	}
+
+	.sb-ty-item__qty {
+		font-size: var(--sb-text-sm);
+	}
+
+	.sb-ty-totals {
+		margin-top: var(--sb-space-4);
+		padding: var(--sb-space-4);
+	}
+
+	.sb-ty-totals__row--grand {
+		padding-top: var(--sb-space-3);
+		font-size: var(--sb-text-lg);
+	}
+
+	.sb-ty-callout,
+	.sb-ty-followup {
+		font-size: var(--sb-text-sm);
+	}
+
+	.sb-ty-callout {
+		margin-top: var(--sb-space-4);
+		padding: var(--sb-space-3) var(--sb-space-4);
 	}
 }
 
