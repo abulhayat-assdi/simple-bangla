@@ -34,12 +34,11 @@
 
 .sb-header__inner {
 	display: grid;
-	grid-template-areas:
-		"burger brand actions"
-		"search search  search";
-	grid-template-columns: auto 1fr auto;
+	grid-template-areas: "burger brand search actions";
+	/* Brand shrinks to its own content; search takes whatever is left. */
+	grid-template-columns: auto auto minmax(0, 1fr) auto;
 	align-items: center;
-	gap: var(--sb-space-3);
+	gap: var(--sb-space-2);
 	padding-block: var(--sb-space-3);
 }
 
@@ -80,10 +79,10 @@
 	width: auto;
 }
 
-/* On phones the field gets its own full-width row — it is the most used control here. */
 .sb-header__search {
 	grid-area: search;
 	position: relative;
+	min-width: 0;
 }
 
 .sb-header__actions {

@@ -22,6 +22,13 @@
 
 .sb-hero__grid {
 	display: grid;
+	/*
+	 * Grid items default to min-width: auto, so without an explicit 0-minimum track the
+	 * slider images' natural width leaks up into the column's min-content size and blows
+	 * the row past the viewport on a phone. minmax(0, 1fr) is the same fix the ≥900px
+	 * two-column layout below already needed.
+	 */
+	grid-template-columns: minmax(0, 1fr);
 	gap: var(--sb-space-4);
 }
 
