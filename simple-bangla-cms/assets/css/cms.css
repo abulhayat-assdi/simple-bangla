@@ -1,0 +1,1724 @@
+/*
+ * Simple Bangla CMS.
+ *
+ * Light interface in the storefront's own palette: a black rail against warm cream, white cards
+ * at the theme's 15px radius. The reference dashboard was dark gold; the owner chose the shop's
+ * colours instead, so the two halves of the business look like one company.
+ *
+ * No webfont. The storefront spends its font budget on brand typography because customers see
+ * it; a management screen is read all day by one or two people and a system stack renders
+ * instantly with nothing to download.
+ */
+
+:root {
+	--sb-rail: #111214;
+	--sb-rail-ink: #efe9da;
+	--sb-rail-muted: #8c8b85;
+	--sb-rail-active: #23242a;
+
+	--sb-cream: #fbf4e2;
+	--sb-surface: #ffffff;
+	--sb-surface-2: #fffcf7;
+
+	--sb-ink: #26262a;
+	--sb-muted: #75757e;
+	--sb-line: #e8e2d2;
+	--sb-line-soft: #f1ece0;
+
+	--sb-ok: #1f7a4d;
+	--sb-ok-bg: #e7f4ec;
+	--sb-warn: #a76a00;
+	--sb-warn-bg: #fdf1dc;
+	--sb-bad: #b23b3b;
+	--sb-bad-bg: #fbeaea;
+
+	--sb-radius: 15px;
+	--sb-radius-sm: 10px;
+
+	--sb-rail-w: 240px;
+	--sb-topbar-h: 60px;
+
+	--sb-space-1: 4px;
+	--sb-space-2: 8px;
+	--sb-space-3: 12px;
+	--sb-space-4: 16px;
+	--sb-space-5: 24px;
+	--sb-space-6: 32px;
+
+	--sb-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--sb-cream);
+	color: var(--sb-ink);
+	font-family: var(--sb-font);
+	font-size: 15px;
+	line-height: 1.55;
+}
+
+a {
+	color: inherit;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+:focus-visible {
+	outline: 2px solid var(--sb-ink);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------- forms */
+
+.sb-field {
+	display: block;
+	margin-bottom: var(--sb-space-4);
+}
+
+.sb-field__label {
+	display: block;
+	margin-bottom: var(--sb-space-2);
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--sb-muted);
+}
+
+.sb-input {
+	width: 100%;
+	padding: 11px 14px;
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface);
+	color: var(--sb-ink);
+	font: inherit;
+}
+
+.sb-input:focus {
+	outline: none;
+	border-color: var(--sb-ink);
+	box-shadow: 0 0 0 3px rgba(17, 18, 20, 0.08);
+}
+
+.sb-check {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	margin-bottom: var(--sb-space-4);
+	font-size: 14px;
+	color: var(--sb-muted);
+	cursor: pointer;
+}
+
+.sb-check input {
+	/* The browser default is bright blue — the only colour on the sign-in card that is not ours. */
+	accent-color: var(--sb-rail);
+}
+
+.sb-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--sb-space-2);
+	padding: 11px 20px;
+	border: 1px solid transparent;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface);
+	color: var(--sb-ink);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sb-btn--primary {
+	background: var(--sb-rail);
+	color: #fff;
+}
+
+.sb-btn--primary:hover {
+	background: #2d3134;
+}
+
+.sb-btn--ghost {
+	border-color: var(--sb-line);
+}
+
+.sb-btn--ghost:hover {
+	background: var(--sb-surface-2);
+}
+
+.sb-btn--block {
+	width: 100%;
+}
+
+.sb-alert {
+	margin: 0 0 var(--sb-space-4);
+	padding: 10px 14px;
+	border-radius: var(--sb-radius-sm);
+	font-size: 14px;
+}
+
+.sb-alert--error {
+	background: var(--sb-bad-bg);
+	color: var(--sb-bad);
+}
+
+.sb-alert--warn {
+	background: var(--sb-warn-bg);
+	color: var(--sb-warn);
+}
+
+/* ---------------------------------------------------------------- login */
+
+.sb-login-page {
+	display: flex;
+	min-height: 100vh;
+}
+
+.sb-login {
+	margin: auto;
+	padding: var(--sb-space-5);
+	width: 100%;
+	max-width: 420px;
+}
+
+.sb-login__card {
+	padding: var(--sb-space-6);
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+}
+
+.sb-login__brand {
+	margin-bottom: var(--sb-space-3);
+}
+
+.sb-brand__logo {
+	max-height: 44px;
+	width: auto;
+}
+
+.sb-brand__name {
+	font-size: 22px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+.sb-login__lead {
+	margin: 0 0 var(--sb-space-5);
+	color: var(--sb-muted);
+	font-size: 14px;
+}
+
+.sb-login__foot {
+	margin: var(--sb-space-5) 0 0;
+	text-align: center;
+	font-size: 13px;
+	color: var(--sb-muted);
+}
+
+.sb-login__foot a {
+	color: var(--sb-muted);
+}
+
+.sb-login__foot a:hover {
+	color: var(--sb-ink);
+}
+
+/* ---------------------------------------------------------------- shell */
+
+.sb-shell {
+	display: flex;
+	min-height: 100vh;
+}
+
+.sb-rail {
+	position: fixed;
+	inset: 0 auto 0 0;
+	z-index: 40;
+	display: flex;
+	flex-direction: column;
+	width: var(--sb-rail-w);
+	background: var(--sb-rail);
+	color: var(--sb-rail-ink);
+	overflow-y: auto;
+}
+
+.sb-rail__brand {
+	display: flex;
+	align-items: center;
+	min-height: var(--sb-topbar-h);
+	padding: var(--sb-space-4) var(--sb-space-5);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* The wordmark became a link home in phase 3; it should not pick up link underlining for it. */
+.sb-rail__brand a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.sb-rail__brand .sb-brand__logo {
+	max-height: 30px;
+	/* Storefront logos are drawn for a black bar already; the rail is that bar. */
+}
+
+.sb-rail__brand .sb-brand__name {
+	font-size: 17px;
+	color: var(--sb-rail-ink);
+}
+
+.sb-rail__nav {
+	flex: 1;
+	padding: var(--sb-space-4) var(--sb-space-3);
+}
+
+.sb-rail__group {
+	margin-bottom: var(--sb-space-5);
+}
+
+.sb-rail__legend {
+	margin: 0 0 var(--sb-space-2);
+	padding: 0 var(--sb-space-3);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--sb-rail-muted);
+}
+
+.sb-nav-item {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding: 9px var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
+	color: var(--sb-rail-ink);
+	font-size: 14.5px;
+	text-decoration: none;
+	transition: background-color 0.15s ease;
+}
+
+.sb-nav-item:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+.sb-nav-item.is-active {
+	background: var(--sb-rail-active);
+	font-weight: 600;
+}
+
+.sb-nav-item__icon {
+	flex: 0 0 18px;
+	width: 18px;
+	height: 18px;
+	opacity: 0.8;
+}
+
+.sb-nav-item.is-active .sb-nav-item__icon {
+	opacity: 1;
+}
+
+.sb-nav-item__soon {
+	margin-left: auto;
+	font-size: 10px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--sb-rail-muted);
+}
+
+.sb-rail__foot {
+	padding: var(--sb-space-4) var(--sb-space-3);
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	font-size: 12px;
+	color: var(--sb-rail-muted);
+}
+
+.sb-rail__foot a {
+	color: var(--sb-rail-muted);
+	text-decoration: none;
+}
+
+.sb-rail__foot a:hover {
+	color: var(--sb-rail-ink);
+}
+
+/* ---------------------------------------------------------------- main */
+
+.sb-main {
+	flex: 1;
+	min-width: 0;
+	margin-left: var(--sb-rail-w);
+}
+
+.sb-topbar {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-4);
+	min-height: var(--sb-topbar-h);
+	padding: 0 var(--sb-space-5);
+	background: rgba(251, 244, 226, 0.92);
+	backdrop-filter: blur(8px);
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-topbar__spacer {
+	flex: 1;
+}
+
+.sb-user {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding: 5px 5px 5px var(--sb-space-4);
+	border: 1px solid var(--sb-line);
+	border-radius: 999px;
+	background: var(--sb-surface);
+}
+
+.sb-user__name {
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.sb-user__role {
+	font-size: 11px;
+	color: var(--sb-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.sb-user__avatar {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+}
+
+.sb-burger {
+	display: none;
+	padding: 8px;
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface);
+	cursor: pointer;
+}
+
+.sb-page {
+	padding: var(--sb-space-5);
+	max-width: 1400px;
+}
+
+.sb-page__title {
+	margin: 0 0 var(--sb-space-1);
+	font-size: 26px;
+	font-weight: 800;
+	letter-spacing: -0.02em;
+}
+
+.sb-page__lead {
+	margin: 0 0 var(--sb-space-5);
+	color: var(--sb-muted);
+	font-size: 14px;
+}
+
+.sb-section-label {
+	margin: var(--sb-space-6) 0 var(--sb-space-3);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--sb-muted);
+}
+
+/* ---------------------------------------------------------------- stats */
+
+.sb-stats {
+	display: grid;
+	/* 190px rather than a rounder number so five tiles sit on one row at 1280px, which is what
+	   the revenue-and-orders group actually contains. */
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: var(--sb-space-4);
+}
+
+.sb-stat {
+	padding: var(--sb-space-5);
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+}
+
+.sb-stat__head {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	margin-bottom: var(--sb-space-3);
+}
+
+.sb-stat__icon {
+	display: grid;
+	place-items: center;
+	flex: 0 0 32px;
+	width: 32px;
+	height: 32px;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+	color: var(--sb-muted);
+}
+
+.sb-stat__icon svg {
+	width: 17px;
+	height: 17px;
+}
+
+.sb-stat--ok .sb-stat__icon {
+	background: var(--sb-ok-bg);
+	color: var(--sb-ok);
+}
+
+.sb-stat--warn .sb-stat__icon {
+	background: var(--sb-warn-bg);
+	color: var(--sb-warn);
+}
+
+.sb-stat--bad .sb-stat__icon {
+	background: var(--sb-bad-bg);
+	color: var(--sb-bad);
+}
+
+.sb-stat__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--sb-muted);
+}
+
+.sb-stat__value {
+	font-size: 30px;
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	line-height: 1.1;
+}
+
+.sb-stat__note {
+	margin-top: var(--sb-space-2);
+	font-size: 12px;
+	color: var(--sb-muted);
+}
+
+/* ---------------------------------------------------------------- quick links */
+
+.sb-quick {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: var(--sb-space-4);
+}
+
+.sb-quick__item {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-4);
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+	text-decoration: none;
+	transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.sb-quick__item:hover {
+	border-color: var(--sb-ink);
+	transform: translateY(-1px);
+}
+
+.sb-quick__icon {
+	display: grid;
+	place-items: center;
+	flex: 0 0 34px;
+	width: 34px;
+	height: 34px;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+}
+
+.sb-quick__icon svg {
+	width: 18px;
+	height: 18px;
+}
+
+.sb-quick__title {
+	font-weight: 700;
+	font-size: 14px;
+}
+
+.sb-quick__desc {
+	font-size: 12px;
+	color: var(--sb-muted);
+}
+
+.sb-quick__arrow {
+	margin-left: auto;
+	color: var(--sb-muted);
+}
+
+/* ---------------------------------------------------------------- placeholder + states */
+
+.sb-placeholder {
+	padding: var(--sb-space-6);
+	background: var(--sb-surface);
+	border: 1px dashed var(--sb-line);
+	border-radius: var(--sb-radius);
+	text-align: center;
+	color: var(--sb-muted);
+}
+
+.sb-placeholder__title {
+	margin: 0 0 var(--sb-space-2);
+	font-size: 17px;
+	font-weight: 700;
+	color: var(--sb-ink);
+}
+
+.sb-boot {
+	display: grid;
+	place-items: center;
+	min-height: 100vh;
+}
+
+.sb-spinner {
+	display: block;
+	width: 26px;
+	height: 26px;
+	border: 3px solid var(--sb-line);
+	border-top-color: var(--sb-ink);
+	border-radius: 50%;
+	animation: sb-spin 0.7s linear infinite;
+}
+
+@keyframes sb-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.sb-spinner {
+		animation-duration: 2s;
+	}
+
+	.sb-quick__item:hover {
+		transform: none;
+	}
+}
+
+.sb-skeleton {
+	background: linear-gradient(90deg, var(--sb-line-soft) 25%, var(--sb-surface-2) 50%, var(--sb-line-soft) 75%);
+	background-size: 200% 100%;
+	animation: sb-shimmer 1.2s linear infinite;
+	border-radius: 6px;
+	color: transparent;
+}
+
+@keyframes sb-shimmer {
+	to {
+		background-position: -200% 0;
+	}
+}
+
+/* ---------------------------------------------------------------- page header + toolbar */
+
+.sb-page__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--sb-space-4);
+	flex-wrap: wrap;
+	margin-bottom: var(--sb-space-5);
+}
+
+.sb-crumb {
+	margin: 0 0 var(--sb-space-1);
+	font-size: 13px;
+	color: var(--sb-muted);
+}
+
+.sb-row {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	flex-wrap: wrap;
+}
+
+.sb-toolbar {
+	display: flex;
+	gap: var(--sb-space-3);
+	flex-wrap: wrap;
+	margin-bottom: var(--sb-space-4);
+}
+
+.sb-toolbar__search {
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
+.sb-toolbar .sb-input {
+	width: auto;
+}
+
+.sb-hint {
+	margin: var(--sb-space-2) 0 0;
+	font-size: 12px;
+	color: var(--sb-muted);
+}
+
+/*
+ * Visually hidden but still announced.
+ *
+ * `margin: -1px` matters: the box is still laid out, and one placed in the last column of a wide
+ * table sat past the right edge of a phone screen and widened the whole document by its own
+ * width. Containment is handled by .sb-table-wrap being positioned; this is the belt to that
+ * brace.
+ */
+.sb-sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- cards + editor layout */
+
+.sb-card {
+	margin-bottom: var(--sb-space-4);
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+}
+
+.sb-card__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-4) var(--sb-space-5);
+	border-bottom: 1px solid var(--sb-line-soft);
+}
+
+.sb-card__title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.sb-card__body {
+	padding: var(--sb-space-5);
+}
+
+.sb-card__body > :last-child {
+	margin-bottom: 0;
+}
+
+.sb-editor {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 340px;
+	gap: var(--sb-space-4);
+	align-items: start;
+}
+
+@media (max-width: 1100px) {
+	.sb-editor {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.sb-textarea {
+	resize: vertical;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.sb-input--sm {
+	padding: 6px 8px;
+	font-size: 13px;
+}
+
+.sb-checklist {
+	max-height: 220px;
+	overflow-y: auto;
+	padding: var(--sb-space-2);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+}
+
+.sb-checklist__item {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-2);
+	padding: 4px 6px;
+	border-radius: 6px;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.sb-checklist__item:hover {
+	background: var(--sb-surface-2);
+}
+
+.sb-checklist input,
+.sb-switch input {
+	accent-color: var(--sb-rail);
+}
+
+.sb-switch {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--sb-space-2);
+	margin-bottom: var(--sb-space-4);
+	cursor: pointer;
+}
+
+.sb-switch__label {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.sb-switch .sb-hint {
+	display: block;
+	margin-top: 2px;
+}
+
+/* ---------------------------------------------------------------- table */
+
+.sb-table-wrap {
+	/*
+	 * Positioned so absolutely-positioned descendants resolve against this box and are clipped by
+	 * its overflow. Without it, a visually-hidden cell label in the last column escapes the
+	 * scroll container and widens the page itself — which is how it was found.
+	 */
+	position: relative;
+	overflow-x: auto;
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+}
+
+/* A refetch dims the rows rather than replacing them with a spinner, so the list does not jump
+   out from under a finger mid-scroll. */
+.sb-table-wrap.is-busy {
+	opacity: 0.55;
+}
+
+.sb-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.sb-table th {
+	padding: var(--sb-space-3) var(--sb-space-4);
+	border-bottom: 1px solid var(--sb-line);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--sb-muted);
+	text-align: left;
+	white-space: nowrap;
+}
+
+.sb-table td {
+	padding: var(--sb-space-3) var(--sb-space-4);
+	border-bottom: 1px solid var(--sb-line-soft);
+	vertical-align: middle;
+}
+
+.sb-table tr:last-child td {
+	border-bottom: 0;
+}
+
+.sb-table tbody tr:hover {
+	background: var(--sb-surface-2);
+}
+
+.sb-table--compact td,
+.sb-table--compact th {
+	padding: var(--sb-space-2) var(--sb-space-3);
+}
+
+.sb-table__thumb-col {
+	width: 56px;
+}
+
+.sb-table__actions-col {
+	width: 1%;
+}
+
+.sb-table__thumb {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	overflow: hidden;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+}
+
+.sb-table__thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.sb-table__name {
+	display: inline-block;
+	font-weight: 600;
+	color: var(--sb-ink);
+	text-decoration: none;
+}
+
+a.sb-table__name:hover {
+	text-decoration: underline;
+}
+
+.sb-table__sub {
+	font-size: 12px;
+	color: var(--sb-muted);
+}
+
+.sb-price del {
+	color: var(--sb-sale, #ba5e5e);
+	margin-right: 4px;
+}
+
+.sb-price ins {
+	text-decoration: none;
+	font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- badge */
+
+.sb-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: var(--sb-surface-2);
+	color: var(--sb-muted);
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.sb-badge--ok {
+	background: var(--sb-ok-bg);
+	color: var(--sb-ok);
+}
+
+.sb-badge--warn {
+	background: var(--sb-warn-bg);
+	color: var(--sb-warn);
+}
+
+.sb-badge--bad {
+	background: var(--sb-bad-bg);
+	color: var(--sb-bad);
+}
+
+/* ---------------------------------------------------------------- pager */
+
+.sb-pager {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	flex-wrap: wrap;
+	margin-top: var(--sb-space-4);
+}
+
+.sb-pager__info {
+	font-size: 13px;
+	color: var(--sb-muted);
+}
+
+.sb-pager__buttons {
+	display: flex;
+	gap: var(--sb-space-2);
+}
+
+.sb-btn--sm {
+	padding: 6px 12px;
+	font-size: 13px;
+}
+
+.sb-btn--danger {
+	background: var(--sb-bad);
+	color: #fff;
+}
+
+.sb-btn--danger:hover {
+	background: #9c3030;
+}
+
+.sb-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.sb-icon-btn {
+	display: grid;
+	place-items: center;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	background: rgba(255, 255, 255, 0.9);
+	color: var(--sb-ink);
+	font-size: 16px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.sb-icon-btn:hover {
+	background: #fff;
+}
+
+.sb-icon-btn:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- modal */
+
+.sb-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	display: grid;
+	place-items: center;
+	padding: var(--sb-space-4);
+}
+
+.sb-modal__scrim {
+	position: absolute;
+	inset: 0;
+	border: 0;
+	background: rgba(17, 18, 20, 0.45);
+}
+
+.sb-modal__panel {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	max-width: 520px;
+	max-height: 90vh;
+	background: var(--sb-surface);
+	border-radius: var(--sb-radius);
+	overflow: hidden;
+}
+
+.sb-modal__panel--wide {
+	max-width: 860px;
+}
+
+.sb-modal__head,
+.sb-modal__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-4) var(--sb-space-5);
+}
+
+.sb-modal__head {
+	border-bottom: 1px solid var(--sb-line-soft);
+}
+
+.sb-modal__foot {
+	border-top: 1px solid var(--sb-line-soft);
+	background: var(--sb-surface-2);
+}
+
+.sb-modal__body {
+	flex: 1;
+	overflow-y: auto;
+	padding: var(--sb-space-5);
+}
+
+.sb-modal__body > :last-child {
+	margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------- media */
+
+.sb-media-bar {
+	display: flex;
+	gap: var(--sb-space-3);
+	margin-bottom: var(--sb-space-4);
+}
+
+.sb-media-bar .sb-input {
+	flex: 1;
+}
+
+.sb-media-loading {
+	display: grid;
+	place-items: center;
+	padding: var(--sb-space-6);
+}
+
+.sb-media-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+	gap: var(--sb-space-3);
+}
+
+.sb-media-item {
+	position: relative;
+	aspect-ratio: 1;
+	padding: 0;
+	overflow: hidden;
+	border: 2px solid transparent;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+	cursor: pointer;
+}
+
+.sb-media-item img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.sb-media-item.is-selected {
+	border-color: var(--sb-ink);
+}
+
+.sb-media-item.is-selected::after {
+	content: "✓";
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	display: grid;
+	place-items: center;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: var(--sb-ink);
+	color: #fff;
+	font-size: 12px;
+}
+
+.sb-mediafield {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+}
+
+.sb-thumb {
+	display: grid;
+	place-items: center;
+	width: 64px;
+	height: 64px;
+	flex: 0 0 64px;
+	overflow: hidden;
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+}
+
+.sb-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.sb-thumb__empty {
+	color: var(--sb-muted);
+}
+
+.sb-gallery {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: var(--sb-space-3);
+	margin-bottom: var(--sb-space-4);
+}
+
+.sb-gallery__item {
+	position: relative;
+	margin: 0;
+	aspect-ratio: 1;
+	overflow: hidden;
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+}
+
+.sb-gallery__item img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.sb-gallery__flag {
+	position: absolute;
+	left: 6px;
+	top: 6px;
+	padding: 2px 7px;
+	border-radius: 999px;
+	background: var(--sb-rail);
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.sb-gallery__tools {
+	position: absolute;
+	right: 6px;
+	bottom: 6px;
+	display: flex;
+	gap: 4px;
+}
+
+/* ---------------------------------------------------------------- orders */
+
+.sb-table__check-col {
+	width: 40px;
+}
+
+.sb-table input[type="checkbox"] {
+	accent-color: var(--sb-rail);
+}
+
+.sb-table tr.is-selected {
+	background: var(--sb-surface-2);
+}
+
+.sb-bulkbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	flex-wrap: wrap;
+	margin-bottom: var(--sb-space-3);
+	padding: var(--sb-space-3) var(--sb-space-4);
+	background: var(--sb-rail);
+	color: #fff;
+	border-radius: var(--sb-radius-sm);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.sb-bulkbar .sb-input {
+	width: auto;
+}
+
+.sb-totals {
+	margin-top: var(--sb-space-4);
+	margin-left: auto;
+	max-width: 320px;
+}
+
+.sb-totals__row {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--sb-space-4);
+	padding: 6px 0;
+	font-size: 14px;
+	border-bottom: 1px solid var(--sb-line-soft);
+}
+
+.sb-totals__row:last-child {
+	border-bottom: 0;
+}
+
+.sb-totals__row--strong {
+	font-size: 16px;
+	font-weight: 700;
+	border-top: 1px solid var(--sb-line);
+	border-bottom: 0;
+	padding-top: 10px;
+}
+
+.sb-totals__bad {
+	color: var(--sb-bad);
+}
+
+.sb-note-customer {
+	margin: var(--sb-space-4) 0 0;
+	padding: var(--sb-space-3);
+	background: var(--sb-warn-bg);
+	border-radius: var(--sb-radius-sm);
+	font-size: 14px;
+}
+
+.sb-detail__name {
+	margin: 0 0 var(--sb-space-2);
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.sb-address {
+	display: flex;
+	flex-direction: column;
+	margin: 0 0 var(--sb-space-4);
+	font-style: normal;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--sb-muted);
+}
+
+.sb-notes {
+	margin-top: var(--sb-space-5);
+	display: flex;
+	flex-direction: column;
+	gap: var(--sb-space-2);
+}
+
+.sb-note {
+	padding: var(--sb-space-3);
+	background: var(--sb-surface-2);
+	border-radius: var(--sb-radius-sm);
+	border-left: 3px solid var(--sb-line);
+}
+
+.sb-note--customer {
+	background: var(--sb-warn-bg);
+	border-left-color: var(--sb-warn);
+}
+
+.sb-note__body {
+	margin: 0;
+	font-size: 14px;
+	white-space: pre-wrap;
+}
+
+.sb-note__meta {
+	margin: var(--sb-space-1) 0 0;
+	font-size: 12px;
+	color: var(--sb-muted);
+}
+
+/* ---------------------------------------------------------------- invoice */
+
+.sb-invoice {
+	max-width: 780px;
+	padding: var(--sb-space-6);
+	background: #fff;
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+	color: #111;
+	line-height: 1.7;
+}
+
+.sb-invoice__head {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--sb-space-5);
+	flex-wrap: wrap;
+	padding-bottom: var(--sb-space-4);
+	border-bottom: 2px solid #111;
+}
+
+.sb-invoice__logo {
+	max-height: 46px;
+	width: auto;
+	/* Storefront logos are drawn white-on-black; on white paper they need the ground back. */
+	padding: 4px 8px;
+	background: #111;
+	border-radius: 6px;
+}
+
+.sb-invoice__shop {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 800;
+}
+
+.sb-invoice__id {
+	text-align: right;
+}
+
+.sb-invoice__title {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+}
+
+.sb-invoice__meta {
+	margin: var(--sb-space-2) 0 0;
+	font-size: 13px;
+	color: #444;
+}
+
+.sb-invoice__to {
+	padding: var(--sb-space-4) 0;
+}
+
+.sb-invoice__label {
+	margin: 0 0 var(--sb-space-1);
+	font-size: 12px;
+	font-weight: 700;
+	color: #666;
+}
+
+.sb-invoice__name {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.sb-invoice__items {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: var(--sb-space-3);
+	font-size: 14px;
+}
+
+.sb-invoice__items th {
+	padding: 8px 10px;
+	background: #f4f0e4;
+	border-bottom: 1px solid #ddd;
+	text-align: left;
+	font-size: 13px;
+}
+
+.sb-invoice__items td {
+	padding: 8px 10px;
+	border-bottom: 1px solid #eee;
+	vertical-align: top;
+}
+
+.sb-invoice__items th:not(:first-child),
+.sb-invoice__items td:not(:first-child) {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.sb-invoice__sku {
+	display: block;
+	font-size: 12px;
+	color: #777;
+}
+
+.sb-invoice__totals {
+	margin: var(--sb-space-4) 0 0 auto;
+	max-width: 300px;
+}
+
+.sb-invoice__foot {
+	margin-top: var(--sb-space-5);
+	padding-top: var(--sb-space-4);
+	border-top: 1px solid #ddd;
+	font-size: 14px;
+}
+
+.sb-invoice__thanks {
+	margin-top: var(--sb-space-3);
+	font-weight: 700;
+}
+
+/*
+ * Printing.
+ *
+ * Everything that is interface disappears and the invoice becomes the page. The rail is fixed
+ * and the main column is offset by its width, so both have to be reset or the sheet prints with
+ * a 240px empty margin down the left.
+ */
+@media print {
+	.sb-rail,
+	.sb-topbar,
+	.sb-scrim,
+	.sb-toasts,
+	.sb-noprint {
+		display: none !important;
+	}
+
+	body {
+		background: #fff;
+	}
+
+	.sb-main {
+		margin-left: 0;
+	}
+
+	.sb-page {
+		padding: 0;
+		max-width: none;
+	}
+
+	.sb-invoice {
+		max-width: none;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+	}
+
+	.sb-invoice__items th {
+		/* Table headers lose their background in most print settings; a rule keeps the row read
+		   as a header rather than as the first product. */
+		background: transparent;
+		border-bottom: 2px solid #111;
+	}
+
+	@page {
+		margin: 14mm;
+	}
+}
+
+/* ---------------------------------------------------------------- empty + toasts */
+
+.sb-empty {
+	padding: var(--sb-space-6);
+	background: var(--sb-surface);
+	border: 1px dashed var(--sb-line);
+	border-radius: var(--sb-radius);
+	text-align: center;
+	color: var(--sb-muted);
+}
+
+.sb-empty__title {
+	margin: 0 0 var(--sb-space-2);
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--sb-ink);
+}
+
+.sb-toasts {
+	position: fixed;
+	right: var(--sb-space-4);
+	bottom: var(--sb-space-4);
+	z-index: 70;
+	display: flex;
+	flex-direction: column;
+	gap: var(--sb-space-2);
+	max-width: min(360px, calc(100vw - 32px));
+}
+
+.sb-toast {
+	padding: 11px 16px;
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-rail);
+	color: #fff;
+	font-size: 14px;
+	box-shadow: 0 6px 20px rgba(17, 18, 20, 0.18);
+}
+
+.sb-toast--bad {
+	background: var(--sb-bad);
+}
+
+/* ---------------------------------------------------------------- drawer */
+
+.sb-scrim {
+	display: none;
+	position: fixed;
+	inset: 0;
+	z-index: 35;
+	background: rgba(17, 18, 20, 0.45);
+	border: 0;
+}
+
+@media (max-width: 900px) {
+	.sb-rail {
+		transform: translateX(-100%);
+		transition: transform 0.2s ease;
+	}
+
+	.sb-shell.is-open .sb-rail {
+		transform: none;
+	}
+
+	.sb-shell.is-open .sb-scrim {
+		display: block;
+	}
+
+	.sb-main {
+		margin-left: 0;
+	}
+
+	.sb-burger {
+		display: grid;
+		place-items: center;
+	}
+
+	.sb-page {
+		padding: var(--sb-space-4);
+	}
+
+	.sb-page__title {
+		font-size: 22px;
+	}
+
+	.sb-stat {
+		padding: var(--sb-space-4);
+	}
+
+	.sb-stat__value {
+		font-size: 25px;
+	}
+
+	.sb-user__meta {
+		display: none;
+	}
+
+	.sb-user {
+		padding: 4px;
+	}
+}
+
+/*
+ * Phones get two columns rather than one. Five full-width tiles turned the first screen into
+ * five screens of scrolling, and a count is legible at half the width.
+ */
+@media (max-width: 600px) {
+	.sb-stats {
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--sb-space-3);
+	}
+
+	.sb-stat {
+		padding: var(--sb-space-3);
+	}
+
+	.sb-stat__head {
+		gap: var(--sb-space-2);
+		margin-bottom: var(--sb-space-2);
+	}
+
+	.sb-stat__icon {
+		flex-basis: 26px;
+		width: 26px;
+		height: 26px;
+	}
+
+	.sb-stat__icon svg {
+		width: 15px;
+		height: 15px;
+	}
+
+	.sb-stat__label {
+		font-size: 12px;
+	}
+
+	.sb-stat__value {
+		font-size: 22px;
+	}
+
+	/* Revenue carries a second line and the longest string on the screen. */
+	.sb-stat--wide {
+		grid-column: 1 / -1;
+	}
+
+	/* Filters stack full-width; three half-width selects on a phone are unreadable. */
+	.sb-toolbar {
+		gap: var(--sb-space-2);
+	}
+
+	.sb-toolbar .sb-input,
+	.sb-toolbar__search {
+		flex: 1 1 100%;
+		width: 100%;
+	}
+
+	.sb-page__header {
+		gap: var(--sb-space-3);
+	}
+
+	.sb-card__body,
+	.sb-modal__body {
+		padding: var(--sb-space-4);
+	}
+
+	.sb-card__head,
+	.sb-modal__head,
+	.sb-modal__foot {
+		padding: var(--sb-space-3) var(--sb-space-4);
+	}
+
+	/* The table scrolls sideways inside its own box rather than widening the page. */
+	.sb-table th,
+	.sb-table td {
+		padding: var(--sb-space-2) var(--sb-space-3);
+		white-space: nowrap;
+	}
+
+	.sb-modal {
+		padding: 0;
+		place-items: end stretch;
+	}
+
+	.sb-modal__panel {
+		max-width: none;
+		max-height: 92vh;
+		border-radius: var(--sb-radius) var(--sb-radius) 0 0;
+	}
+
+	/*
+	 * Save sits at the bottom of the screen on a phone. In the page header it is above a form
+	 * long enough that committing a change meant scrolling back to the top every time.
+	 */
+	.sb-page__actions {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 25;
+		gap: var(--sb-space-2);
+		padding: var(--sb-space-3) var(--sb-space-4);
+		background: rgba(251, 244, 226, 0.96);
+		border-top: 1px solid var(--sb-line);
+		backdrop-filter: blur(8px);
+	}
+
+	.sb-page__actions .sb-btn {
+		flex: 1;
+	}
+
+	/* Room for it, so the last field is never trapped underneath. */
+	.sb-editor {
+		padding-bottom: 72px;
+	}
+
+	.sb-toasts {
+		right: var(--sb-space-3);
+		left: var(--sb-space-3);
+		/* Clear of the action bar. */
+		bottom: 72px;
+		max-width: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.sb-rail {
+		transition: none;
+	}
+}

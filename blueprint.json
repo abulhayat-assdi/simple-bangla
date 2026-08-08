@@ -38,6 +38,10 @@
     },
     {
       "step": "runPHP",
+      "code": "<?php require_once '/wordpress/wp-load.php'; $sb_cms = 'simple-bangla-cms/simple-bangla-cms.php'; if ( file_exists( WP_PLUGIN_DIR . '/' . $sb_cms ) ) { activate_plugin( $sb_cms ); }"
+    },
+    {
+      "step": "runPHP",
       "code": "<?php require_once '/wordpress/wp-load.php'; if ( function_exists( 'simple_bangla_run_demo_import' ) ) { simple_bangla_run_demo_import(); }"
     }
   ]

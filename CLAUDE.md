@@ -14,7 +14,7 @@ Custom classic WordPress theme for a Bangladeshi gadget e-commerce store.
 | Rule | Detail |
 |---|---|
 | No page builder | No Elementor, no Gutenberg-block dependency, no premium plugins |
-| Only required plugin | **WooCommerce** — nothing else |
+| Only required plugin | **WooCommerce** — nothing third-party. `simple-bangla-cms/` is our own first-party plugin and is optional: the storefront runs identically without it (revised 2026-08-08) |
 | WooCommerce integration | Template overrides in `simple-bangla/woocommerce/` + hooks only. **Never** edit WooCommerce core |
 | Stock install | Must run on stock WordPress + WooCommerce with zero extra setup |
 | Demo content | Own placeholder images and own copy. Nothing copied from the reference site |
@@ -90,6 +90,29 @@ simple-bangla/
 └── assets/
     ├── css/   base · header · footer · card · home · shop · product   (53.8 KB)
     └── js/    header · slider · shop · product · ui   (20.6 KB) + admin-menu-icon
+```
+
+The custom management interface lives outside the theme, as an optional first-party plugin —
+see "Custom CMS" below:
+
+```
+simple-bangla-cms/
+├── simple-bangla-cms.php         constants, includes, WooCommerce/theme guards, HPOS declaration
+├── inc/
+│   ├── auth.php                  ability → capability map, REST permission callbacks
+│   ├── schema.php                theme_mod bridge, generated from the theme's own registries
+│   ├── stats.php                 dashboard figures via wc_order_stats / wc_product_meta_lookup
+│   ├── router.php                /manage matching, sign-in + throttle, sign-out
+│   ├── app.php                   login page, no-access page, app shell + boot payload
+│   ├── rest-session.php          /session — user, abilities, store, environment
+│   ├── rest-settings.php         /settings — GET schema+values, POST batch write
+│   └── rest-dashboard.php        /dashboard — one request, every figure
+└── assets/
+    ├── css/cms.css               ~26 KB
+    ├── js/    api · ui · nav · router · media · order-utils · app
+    │           screens/  overview · products · product-edit · categories
+    │                     orders · order-detail · invoice
+    └── vendor/preact-htm.module.js   13 KB, vendored
 ```
 
 ---
@@ -322,6 +345,10 @@ favour of a single pass. Reinstate it for any future work unless told otherwise.
 - **Heading text and target category stay separate Customizer fields** — the reference site's
   wiring is broken and we are not reproducing the bug.
 - **Six product rows**, matching both the spec and the live site.
+- **The store is managed from a custom CMS, not wp-admin** (2026-08-08) — a separate first-party
+  plugin, same-origin cookie auth, `wc/v3` reused rather than re-implemented, settings written as
+  `theme_mod`s. CartFlows dropped; Combo Offers out of scope. See "Custom CMS" below for the full
+  reasoning, the permission model and the build order.
 
 ## The CSS budget is per view, not per repo (revised 2026-08-06)
 
@@ -501,10 +528,320 @@ is fetched over the network" decision — deliberately, and only for this one fe
   regenerates an image for a product, category or banner that already has one (same rule as
   the rest of the importer — nothing already present is touched).
 
+## Custom CMS (2026-08-08)
+
+The store owner wants to set the site up once and then never open wp-admin again, managing
+everything from a purpose-built interface. `simple-bangla-cms/` is that project. It is a
+**separate plugin, not part of the theme** — if it is deactivated the storefront is unchanged,
+and if the theme is ever swapped the management interface does not die with it.
+
+### The realistic goal
+
+**wp-admin cannot be eliminated, and the plugin never tries to block it.** Core/plugin updates,
+WooCommerce database migrations, payment-gateway settings (bKash/SSLCommerz/Nagad plugin screens
+are custom PHP with no REST API), courier integrations and permalink flushes have no API to drive
+them. The target is "every daily operation happens in the CMS; wp-admin is the maintenance door,
+opened a few times a year." Never install anything that locks an administrator out of wp-admin —
+that removes the escape hatch, not the need for it.
+
+### Architecture
+
+- **Same origin, not a separate domain.** The interface will be served from `/manage` on the
+  store's own domain. That makes authentication WordPress's own login cookie plus the `wp_rest`
+  nonce: no JWT, no token in localStorage for an XSS to steal, no refresh-token rotation, no
+  CORS. A separate `cms.` subdomain would have forced all four.
+- **`wc/v3` is not re-implemented.** Products, orders, customers, coupons and reviews already
+  have a maintained REST API; the CMS calls it directly. The `sb-cms/v1` namespace only covers
+  what WooCommerce has no concept of — theme settings, an aggregated dashboard, and later the
+  menu and block-list modules. This roughly halves the surface that a WooCommerce upgrade can
+  break.
+- **Settings are written as `theme_mod`s — the same storage the Customizer writes.** The theme
+  reads exactly what it read before, no template changed, no migration ran, and the Customizer
+  stays fully usable as a fallback if the CMS is ever broken or unavailable.
+
+### The schema is generated, never hand-written
+
+`inc/schema.php` builds its 64-field registry from the theme's own registry functions —
+`simple_bangla_color_tokens()`, `simple_bangla_contact_fields()`, `simple_bangla_home_row_defaults()`
+and the `SIMPLE_BANGLA_HERO_SLIDES` / `HOME_ROWS` / `HOME_BANNERS` constants. Add a colour token
+to the theme and a colour picker appears in the CMS with no change to the plugin. Duplicating the
+field list would have guaranteed the two drift apart.
+
+It is built at **request time, not plugin load**, because plugins load before themes and none of
+those functions exist yet when the file is included.
+
+### Permissions are ability-based from day one
+
+The CMS never asks "is this an administrator?". It asks whether the user holds a named ability
+(`orders.manage`, `appearance.manage`, `staff.manage`, …) and each maps to a real WordPress
+capability that WooCommerce already registers. With one owner account the indirection buys
+nothing today — which is exactly why it had to be written now. The owner confirmed staff accounts
+are coming later; when they do, granting an order-desk user `edit_shop_orders` produces a
+correctly restricted CMS with **no endpoint changes**. Verified: a `shop_manager` sees orders and
+revenue but not staff management, a `subscriber` gets the dashboard with the revenue block
+stripped out.
+
+`/session` reports abilities so the interface can hide what a user cannot use, but every endpoint
+re-checks server-side. A hidden button is a courtesy, not a control.
+
+401 and 403 are kept distinct — the interface needs to know whether to show a login screen or an
+"you do not have access" message, and a bare capability string collapses both into one response.
+
+### Performance
+
+A custom CMS does not slow the storefront down; admin and front-end are separate requests and a
+visitor never downloads a byte of it. The risks are elsewhere, and each is handled:
+
+- **One request per screen.** A dashboard firing six REST calls pays to boot WordPress six times.
+  `/dashboard` returns every figure together.
+- **Nothing is counted by loading orders.** Revenue reads WooCommerce's own `wc_order_stats`
+  summary table and stock reads `wc_product_meta_lookup` — both indexed, both maintained by
+  WooCommerce for exactly this. Summing `wc_get_orders()` works at 500 orders and collapses at
+  50,000.
+- **Five-minute transient**, busted on `woocommerce_new_order` / `order_status_changed` /
+  `delete_order` so a new order appears immediately rather than up to five minutes late.
+- **HPOS is required in practice.** The plugin declares compatibility and shows an admin notice
+  while it is off.
+
+### Settings writes are all-or-nothing
+
+The whole batch is validated before anything is written. A form failing halfway would leave the
+homepage in a state the owner never chose and cannot identify. Unknown keys are rejected rather
+than stored, so a buggy or hostile client cannot invent theme mods. Invalid colours are caught
+explicitly because `sanitize_hex_color()` answers "unusable" with null, and storing that would
+silently drop the theme back to its compiled default — which reads as "the save didn't work".
+
+### Decisions
+
+- **CartFlows is dropped** (owner's decision, 2026-08-08). Its funnel builder is Elementor-based
+  with no REST API, so funnels could never be managed from the CMS; it overrides the custom
+  checkout that was built to the owner's own screenshot; and order bumps/upsells are Pro-only.
+  If those are wanted later they get coded into the theme, where the CMS can control them.
+- **Combo Offers are out of scope** — the module exists in the reference dashboard but has no
+  meaning for this store. This removed the only module needing a real pricing engine.
+- **Nahian Fashion is a visual reference only.** The screenshot the owner supplied is a different
+  site; its sidebar was remapped onto Simple Bangla's actual features. Its Combo Offers,
+  Testimonials and Support modules are not built.
+- **Interface language is English** (owner's decision), unlike checkout and thank-you which stay
+  Bangla. Strings still go through `__()`.
+- **Custom branded login at `/manage`**, using WordPress's own authentication functions with a
+  different face. Bouncing to `wp-login.php` would show the WordPress-blue page the whole project
+  exists to avoid.
+- **Light theme in the site's own palette** (black + `#FBF4E2` cream), not the reference's dark
+  gold dashboard.
+- **`/manage` sidebar** (final, 17 items in four groups): **Store** — Overview · Orders ·
+  Products · Categories · Coupons. **Homepage** — Hero Slider · Hot Deals · Category Circles ·
+  Product Rows · Banners. **Site** — Menu · Footer · Reviews · Settings. **People** — Customers ·
+  Blocked List · Manage Admins. Every item is visible from day one, filtered only by ability and
+  marked "soon" until its phase lands; a sidebar that grew week by week would hide what is still
+  owed.
+
+### Phase 2 — the interface (2026-08-08)
+
+- **Preact + htm, no build step** (owner's decision after weighing the alternatives). Vendored as
+  a single 13 KB ES module in `assets/vendor/`, not loaded from a CDN. Deployment is a folder
+  copy; there is no `npm run build`, no committed bundle, and no toolchain a future maintainer
+  needs in order to change a screen. Plain vanilla JS was the other no-build option and was
+  rejected once the screen list was clear — the product editor and order list are too stateful to
+  hand-write against the DOM.
+- **`/manage` is matched on the request path, not a rewrite rule.** A rewrite needs a flush, and a
+  flush that silently did not happen — files copied without reactivating, a migration, a cache —
+  would 404 the only URL the owner uses.
+- **The shell renders its own HTML document**, not a theme template. `wp_head()` would pull in the
+  storefront's stylesheets and every plugin's opinion about `<head>`; the signed-out page is
+  1.8 KB and the shell 1.7 KB.
+- **The session payload is embedded in the shell as `application/json`**, so the sidebar and user
+  chip paint on first byte and only the dashboard figures are waited on. Printed as JSON in a
+  script tag rather than a JS assignment: nothing in a store name can then terminate the script.
+- **Sign-in is throttled** — five failures per address, then a 15-minute wait. Keyed on
+  `REMOTE_ADDR` only; forwarded-for headers are ignored because they are spoofable, which would
+  turn the control into decoration. One error message for a bad username and a bad password, so
+  the form does not report which half was right.
+- **Sign-out is nonce-checked**, or an `<img src>` on any other site could sign the owner out
+  mid-task.
+- **`wp_nonce_url()` must not be used for a URL that travels in JSON.** It HTML-escapes its
+  ampersand, so `&amp;` survives into the DOM and the parameter becomes `amp;_wpnonce` — a
+  sign-out link that silently does nothing. Caught in verification; `simple_bangla_cms_logout_url()`
+  builds the URL with `add_query_arg()` and callers escape at output.
+- **System font stack, no webfont.** The storefront spends its font budget on brand typography
+  because customers see it; this is read all day by one or two people.
+- **Two columns of stat tiles below 600px.** Five full-width tiles turned the first screen into
+  five screens of scrolling. The revenue tile spans both because it carries a second line.
+
+Verified in a real browser (headless Chrome over the Playground server): 33 assertions covering
+sign-in, the rendered sidebar, live dashboard figures in BDT at zero decimals, client-side
+routing with working back button, the mobile drawer, no horizontal overflow at 390/768/1280, a
+working sign-out, and zero console errors. Plus the HTTP-level checks: `noindex` and no-store
+headers on every CMS response, REST 401 without a nonce, sign-out ignored without one, and the
+throttle firing on the sixth attempt.
+
+### Phase 3 — catalogue (2026-08-08)
+
+**`wc/v3` accepts cookie + nonce authentication for reads *and* writes.** Verified before a line
+of the phase was written, because the whole plan depended on it: a `POST /wc/v3/products` with
+only the login cookie and `X-WP-Nonce` returns `201`, and `X-WP-Total` / `X-WP-TotalPages` come
+back on list calls. So phase 3 added **no PHP at all** — products, variations and categories are
+WooCommerce's own endpoints called directly, and only the plugin version was bumped (to 0.3.0)
+so browsers fetch the new assets.
+
+- **`apiList()` exists because WordPress reports totals in headers, not the body.** A plain
+  `api()` call returns the rows and silently loses the count the pager needs.
+- **Media is a small custom picker over `wp/v2/media`.** WordPress's own media modal is jQuery,
+  Backbone and a dependency chain that only assembles inside wp-admin. Uploads go straight to the
+  library — an image added while editing a product is then available everywhere, not trapped on
+  that product. Files are sent as a raw body with `Content-Disposition` rather than multipart.
+- **Descriptions are textareas holding raw HTML, not a rich-text editor.** A half-working editor
+  that silently mangles markup is worse than a box that does exactly what it appears to.
+- **Deleting a product trashes it; deleting a category is permanent.** WooCommerce's `DELETE`
+  default for products is the trash, which is what an owner mis-tapping on a phone needs. Terms
+  have no trash in WordPress at all — `force=true` is required — so that confirmation says so
+  explicitly.
+- **Variations can be priced and counted, not created.** Attribute and variation generation is a
+  genuinely large interface and this catalogue is mostly simple products; price and stock are the
+  parts that change weekly.
+- **A variable product's `regular_price` is never sent.** Its price lives on its variations, and
+  posting an empty string blanks the parent so the storefront shows no price range at all.
+- **Unsaved work is guarded with `beforeunload`.** Note for future browser tests: headless Chrome
+  will sit on that dialog until the navigation times out unless the run handles `dialog`.
+- **Routing moved to `assets/js/router.js`** once screens needed to navigate themselves — a row
+  opens an editor, saving a new product replaces the URL with the real one (`replaceState`, so
+  the back button does not return to a blank form). Passing a navigate function through every
+  component would have coupled each screen to its parent for nothing.
+- **Save sits in a fixed bottom bar below 600px.** In the page header it was above a form long
+  enough that committing a change meant scrolling back to the top every time.
+
+**A real layout bug worth remembering:** a visually-hidden `.sb-sr` label in the *last* column of
+a wide table widened the whole document by 7px on a 390px screen. `position: absolute` with no
+positioned ancestor resolves against the initial containing block, so the 1px box sat past the
+right edge and escaped the table's `overflow-x` container — `overflow` alone does not create a
+containing block. Fixed by giving `.sb-table-wrap` `position: relative`, plus `margin: -1px` on
+the utility class as a second line of defence.
+
+Verified with 47 browser assertions against real WordPress + WooCommerce: create a product,
+refuse a nameless one, search, open from the list, edit price and SKU, reload and confirm the
+values persisted *server-side*, toggle stock tracking, upload an image through the picker, save,
+reload and confirm the image and quantity stuck, the list reflecting the new stock and thumbnail,
+the out-of-stock filter, category create → rename → delete, no page overflow across three screens
+at 390/768/1360, and zero console errors.
+
+Two lessons about the checks themselves, both of which produced false failures first:
+
+- **Fixtures must be created by the run, with names unique to it.** Asserting against records
+  left by a previous run reported two "bugs" that were only stale state.
+- **Wait for the committed state, not for a toast.** An earlier version waited for any `.sb-toast`
+  and matched the *upload* toast, then navigated while the save was still in flight. Waiting for
+  the Save button to read "Saved" is the honest signal. (WooCommerce rejecting a duplicate SKU
+  surfaced correctly through the error toast while this was being chased — the error path works.)
+
+### Phase 4 — orders (2026-08-08)
+
+Orders, notes, refunds and batch updates all answer to cookie + nonce as well, so phase 4 added
+**no PHP either**; only the plugin version moved (0.4.0). After this phase the store is genuinely
+runnable without wp-admin.
+
+- **Bulk status change is the point of the list screen.** A cash-on-delivery store takes a pile of
+  new orders, confirms them by phone, and moves a batch to the next status together. Clicking into
+  forty orders one at a time is the difference between the screen being used and being abandoned.
+- **A batch response can fail silently.** WooCommerce returns `200` and reports per-item failures
+  *inside* `update[]`, so the result is inspected for `error` entries rather than trusted.
+- **Refunds are recorded, not processed** — `api_refund: false`. Cash on delivery has no gateway
+  to return money through, and asking WooCommerce to call one would fail on the only payment
+  method this store uses. The dialog says so.
+- **Notes are refetched after a status change**, because WooCommerce writes its own note when the
+  status moves and the trail would otherwise be one entry behind.
+- **`checkout-draft` is absent from the status list.** It is WooCommerce's internal placeholder
+  for a checkout in progress; showing it would put half-abandoned baskets in the owner's list as
+  if they were real orders.
+- **Order dates are parsed exactly as sent.** WooCommerce's `date_created` is store-local with no
+  zone marker; appending "Z" would claim UTC and shift every order by six hours for Dhaka.
+- **The invoice is the one Bangla screen in the CMS**, following the rule already set for the
+  checkout and thank-you page: what a customer reads is Bangla, what only the store sees is
+  English. The shop's own phone, email and address come from the same `theme_mod` values the
+  storefront footer prints, via `/settings?group=store` — not a second copy kept in the CMS. The
+  country line is dropped when it is Bangladesh, because the store ships nowhere else and "BD" on
+  every parcel is noise.
+- **Printing resets the layout, not just the colours.** The rail is `position: fixed` and the main
+  column is offset by its width, so `@media print` has to zero that margin or every sheet prints
+  with a 240px empty gutter.
+- **Coupons moved from phase 4 to phase 6.** Marking phase 4 as built would otherwise have removed
+  the "soon" badge from a screen that is still a placeholder.
+
+**A real bug the checks caught:** a refund typed as `460` was recorded as `46`. `Modal`'s mount
+effect depended on `[onClose]`, and callers recreate that arrow function on every render — so
+every keystroke in a dialog re-ran the effect and called `focus()` on the panel, pulling focus out
+of the field being typed into and dropping characters. Fixed by holding the handler in a ref and
+giving the effect an empty dependency array. It only showed up here because this dialog's input
+state lives in the parent; phase 3's category form keeps its state internally, so `Modal`'s props
+were stable and the same code behaved.
+
+Verified with 56 browser assertions — seeding a real order through the API, then searching by
+phone, bulk-changing status, reading items, delivery line and totals, changing status from the
+detail screen and confirming it after a reload, adding a note and finding it plus WooCommerce's
+own status note after a reload, recording a partial refund and checking the Refunded and Net rows
+survive a reload, the Bangla invoice, the print stylesheet under emulated print media, no overflow
+across three screens at 390/768/1360, and no console errors. Phase 3's suite was re-run afterwards
+as a regression check on the shared `Modal`: 46 of 47, the one failure being its now-obsolete
+assertion that Orders is still marked "soon".
+
+More lessons about the checks: **scope assertions to the element under test.** `'Refunded'` also
+appears in the status `<select>` and `'460'` is a substring of `'2,460'`, so two checks passed
+against text that had nothing to do with the totals block. And fixtures need every searched field
+unique per run, phone numbers included.
+
+### Build order
+
+| Phase | Scope | State |
+|---|---|---|
+| 0 | HPOS, plugin scaffold, guards | ✅ done 2026-08-08 |
+| 1 | REST layer: `/session`, `/settings`, `/dashboard` | ✅ done 2026-08-08 |
+| 2 | `/manage` route, branded login, sidebar shell, dashboard screen | ✅ done 2026-08-08 |
+| 3 | Products + Categories + media | ✅ done 2026-08-08 |
+| 4 | Orders, invoice, status, refunds | ✅ done 2026-08-08 |
+| 5 | Homepage modules (hero, rows, circles, banners) | next |
+| 6 | Menu, Footer, Settings, Reviews, Coupons | |
+| 7 | Customers, Blocked List, roles, audit log | |
+
+After phase 4 the store is genuinely runnable without wp-admin. The rest is control and polish.
+
+### Verification
+
+`php -l` plus a 70-assertion end-to-end suite executed inside WordPress Playground against real
+WordPress + WooCommerce — it dispatches actual REST requests through `rest_do_request()`, writes
+settings, and reads them back through *the theme's own* `simple_bangla_get_color()` and
+`simple_bangla_get_contact()` to prove the bridge is real rather than self-consistent. 70/70 pass.
+
+Two traps worth remembering:
+
+- `rest_do_request()` does **not** parse a query string appended to the route. Use
+  `$request->set_param()`, or the parameter silently never arrives and the endpoint looks broken.
+- Running the Playground CLI from **Git Bash mangles the VFS mount path** — `/wordpress/...`
+  becomes `C:/Program Files/Git/wordpress/...`. Run it from PowerShell, or prefix the command
+  with `MSYS_NO_PATHCONV=1`.
+- **`playground server` accepts connections before its blueprint has finished applying.** An
+  early request returns a half-configured site — default theme, plugin not yet active — which
+  looks exactly like a broken route. Poll something the blueprint sets (`/wp-json/` reports the
+  site name and registered namespaces) rather than trusting the first 200.
+- `runPHP` output is not printed by the CLI. Have the script write its results to a mounted
+  directory and read the file.
+- **A long-running `playground server` sometimes dies mid-session** (six WASM workers). It leaves
+  its site directory behind in `%TEMP%\node.exe-playground-cli-site-*`, and those do not always
+  delete. Restart on a fresh port and carry on; the mounts make the state disposable.
+
 ## Local development
 
-No PHP, MySQL, XAMPP or Docker is installed on this machine. Use WordPress Playground — WASM
-PHP inside Node:
+**PHP 8.5 is installed at `C:\php\php` (corrected 2026-08-08).** The earlier note that this
+machine had no PHP is out of date — `php -l` works directly and should be run on every changed
+file.
+
+Mount the CMS plugin alongside the theme; `blueprint.json` activates it only if the path exists,
+so the blueprint still works when it is not mounted:
+
+```
+--mount-dir <abs>/simple-bangla-cms /wordpress/wp-content/plugins/simple-bangla-cms
+```
+
+No MySQL, XAMPP or Docker is installed. For anything needing a running WordPress, use
+WordPress Playground — WASM PHP inside Node:
 
 ```
 npx @wp-playground/cli@latest server --port=8882 \
