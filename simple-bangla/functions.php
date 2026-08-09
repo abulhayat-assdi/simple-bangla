@@ -30,6 +30,11 @@ require_once SIMPLE_BANGLA_DIR . 'inc/customizer.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/customizer-store.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/customizer-home.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/template-tags.php';
+/*
+ * The footer's page links. Outside the WooCommerce guard: the footer renders on a stock install
+ * too, and a page ticked for it must appear whether or not the shop is running.
+ */
+require_once SIMPLE_BANGLA_DIR . 'inc/pages.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/nav-walker.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/ajax-search.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/demo-content.php';
@@ -50,4 +55,9 @@ if ( class_exists( 'WooCommerce' ) ) {
 	 * customers order again.
 	 */
 	require_once SIMPLE_BANGLA_DIR . 'inc/blocklist.php';
+	/*
+	 * The two extra order stages. In the theme because a status is customer-visible in My Account
+	 * and in every WooCommerce email — with the plugin off, real orders must still have a name.
+	 */
+	require_once SIMPLE_BANGLA_DIR . 'inc/order-status.php';
 }

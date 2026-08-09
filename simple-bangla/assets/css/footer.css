@@ -30,8 +30,9 @@
 
 @media (min-width: 1024px) {
 	.sb-footer__grid {
-		/* The brand cell needs more room than a link column. */
-		grid-template-columns: 1.5fr 1fr 1fr 1fr;
+		/* The brand cell needs more room than a link column. Two columns, not three, since
+		   Customer Service was dropped — its contact routes live in the brand cell. */
+		grid-template-columns: 1.5fr 1fr 1fr;
 		gap: var(--sb-space-6);
 	}
 }

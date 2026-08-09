@@ -32,8 +32,8 @@ function simple_bangla_cms_register_settings_routes() {
 					'group' => array(
 						'type'              => 'string',
 						'required'          => false,
-						'sanitize_callback' => 'sanitize_key',
-						'description'       => __( 'Return only one group: colors, store, hero, hotdeals, circles, rows, banners.', 'simple-bangla-cms' ),
+						'sanitize_callback' => 'simple_bangla_cms_sanitize_groups',
+						'description'       => __( 'Limit to these groups, comma separated: brand, colors, store, hero, hotdeals, circles, rows, banners.', 'simple-bangla-cms' ),
 					),
 				),
 			),
@@ -55,6 +55,24 @@ function simple_bangla_cms_register_settings_routes() {
 add_action( 'rest_api_init', 'simple_bangla_cms_register_settings_routes' );
 
 /**
+ * Sanitise the `group` parameter, which may name more than one group.
+ *
+ * A screen is not always one group: Settings edits the palette and the logo, which live apart in
+ * the schema because they are different kinds of thing but belong on one page. `sanitize_key()`
+ * alone would silently glue "brand,colors" into "brandcolors" — a group that matches nothing, so
+ * the endpoint would answer with an empty form rather than an error.
+ *
+ * @param string $value Raw parameter.
+ * @return string Comma-separated list of valid group keys.
+ */
+function simple_bangla_cms_sanitize_groups( $value ) {
+
+	$groups = array_map( 'sanitize_key', explode( ',', (string) $value ) );
+
+	return implode( ',', array_unique( array_filter( $groups ) ) );
+}
+
+/**
  * Return the schema, the current values and any referenced media.
  *
  * Schema travels with the values so the interface can render a settings form it was not
@@ -70,7 +88,7 @@ function simple_bangla_cms_settings_get( $request ) {
 		return simple_bangla_cms_wrong_theme_error();
 	}
 
-	$group  = $request->get_param( 'group' );
+	$groups = array_filter( explode( ',', (string) $request->get_param( 'group' ) ) );
 	$schema = simple_bangla_cms_settings_schema();
 
 	$fields = array();
@@ -79,7 +97,7 @@ function simple_bangla_cms_settings_get( $request ) {
 
 	foreach ( $schema as $key => $spec ) {
 
-		if ( $group && $group !== $spec['group'] ) {
+		if ( $groups && ! in_array( $spec['group'], $groups, true ) ) {
 			continue;
 		}
 

@@ -163,6 +163,28 @@ function simple_bangla_buy_now_redirect( $url ) {
 add_filter( 'woocommerce_add_to_cart_redirect', 'simple_bangla_buy_now_redirect' );
 
 /**
+ * Say nothing when the add-to-cart was a one-click order.
+ *
+ * "X has been added to your cart. [View cart]" is useful on a product page, where the shopper
+ * stays put and needs telling something happened. On a one-click order it lands at the top of
+ * the checkout — announcing a step the customer can already see the result of, and offering a
+ * link back to the cart, away from the page they were sent to finish.
+ *
+ * Returning an empty string means no notice is stored at all; `wc_add_notice()` skips empty
+ * messages. Ordinary Add to cart still reports itself.
+ *
+ * @param string $message The notice WooCommerce is about to store.
+ * @return string
+ */
+function simple_bangla_silence_buy_now_message( $message ) {
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WooCommerce has already
+	// validated this add-to-cart request; this only reads which button submitted it.
+	return empty( $_REQUEST['sb_buy_now'] ) ? $message : '';
+}
+add_filter( 'wc_add_to_cart_message_html', 'simple_bangla_silence_buy_now_message' );
+
+/**
  * Buy Now has to be a real form round trip, not an AJAX add.
  *
  * WooCommerce's AJAX add-to-cart intercepts the button and stays on the page, which would

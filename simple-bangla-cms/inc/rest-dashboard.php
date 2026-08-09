@@ -34,6 +34,17 @@ function simple_bangla_cms_register_dashboard_route() {
 					'sanitize_callback' => 'rest_sanitize_boolean',
 					'description'       => __( 'Recompute instead of returning the cached figures.', 'simple-bangla-cms' ),
 				),
+				/*
+				 * Deliberately not an enum. A month is `YYYY-MM`, so the valid set is unbounded, and
+				 * an unrecognised value is answered with the default period rather than a 400 — the
+				 * response reports the period it actually used, which is what the interface reads.
+				 */
+				'period'  => array(
+					'type'        => 'string',
+					'required'    => false,
+					'default'     => '30d',
+					'description' => __( 'all, 30d, 90d, 12m, or a single month as YYYY-MM.', 'simple-bangla-cms' ),
+				),
 			),
 		)
 	);
@@ -48,7 +59,10 @@ add_action( 'rest_api_init', 'simple_bangla_cms_register_dashboard_route' );
  */
 function simple_bangla_cms_dashboard_response( $request ) {
 
-	$stats = simple_bangla_cms_dashboard_stats( (bool) $request->get_param( 'refresh' ) );
+	$stats = simple_bangla_cms_dashboard_stats(
+		(bool) $request->get_param( 'refresh' ),
+		(string) $request->get_param( 'period' )
+	);
 
 	if ( ! simple_bangla_cms_can( 'orders.view' ) ) {
 		unset( $stats['revenue'] );

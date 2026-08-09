@@ -1455,11 +1455,7 @@ function simple_bangla_demo_menus( $term_ids ) {
 			'name'  => __( 'Footer — Helps', 'simple-bangla' ),
 			'pages' => array( 'tutorials', 'warranty-policy', 'special-deals' ),
 		),
-		// No login or register link: the storefront has no account system to send anyone to.
-		'footer-3' => array(
-			'name'  => __( 'Footer — Customer Service', 'simple-bangla' ),
-			'pages' => array( 'contact-us', 'refund_returns', 'terms-and-condition' ),
-		),
+		// No third column: the footer's contact routes live in the brand cell beside these.
 	);
 
 	foreach ( $footer_menus as $location => $definition ) {

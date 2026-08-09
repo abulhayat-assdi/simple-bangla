@@ -38,7 +38,16 @@ const CURRENCY_KEYS = [
 	'woocommerce_price_num_decimals',
 ];
 
-const COLOR_CARDS = [
+/*
+ * The logo sits first because it is the one thing on this screen a shop changes on day one, and
+ * it is the same `custom_logo` mod WordPress's Site Identity panel writes — so the header, the
+ * footer and this CMS's own sign-in page all follow it. Empty means the site name in text.
+ */
+const APPEARANCE_CARDS = [
+	{
+		title: 'Logo',
+		keys: [ 'custom_logo' ],
+	},
 	{
 		title: 'Brand',
 		lead: 'Buttons, links and the states that need to stand out.',
@@ -65,7 +74,8 @@ export function Settings() {
 	const canColors = can( 'appearance.manage' );
 	const canStore = can( 'store.manage' );
 
-	const state = useSettings( 'colors' );
+	// Two schema groups, one request: the logo and the palette are both "how the shop looks".
+	const state = useSettings( 'brand,colors' );
 
 	const [ woo, setWoo ] = useState( null );
 	const [ wooBase, setWooBase ] = useState( {} );
@@ -149,7 +159,12 @@ export function Settings() {
 		}
 	};
 
-	const colorCards = canColors ? layoutFields( state.fields, COLOR_CARDS ) : [];
+	const appearanceCards = canColors ? layoutFields( state.fields, APPEARANCE_CARDS ) : [];
+
+	// The logo is lifted out of the run so it can sit at the top of the page. The colours stay
+	// below the store's own details, where they already were.
+	const logoCard = appearanceCards.find( ( card ) => card.title === 'Logo' );
+	const colorCards = appearanceCards.filter( ( card ) => card !== logoCard );
 
 	return html`
 		<${ SettingsPage }
@@ -160,6 +175,8 @@ export function Settings() {
 			saving=${ saving || state.saving }
 			onSave=${ save }
 		>
+			${ logoCard ? html`<${ SchemaCard } card=${ logoCard } state=${ state } />` : null }
+
 			${ canStore
 				? html`
 						<${ WooCard }
@@ -186,29 +203,9 @@ export function Settings() {
 				  `
 				: null }
 
-			${ canColors
-				? colorCards.map(
-						( card ) => html`
-							<${ Card } key=${ card.title } title=${ card.title }>
-								${ card.lead ? html`<p class="sb-hint">${ card.lead }</p>` : null }
-								<div class="sb-grid-cards">
-									${ card.fields.map(
-										( field ) => html`
-											<${ SchemaField }
-												key=${ field.name }
-												name=${ field.name }
-												spec=${ field.spec }
-												hint=${ field.spec.description }
-												value=${ state.values[ field.name ] }
-												onChange=${ ( value ) => state.set( field.name, value ) }
-											/>
-										`
-									) }
-								</div>
-							<//>
-						`
-				  )
-				: null }
+			${ colorCards.map(
+				( card ) => html`<${ SchemaCard } key=${ card.title } card=${ card } state=${ state } />`
+			) }
 
 			${ ! canColors && ! canStore
 				? html`<${ EmptyState }
@@ -216,6 +213,35 @@ export function Settings() {
 						body="Your account cannot edit the palette or the store's details."
 				  />`
 				: null }
+		<//>
+	`;
+}
+
+/**
+ * A card of theme settings, each control chosen from what the schema says the field is.
+ *
+ * @param {object} props
+ * @param {object} props.card  One entry from layoutFields(): title, optional lead, fields.
+ * @param {object} props.state The useSettings() state the fields read and write.
+ */
+function SchemaCard( { card, state } ) {
+	return html`
+		<${ Card } title=${ card.title }>
+			${ card.lead ? html`<p class="sb-hint">${ card.lead }</p>` : null }
+			<div class="sb-grid-cards">
+				${ card.fields.map(
+					( field ) => html`
+						<${ SchemaField }
+							key=${ field.name }
+							name=${ field.name }
+							spec=${ field.spec }
+							hint=${ field.spec.description }
+							value=${ state.values[ field.name ] }
+							onChange=${ ( value ) => state.set( field.name, value ) }
+						/>
+					`
+				) }
+			</div>
 		<//>
 	`;
 }

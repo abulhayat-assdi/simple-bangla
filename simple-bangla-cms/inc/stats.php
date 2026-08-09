@@ -25,12 +25,105 @@ const SIMPLE_BANGLA_CMS_STATS_TTL = 5 * MINUTE_IN_SECONDS;
 const SIMPLE_BANGLA_CMS_STATS_KEY = 'simple_bangla_cms_stats';
 
 /**
+ * Bumped whenever an order changes, and mixed into every cache key.
+ *
+ * The dashboard is cached per period now, so there is no longer a single transient to delete — and
+ * enumerating the keys to delete them would mean keeping a list of every period anyone has ever
+ * asked for. A version in the key retires the whole set at once; the abandoned entries expire on
+ * their own five-minute TTL.
+ */
+const SIMPLE_BANGLA_CMS_STATS_VERSION = 'simple_bangla_cms_stats_version';
+
+/**
+ * Resolve a period key into the range it means.
+ *
+ * Accepted: `all`, `30d`, `90d`, `12m`, or a single month as `YYYY-MM`. Anything else falls back to
+ * `30d` rather than erroring — a dashboard is not worth a 400, and the response says which period it
+ * actually used so the interface can correct itself.
+ *
+ * Bounds are GMT, because both tables queried below store GMT. `to` is exclusive.
+ *
+ * @param string $period Period key.
+ * @return array{key:string,label:string,from:?string,to:?string}
+ */
+function simple_bangla_cms_resolve_period( $period ) {
+
+	$period = is_string( $period ) ? trim( $period ) : '';
+	$now    = time();
+
+	if ( 'all' === $period ) {
+		return array(
+			'key'   => 'all',
+			'label' => __( 'All time', 'simple-bangla-cms' ),
+			'from'  => null,
+			'to'    => null,
+		);
+	}
+
+	if ( preg_match( '/^(\d{4})-(\d{2})$/', $period, $found ) ) {
+
+		$year  = (int) $found[1];
+		$month = (int) $found[2];
+
+		if ( $year >= 2000 && $year <= 2100 && $month >= 1 && $month <= 12 ) {
+
+			// Built from the site's own timezone and converted, so "August" means the shop's August
+			// rather than UTC's — six hours of orders would otherwise fall into the wrong month.
+			$start = simple_bangla_cms_local_to_gmt( sprintf( '%04d-%02d-01 00:00:00', $year, $month ) );
+			$end   = simple_bangla_cms_local_to_gmt(
+				gmdate( 'Y-m-d 00:00:00', strtotime( sprintf( '%04d-%02d-01 +1 month', $year, $month ) ) )
+			);
+
+			return array(
+				'key'   => $period,
+				'label' => date_i18n( 'F Y', strtotime( sprintf( '%04d-%02d-01', $year, $month ) ) ),
+				'from'  => $start,
+				'to'    => $end,
+			);
+		}
+	}
+
+	$spans = array(
+		'30d' => array( 30 * DAY_IN_SECONDS, __( 'Last 30 days', 'simple-bangla-cms' ) ),
+		'90d' => array( 90 * DAY_IN_SECONDS, __( 'Last 90 days', 'simple-bangla-cms' ) ),
+		'12m' => array( 365 * DAY_IN_SECONDS, __( 'Last 12 months', 'simple-bangla-cms' ) ),
+	);
+
+	$key = isset( $spans[ $period ] ) ? $period : '30d';
+
+	return array(
+		'key'   => $key,
+		'label' => $spans[ $key ][1],
+		'from'  => gmdate( 'Y-m-d H:i:s', $now - $spans[ $key ][0] ),
+		'to'    => null,
+	);
+}
+
+/**
+ * A local wall-clock time as GMT, for the SQL bounds.
+ *
+ * @param string $local `Y-m-d H:i:s` in the site's timezone.
+ * @return string Same instant in GMT.
+ */
+function simple_bangla_cms_local_to_gmt( $local ) {
+
+	if ( function_exists( 'get_gmt_from_date' ) ) {
+		return get_gmt_from_date( $local );
+	}
+
+	return $local;
+}
+
+/**
  * The order statuses the CMS reports counts for, in the order the dashboard shows them.
  *
  * @return string[] Status slugs without the `wc-` prefix.
  */
 function simple_bangla_cms_reported_statuses() {
-	return array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' );
+	// The theme's two extra stages are in the middle, in the order a parcel travels. Without
+	// `sb-courier` here the dashboard's own figures would stop agreeing with the Orders screen the
+	// moment the first parcel was dispatched.
+	return array( 'pending', 'processing', 'on-hold', 'sb-courier', 'completed', 'sb-returned', 'cancelled', 'refunded', 'failed' );
 }
 
 /**
@@ -39,10 +132,13 @@ function simple_bangla_cms_reported_statuses() {
  * @param bool $force Recompute even if a cached copy exists.
  * @return array<string,mixed>
  */
-function simple_bangla_cms_dashboard_stats( $force = false ) {
+function simple_bangla_cms_dashboard_stats( $force = false, $period = '30d' ) {
+
+	$range = simple_bangla_cms_resolve_period( $period );
+	$key   = SIMPLE_BANGLA_CMS_STATS_KEY . '_' . (int) get_option( SIMPLE_BANGLA_CMS_STATS_VERSION, 1 ) . '_' . md5( $range['key'] );
 
 	if ( ! $force ) {
-		$cached = get_transient( SIMPLE_BANGLA_CMS_STATS_KEY );
+		$cached = get_transient( $key );
 
 		if ( is_array( $cached ) ) {
 			$cached['cached'] = true;
@@ -54,25 +150,29 @@ function simple_bangla_cms_dashboard_stats( $force = false ) {
 		'generated_at' => current_time( 'c' ),
 		'cached'       => false,
 		'currency'     => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : '',
-		'orders'       => simple_bangla_cms_order_counts(),
-		'revenue'      => simple_bangla_cms_revenue(),
+		'period'       => $range,
+		'orders'       => simple_bangla_cms_order_counts( $range ),
+		'revenue'      => simple_bangla_cms_revenue( $range ),
+		// Deliberately outside the period. Stock and the size of the catalogue are facts about now,
+		// not about a month — "how many products did I have in March" is a question nobody asks, and
+		// answering it from today's data while calling it March would be a lie.
 		'catalog'      => simple_bangla_cms_catalog_counts(),
 	);
 
-	set_transient( SIMPLE_BANGLA_CMS_STATS_KEY, $stats, SIMPLE_BANGLA_CMS_STATS_TTL );
+	set_transient( $key, $stats, SIMPLE_BANGLA_CMS_STATS_TTL );
 
 	return $stats;
 }
 
 /**
- * Drop the cached dashboard.
+ * Retire every cached dashboard.
  *
  * Wired to order events rather than left to expire, so a new order shows up the moment the
  * owner refreshes instead of up to five minutes later. At this store's volume the recompute is
  * cheap; the five-minute TTL is the ceiling for a quiet store, not the normal path.
  */
 function simple_bangla_cms_flush_stats() {
-	delete_transient( SIMPLE_BANGLA_CMS_STATS_KEY );
+	update_option( SIMPLE_BANGLA_CMS_STATS_VERSION, (int) get_option( SIMPLE_BANGLA_CMS_STATS_VERSION, 1 ) + 1, false );
 }
 add_action( 'woocommerce_new_order', 'simple_bangla_cms_flush_stats' );
 add_action( 'woocommerce_order_status_changed', 'simple_bangla_cms_flush_stats' );
@@ -81,40 +181,105 @@ add_action( 'woocommerce_delete_order', 'simple_bangla_cms_flush_stats' );
 /**
  * How many orders sit in each status.
  *
+ * Two paths, and the split is worth the code. With no date bounds WooCommerce's own
+ * `wc_orders_count()` is both correct and free — it reads a cached count and works under either
+ * storage backend. Once a period is chosen there is no core function that answers "orders per
+ * status between these dates", so it is one grouped query against whichever table holds the orders.
+ *
+ * The query counts, it does not load. A month of orders instantiated as WC_Order objects would be
+ * the one thing this file exists to avoid.
+ *
+ * @param array|null $range From simple_bangla_cms_resolve_period(); null means all time.
  * @return array{by_status:array<string,int>,total:int}
  */
-function simple_bangla_cms_order_counts() {
+function simple_bangla_cms_order_counts( $range = null ) {
 
-	$counts = array();
-	$total  = 0;
+	$wanted = simple_bangla_cms_reported_statuses();
+	$counts = array_fill_keys( $wanted, 0 );
 
-	foreach ( simple_bangla_cms_reported_statuses() as $status ) {
+	$bounded = $range && ( $range['from'] || $range['to'] );
 
-		// wc_orders_count() reads whichever storage WooCommerce is configured for, so this stays
-		// correct under both HPOS and the legacy posts table.
-		if ( function_exists( 'wc_orders_count' ) ) {
-			$count = (int) wc_orders_count( $status );
-		} else {
-			$posts = wp_count_posts( 'shop_order' );
-			$count = isset( $posts->{'wc-' . $status} ) ? (int) $posts->{'wc-' . $status} : 0;
+	if ( ! $bounded ) {
+
+		foreach ( $wanted as $status ) {
+
+			if ( function_exists( 'wc_orders_count' ) ) {
+				$counts[ $status ] = (int) wc_orders_count( $status );
+			} else {
+				$posts             = wp_count_posts( 'shop_order' );
+				$counts[ $status ] = isset( $posts->{'wc-' . $status} ) ? (int) $posts->{'wc-' . $status} : 0;
+			}
 		}
 
-		$counts[ $status ] = $count;
-		$total            += $count;
+		return array(
+			'by_status' => $counts,
+			'total'     => array_sum( $counts ),
+		);
+	}
+
+	global $wpdb;
+
+	$hpos = class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+		&& \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+
+	if ( $hpos ) {
+		$table  = $wpdb->prefix . 'wc_orders';
+		$status = 'status';
+		$date   = 'date_created_gmt';
+		$where  = "type = 'shop_order'";
+	} else {
+		$table  = $wpdb->posts;
+		$status = 'post_status';
+		$date   = 'post_date_gmt';
+		$where  = "post_type = 'shop_order'";
+	}
+
+	$clauses = array( $where );
+	$params  = array();
+
+	if ( $range['from'] ) {
+		$clauses[] = "{$date} >= %s";
+		$params[]  = $range['from'];
+	}
+
+	if ( $range['to'] ) {
+		// Exclusive, so a month's last second cannot also be the next month's first.
+		$clauses[] = "{$date} < %s";
+		$params[]  = $range['to'];
+	}
+
+	$sql = "SELECT {$status} AS s, COUNT(*) AS n FROM {$table} WHERE " . implode( ' AND ', $clauses ) . " GROUP BY {$status}";
+
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	$rows = $params ? $wpdb->get_results( $wpdb->prepare( $sql, $params ) ) : $wpdb->get_results( $sql );
+	// phpcs:enable
+
+	foreach ( (array) $rows as $row ) {
+
+		// Both backends store the `wc-` prefix; the CMS speaks in bare slugs.
+		$slug = preg_replace( '/^wc-/', '', (string) $row->s );
+
+		if ( isset( $counts[ $slug ] ) ) {
+			$counts[ $slug ] = (int) $row->n;
+		}
 	}
 
 	return array(
 		'by_status' => $counts,
-		'total'     => $total,
+		'total'     => array_sum( $counts ),
 	);
 }
 
 /**
- * Gross sales, all time and over the last thirty days.
+ * Gross sales in the chosen period, and all time beside it.
  *
- * @return array{total:float,last_30_days:float,source:string}
+ * Two figures rather than one, because "৳48,000 this month" only means something next to what the
+ * shop has taken altogether. `total` therefore ignores the period on purpose.
+ *
+ * @param array|null $range From simple_bangla_cms_resolve_period().
+ * @return array{total:float,period:float,source:string}
  */
-function simple_bangla_cms_revenue() {
+function simple_bangla_cms_revenue( $range = null ) {
 
 	global $wpdb;
 
@@ -122,10 +287,10 @@ function simple_bangla_cms_revenue() {
 
 	if ( ! simple_bangla_cms_table_exists( $table ) ) {
 		return array(
-			'total'        => 0.0,
-			'last_30_days' => 0.0,
+			'total'  => 0.0,
+			'period' => 0.0,
 			// The interface shows a hint rather than a wrong number when analytics is unavailable.
-			'source'       => 'unavailable',
+			'source' => 'unavailable',
 		);
 	}
 
@@ -150,20 +315,31 @@ function simple_bangla_cms_revenue() {
 		)
 	);
 
-	$since = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
+	$clauses = array( "status IN ( {$placeholders} )" );
+	$params  = $paid;
 
-	$recent = (float) $wpdb->get_var(
+	if ( $range && $range['from'] ) {
+		$clauses[] = 'date_created_gmt >= %s';
+		$params[]  = $range['from'];
+	}
+
+	if ( $range && $range['to'] ) {
+		$clauses[] = 'date_created_gmt < %s';
+		$params[]  = $range['to'];
+	}
+
+	$period = (float) $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT COALESCE( SUM( total_sales ), 0 ) FROM {$table} WHERE status IN ( {$placeholders} ) AND date_created_gmt >= %s",
-			array_merge( $paid, array( $since ) )
+			"SELECT COALESCE( SUM( total_sales ), 0 ) FROM {$table} WHERE " . implode( ' AND ', $clauses ),
+			$params
 		)
 	);
 	// phpcs:enable
 
 	return array(
-		'total'        => round( $total, 2 ),
-		'last_30_days' => round( $recent, 2 ),
-		'source'       => 'order_stats',
+		'total'  => round( $total, 2 ),
+		'period' => round( $period, 2 ),
+		'source' => 'order_stats',
 	);
 }
 

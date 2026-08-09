@@ -34,6 +34,25 @@ function simple_bangla_cms_settings_schema() {
 
 	$schema = array();
 
+	/* -- Logo -- */
+
+	/*
+	 * WordPress's own `custom_logo` theme mod, not a field of ours. The theme already asks
+	 * has_custom_logo() in the header and the footer and falls back to the site name when it is
+	 * empty, so writing this one key replaces the wordmark everywhere at once — including this
+	 * CMS's own sign-in page, which reads the same mod. Storing a second "logo" setting would
+	 * have meant two answers to one question, and the Customizer's Site Identity panel editing
+	 * only one of them.
+	 */
+	$schema['custom_logo'] = array(
+		'type'        => 'media',
+		'default'     => 0,
+		'sanitize'    => 'absint',
+		'group'       => 'brand',
+		'label'       => __( 'Site logo', 'simple-bangla-cms' ),
+		'description' => __( 'Shown in the header and the footer. Leave it empty to print the site name as text instead. A wide PNG or SVG on a transparent background works best — the header shows it up to 44px tall, the footer up to 72px.', 'simple-bangla-cms' ),
+	);
+
 	/* -- Colours -- */
 
 	if ( function_exists( 'simple_bangla_color_tokens' ) ) {

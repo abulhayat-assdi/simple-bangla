@@ -1323,13 +1323,23 @@ function simple_bangla_cms_courier_send( $request ) {
 	}
 
 	/*
-	 * A dispatched parcel moves the order to "processing", which is the status the Courier filter on
+	 * A dispatched parcel moves to the theme's `sb-courier` stage, which is what the Courier tab on
 	 * the order list reads. Done here rather than left to the owner because the whole point of the
-	 * button is that one tap does the whole step — and it is skipped when the order has already moved
-	 * past that point, so a completed order is never dragged backwards.
+	 * button is that one tap does the whole step.
+	 *
+	 * Only from the three un-dispatched statuses, so re-sending a parcel that has already been
+	 * delivered or returned cannot drag it backwards. `processing` is in that list because
+	 * WooCommerce's Cash on Delivery gateway puts every new order there as it is placed — which is
+	 * exactly why `processing` could not itself be used to mean "with the courier".
+	 *
+	 * Guarded on the status existing: the plugin can be running under a different theme, and asking
+	 * WooCommerce for a status nothing registered would leave the order in limbo.
 	 */
-	if ( in_array( $order->get_status(), array( 'pending', 'on-hold' ), true ) ) {
-		$order->update_status( 'processing', __( 'Handed to the courier.', 'simple-bangla-cms' ) );
+	if (
+		in_array( $order->get_status(), array( 'pending', 'processing', 'on-hold' ), true )
+		&& array_key_exists( 'wc-sb-courier', wc_get_order_statuses() )
+	) {
+		$order->update_status( 'sb-courier', __( 'Handed to the courier.', 'simple-bangla-cms' ) );
 	}
 
 	return rest_ensure_response(

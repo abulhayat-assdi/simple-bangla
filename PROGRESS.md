@@ -2,6 +2,53 @@
 
 Last updated: 2026-08-09
 
+## Round two, corrected by a real order (2026-08-09, same day)
+
+The owner placed a test order and it appeared under **Courier-এ আছে** instead of **New Orders**.
+The mapping was wrong at the source, not in the interface: **WooCommerce's Cash on Delivery gateway
+sets an order to `processing` the moment it is placed**, and `processing` was standing in for "with
+the courier". Every new order therefore looked already dispatched. Nothing about the interface could
+have fixed that; the stage did not exist.
+
+- **The theme now registers `sb-courier` and `sb-returned`** — `simple-bangla/inc/order-status.php`.
+  This reverses the "map onto existing statuses" decision taken a few hours earlier. There was no
+  spare status to borrow: `on-hold` means "waiting for payment" everywhere else in WooCommerce and
+  in its emails.
+- **In the theme, not the plugin**, for the block list's reason — a status is customer-visible in
+  My Account and in every WooCommerce email, so with the plugin off real orders must still have a
+  name.
+- New = `pending` + `processing` + `on-hold`. Courier = `sb-courier`, entered only by Send to
+  Courier. Completed = `completed`. Returned = `sb-returned` + `refunded`. Failed = `failed` +
+  `cancelled`.
+- **At the courier stage the screen offers exactly two buttons** — *Delivered — mark completed* and
+  *Returned / not received* — on the order screen and on the phone card. "Returned", not
+  "Cancelled": a parcel that came back is a different number from an order killed before it shipped,
+  and the returns are what the courier fees were spent on.
+- **The phone card carries the next action**, matching the reference: Send to courier on a new
+  order, the two outcomes on a dispatched one. Working through a morning's orders is a list of
+  one-tap decisions, and making each cost an open-and-go-back is what stops a screen being used.
+- `sb-courier` joins `woocommerce_order_is_paid_statuses` or stock is reduced twice; `sb-returned`
+  restocks, guarded by WooCommerce's own `_order_stock_reduced` flag so toggling twice cannot
+  restock twice.
+- **The dashboard tiles now sum the same `ORDER_VIEWS` table**, so it can no longer say
+  "Processing 1" beside an Orders screen calling the same order new.
+
+Two smaller fixes in the same pass:
+
+- **`/manage` with no trailing slash answered "Not found."** `SB.base` carries the slash, so the
+  path anyone actually types did not start with it and fell through as a literal route matching no
+  screen — a 404 at the CMS's own front door. `currentPath()` strips both spellings.
+- **The Customers screen is gone** (owner's decision), and `customers.view` with it. It could only
+  list registered accounts, and on a cash-on-delivery shop almost nobody registers — so it showed an
+  empty table beside a sentence pointing at the Orders screen. Searching Orders by phone number is
+  the answer and always was; the `?search=` seeding stays for it.
+
+Verified with a further **20 REST assertions** — including placing an order through COD's own
+`process_payment()` and asserting where it lands, which is the check that would have caught this the
+first time — and **22 browser assertions** covering both `/manage` spellings, the sidebar, the three
+tab queries, and both outcome buttons re-read after a reload. The two earlier suites were re-run as
+regressions: 54/54 and 58/58 after updating the two assertions that encoded the old mapping.
+
 ## CMS round two — the owner's ten changes (2026-08-09)
 
 Plugin **1.1.0**. Ten requests from one message, four of which needed a decision before anything

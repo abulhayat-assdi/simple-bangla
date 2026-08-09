@@ -62,6 +62,9 @@ const ICONS = {
 	print: [ 'M7 9V4h10v5', 'M5 9h14v7H5z', 'M7 14h10v6H7z' ],
 	shield_check: [ 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6l7-3z', 'M9 11.5l2 2 4-4' ],
 	alert: [ 'M12 4l9 16H3L12 4z', 'M12 10v4', 'M12 17h.01' ],
+	// A sheet with a folded corner and two lines of writing on it — a page with words, which is
+	// what the Content Pages screen holds. Without the lines it reads as a blank shape at 18px.
+	file: [ 'M13 3H6v18h12V8l-5-5z', 'M13 3v5h5', 'M9 13h6', 'M9 17h4' ],
 };
 
 /**
@@ -90,20 +93,36 @@ export function Icon( { name, size = 18 } ) {
 
 /**
  * A dashboard figure.
+ *
+ * `to` turns the tile into a link to the screen that figure came from. A number nobody can act on
+ * is decoration; "3 new orders" should be one tap from the three orders. It stays a plain div when
+ * no destination is given, so a tile never looks clickable when it is not.
  */
-export function Stat( { icon, label, value, note, tone, loading, wide } ) {
-	return html`
-		<div class=${ 'sb-stat' + ( tone ? ' sb-stat--' + tone : '' ) + ( wide ? ' sb-stat--wide' : '' ) }>
-			<div class="sb-stat__head">
-				<span class="sb-stat__icon"><${ Icon } name=${ icon } /></span>
-				<span class="sb-stat__label">${ label }</span>
-			</div>
-			<div class=${ 'sb-stat__value' + ( loading ? ' sb-skeleton' : '' ) }>
-				${ loading ? '0000' : value }
-			</div>
-			${ note && ! loading ? html`<div class="sb-stat__note">${ note }</div>` : null }
-		</div>
+export function Stat( { icon, label, value, note, tone, loading, wide, to, onNavigate } ) {
+	const linked = !! to;
+	const className =
+		'sb-stat' +
+		( tone ? ' sb-stat--' + tone : '' ) +
+		( wide ? ' sb-stat--wide' : '' ) +
+		( linked ? ' sb-stat--link' : '' );
+
+	// Spans rather than divs, so the same markup is valid inside either the div or the anchor.
+	const inner = html`
+		<span class="sb-stat__head">
+			<span class="sb-stat__icon"><${ Icon } name=${ icon } /></span>
+			<span class="sb-stat__label">${ label }</span>
+		</span>
+		<span class=${ 'sb-stat__value' + ( loading ? ' sb-skeleton' : '' ) }>${ loading ? '0000' : value }</span>
+		${ note && ! loading ? html`<span class="sb-stat__note">${ note }</span>` : null }
 	`;
+
+	if ( ! linked ) {
+		return html`<div class=${ className }>${ inner }</div>`;
+	}
+
+	// The destination is resolved by the caller, which already imports the router. Resolving it in
+	// here would mean ui.js importing router.js, which imports ui.js — a cycle for one href.
+	return html`<a class=${ className } href=${ to } onClick=${ onNavigate }>${ inner }</a>`;
 }
 
 /**

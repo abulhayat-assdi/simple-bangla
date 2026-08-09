@@ -24,17 +24,8 @@ defined( 'ABSPATH' ) || exit;
 		<div class="sb-container">
 
 			<?php
-			/*
-			 * A failed payment has not finished the journey, so the bar stops at the order step
-			 * rather than ticking "সম্পন্ন" green over a page that says the opposite.
-			 */
+			// A failed payment gets the other banner: a cross and an apology, not a tick.
 			$simple_bangla_failed = ( $order && $order->has_status( 'failed' ) );
-
-			get_template_part(
-				'template-parts/checkout/steps',
-				null,
-				array( 'current' => $simple_bangla_failed ? 'review' : 'done' )
-			);
 			?>
 
 			<?php if ( $simple_bangla_failed ) : ?>

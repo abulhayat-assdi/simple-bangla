@@ -37,6 +37,8 @@ import {
 	dateTime,
 	refundedTotal,
 	itemAttributes,
+	STATUS_WITH_COURIER,
+	COURIER_OUTCOMES,
 } from '../order-utils.js';
 
 export function OrderDetail( { id } ) {
@@ -396,18 +398,54 @@ export function OrderDetail( { id } ) {
 							  `
 							: null }
 
-						<button
-							class="sb-btn sb-btn--primary sb-btn--block"
-							disabled=${ sending }
-							onClick=${ () => send( false ) }
-						>
-							<${ Icon } name="truck" size=${ 16 } />
-							${ sending ? 'Sending…' : shipment ? 'Send to courier again' : 'Send to courier' }
-						</button>
-						<p class="sb-hint">
-							Books the parcel with the courier set up under Settings and moves the order to
-							Courier-এ আছে.
-						</p>
+						${ /*
+						 * With the courier, the only two questions left are whether it arrived. They are
+						 * one tap each rather than a trip through the status list, which is the whole
+						 * point of this screen for a shop working through yesterday's dispatches.
+						 */
+						status === STATUS_WITH_COURIER
+							? html`
+									${ COURIER_OUTCOMES.map(
+										( outcome ) => html`
+											<button
+												key=${ outcome.status }
+												class=${ 'sb-btn sb-btn--block sb-btn--' + outcome.tone +
+													( outcome.tone === 'danger' ? ' sb-btn--outline' : '' ) }
+												disabled=${ busy }
+												onClick=${ () => saveStatus( outcome.status ) }
+											>
+												${ outcome.label }
+											</button>
+										`
+									) }
+									<p class="sb-hint">
+										Returned puts the items back into stock; completed does not.
+									</p>
+							  `
+							: html`
+									<button
+										class="sb-btn sb-btn--primary sb-btn--block"
+										disabled=${ sending }
+										onClick=${ () => send( false ) }
+									>
+										<${ Icon } name="truck" size=${ 16 } />
+										${ sending ? 'Sending…' : shipment ? 'Send to courier again' : 'Send to courier' }
+									</button>
+									<p class="sb-hint">
+										Books the parcel with the courier set up under Settings and moves the order to
+										Courier-এ আছে.
+									</p>
+							  ` }
+
+						${ status === STATUS_WITH_COURIER
+							? html`<button
+									class="sb-btn sb-btn--ghost sb-btn--block"
+									disabled=${ sending }
+									onClick=${ () => send( false ) }
+							  >
+									<${ Icon } name="truck" size=${ 16 } /> Send to courier again
+							  </button>`
+							: null }
 
 						<button
 							class="sb-btn sb-btn--danger sb-btn--block sb-btn--outline"

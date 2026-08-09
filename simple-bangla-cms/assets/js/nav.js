@@ -11,13 +11,16 @@
  */
 
 /** Phases at or below this are actually built. */
-export const BUILT_THROUGH = 7;
+export const BUILT_THROUGH = 9;
 
 export const NAV = [
 	{
 		legend: 'Store',
 		items: [
-			{ path: '/', label: 'Overview', icon: 'grid', ability: 'dashboard.view', phase: 2 },
+			// "Dashboard" here and "Dashboard" as the page's own heading. It read "Overview" in the
+			// sidebar and "Dashboard" on the page, which is the kind of small disagreement that makes
+			// an interface feel unfinished.
+			{ path: '/', label: 'Dashboard', icon: 'grid', ability: 'dashboard.view', phase: 2 },
 			{ path: '/orders', label: 'Orders', icon: 'bag', ability: 'orders.view', phase: 4 },
 			{ path: '/products', label: 'Products', icon: 'box', ability: 'products.view', phase: 3 },
 			{ path: '/categories', label: 'Categories', icon: 'layers', ability: 'products.view', phase: 3 },
@@ -39,6 +42,12 @@ export const NAV = [
 	{
 		legend: 'Site',
 		items: [
+			/*
+			 * First in the group, above Menu: the pages are the thing being linked to, and an owner
+			 * looking for "where do I write About Us" should not have to read past four navigation
+			 * and appearance screens to find it.
+			 */
+			{ path: '/content', label: 'Content Pages', icon: 'file', ability: 'content.manage', phase: 9 },
 			{ path: '/menu', label: 'Menu', icon: 'menu', ability: 'appearance.manage', phase: 6 },
 			{ path: '/footer', label: 'Footer', icon: 'footer', ability: 'appearance.manage', phase: 6 },
 			{ path: '/reviews', label: 'Reviews', icon: 'star', ability: 'reviews.moderate', phase: 6 },
@@ -50,7 +59,12 @@ export const NAV = [
 	{
 		legend: 'People',
 		items: [
-			{ path: '/customers', label: 'Customers', icon: 'users', ability: 'customers.view', phase: 7 },
+			/*
+			 * There is no Customers screen (removed 2026-08-09, owner's decision). It could only ever
+			 * list registered accounts, and on a cash-on-delivery shop almost nobody registers — so it
+			 * showed an empty table beside a sentence explaining that the real answer was on the
+			 * Orders screen. Searching Orders by phone number is that answer, and it always was.
+			 */
 			{ path: '/blocked', label: 'Blocked List', icon: 'ban', ability: 'store.manage', phase: 7 },
 			{ path: '/admins', label: 'Manage Admins', icon: 'shield', ability: 'staff.manage', phase: 7 },
 		],
@@ -73,4 +87,23 @@ export function findRoute( path ) {
 	}
 
 	return null;
+}
+
+/**
+ * Which group a nav path belongs to.
+ *
+ * The topbar's breadcrumb needs it. Read from NAV rather than stored a second time, so a screen
+ * moved between groups moves in the breadcrumb too.
+ *
+ * @param {string} path Route path.
+ * @return {string} Empty when the path is not a nav destination.
+ */
+export function findGroup( path ) {
+	for ( const group of NAV ) {
+		if ( group.items.some( ( item ) => item.path === path ) ) {
+			return group.legend;
+		}
+	}
+
+	return '';
 }

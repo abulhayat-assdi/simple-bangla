@@ -56,12 +56,13 @@ function simple_bangla_setup() {
 	 */
 	add_theme_support( 'woocommerce' );
 
+	// Two footer columns, not three: the footer's Customer Service column was dropped, and a
+	// menu location nothing renders is a place to file work that then never appears.
 	register_nav_menus(
 		array(
 			'primary'  => esc_html__( 'Primary Mega Menu', 'simple-bangla' ),
 			'footer-1' => esc_html__( 'Footer Column 1', 'simple-bangla' ),
 			'footer-2' => esc_html__( 'Footer Column 2', 'simple-bangla' ),
-			'footer-3' => esc_html__( 'Footer Column 3', 'simple-bangla' ),
 		)
 	);
 

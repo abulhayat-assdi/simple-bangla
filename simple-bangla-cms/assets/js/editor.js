@@ -95,14 +95,19 @@ export function cleanPastedHtml( dirty ) {
  * A rich-text field.
  *
  * @param {object}   props
- * @param {string}   props.value    Current HTML.
- * @param {Function} props.onChange Called with the new HTML.
- * @param {string}   [props.id]     For the label to point at.
- * @param {number}   [props.rows]   Rough starting height, in lines.
+ * @param {string}   props.value         Current HTML.
+ * @param {Function} props.onChange      Called with the new HTML.
+ * @param {string}   [props.id]          For the label to point at.
+ * @param {number}   [props.rows]        Rough starting height, in lines.
+ * @param {boolean}  [props.startInHtml] Open on the HTML view rather than the editable box. Used
+ *                                       for content that is not prose — a WooCommerce page whose
+ *                                       body is a single shortcode, where a formatting toolbar
+ *                                       offers nothing and contenteditable is only a way to break
+ *                                       the store's checkout.
  */
-export function RichText( { value, onChange, id, rows = 10 } ) {
+export function RichText( { value, onChange, id, rows = 10, startInHtml = false } ) {
 	const box = useRef( null );
-	const [ source, setSource ] = useState( false );
+	const [ source, setSource ] = useState( !! startInHtml );
 	const [ picking, setPicking ] = useState( false );
 
 	/*

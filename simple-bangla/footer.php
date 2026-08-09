@@ -2,7 +2,7 @@
 /**
  * Site footer.
  *
- * One grid row: brand block, three link columns. Then the payment strip, then a
+ * One grid row: brand block, two link columns. Then the payment strip, then a
  * full-bleed black copyright bar. That is the reference's arrangement, measured off its own
  * markup and stylesheet rather than guessed from a screenshot.
  *

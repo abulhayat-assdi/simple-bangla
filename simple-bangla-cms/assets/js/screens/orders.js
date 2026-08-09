@@ -43,6 +43,8 @@ import {
 	ORDER_VIEWS,
 	DEFAULT_VIEW,
 	viewStatuses,
+	STATUS_WITH_COURIER,
+	COURIER_OUTCOMES,
 } from '../order-utils.js';
 
 const PER_PAGE = 20;
@@ -57,9 +59,9 @@ export function Orders() {
 	const [ counts, setCounts ] = useState( null );
 
 	/*
-	 * Seeded from ?search= so another screen can hand this one a phone number. The Customers screen
-	 * does exactly that: a customer's real history on a cash-on-delivery store is their orders, and
-	 * most of those are placed as a guest under the same number.
+	 * Seeded from ?search= so a link can hand this screen a phone number. It is how one customer's
+	 * whole history is looked up — on a cash-on-delivery store that history *is* their orders, most
+	 * of them placed as a guest under the same number, which is why there is no Customers screen.
 	 *
 	 * Read once, on mount. Routing is by path, so arriving here from elsewhere always mounts this
 	 * screen fresh; re-reading it on every render would fight with what the owner then types.
@@ -78,8 +80,11 @@ export function Orders() {
 	);
 
 	const [ selected, setSelected ] = useState( [] );
-	const [ bulkStatus, setBulkStatus ] = useState( 'processing' );
+	const [ bulkStatus, setBulkStatus ] = useState( STATUS_WITH_COURIER );
 	const [ applying, setApplying ] = useState( false );
+
+	// The id of the order whose card action is in flight, so only that card's buttons go quiet.
+	const [ acting, setActing ] = useState( 0 );
 
 	const load = useCallback( async () => {
 		setBusy( true );
@@ -178,6 +183,51 @@ export function Orders() {
 		}
 	};
 
+	/*
+	 * The reference the owner supplied puts the next action on the card itself, and it is right to:
+	 * working through a morning's orders on a phone is a list of one-tap decisions, and making each
+	 * one cost an open-and-go-back is what turns the screen into something nobody uses.
+	 *
+	 * The row is removed from the list afterwards rather than updated in place — it no longer belongs
+	 * to the view being looked at, and leaving it there under its old label would invite a second tap
+	 * on an order that has already moved.
+	 */
+	const dispatch = async ( order ) => {
+		setActing( order.id );
+
+		try {
+			const result = await api( '/orders/' + order.id + '/courier', { method: 'POST', body: {} } );
+
+			toast( 'Sent to ' + result.shipment.provider_label + ' · ' + ( result.shipment.consignment_id || 'booked' ) );
+			await load();
+			loadCounts();
+		} catch ( e ) {
+			// A second dispatch needs the confirmation that only the order screen offers, so this
+			// says where to go rather than silently forcing it.
+			toast(
+				e.code === 'sb_cms_already_sent' ? e.message + ' Open the order to send it again.' : e.message,
+				'bad'
+			);
+		} finally {
+			setActing( 0 );
+		}
+	};
+
+	const setStatus = async ( order, status ) => {
+		setActing( order.id );
+
+		try {
+			await api( 'wc/v3/orders/' + order.id, { method: 'PUT', body: { status } } );
+			toast( '#' + order.number + ' moved to ' + statusLabel( status ) );
+			await load();
+			loadCounts();
+		} catch ( e ) {
+			toast( e.message, 'bad' );
+		} finally {
+			setActing( 0 );
+		}
+	};
+
 	return html`
 		<div class="sb-page">
 			<div class="sb-page__header">
@@ -246,7 +296,14 @@ export function Orders() {
 				: rows.length
 				? html`
 						<div class=${ busy ? 'is-busy' : '' }>
-							<${ OrderCards } rows=${ rows } selected=${ selected } onToggle=${ toggle } />
+							<${ OrderCards }
+								rows=${ rows }
+								selected=${ selected }
+								onToggle=${ toggle }
+								acting=${ acting }
+								onDispatch=${ dispatch }
+								onStatus=${ setStatus }
+							/>
 							<${ OrderTable }
 								rows=${ rows }
 								selected=${ selected }
@@ -290,7 +347,7 @@ function Tab( { label, count, active, onClick } ) {
  * depends on a column header that scrolled off the side. The whole card is a link; the checkbox is
  * the one thing inside it that is not, because tapping it must select rather than navigate.
  */
-function OrderCards( { rows, selected, onToggle } ) {
+function OrderCards( { rows, selected, onToggle, acting, onDispatch, onStatus } ) {
 	return html`
 		<div class="sb-ordercards">
 			${ rows.map( ( order ) => {
@@ -375,8 +432,31 @@ function OrderCards( { rows, selected, onToggle } ) {
 							: null }
 
 						<footer class="sb-ordercard__foot">
+							${ order.status === STATUS_WITH_COURIER
+								? COURIER_OUTCOMES.map(
+										( outcome ) => html`
+											<button
+												key=${ outcome.status }
+												class=${ 'sb-btn sb-btn--block sb-btn--' + outcome.tone +
+													( outcome.tone === 'danger' ? ' sb-btn--outline' : '' ) }
+												disabled=${ acting === order.id }
+												onClick=${ () => onStatus( order, outcome.status ) }
+											>
+												${ acting === order.id ? 'Working…' : outcome.label }
+											</button>
+										`
+								  )
+								: html`<button
+										class="sb-btn sb-btn--primary sb-btn--block"
+										disabled=${ acting === order.id }
+										onClick=${ () => onDispatch( order ) }
+								  >
+										<${ Icon } name="truck" size=${ 16 } />
+										${ acting === order.id ? 'Sending…' : 'Send to courier' }
+								  </button>` }
+
 							<a
-								class="sb-btn sb-btn--primary sb-btn--block"
+								class="sb-btn sb-btn--ghost sb-btn--block"
 								href=${ href( path ) }
 								onClick=${ ( e ) => onLinkClick( e, path ) }
 							>

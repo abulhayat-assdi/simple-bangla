@@ -27,12 +27,22 @@ const listeners = new Set();
  */
 let depth = 0;
 
-/** The route path for the current address, always leading-slashed. */
+/**
+ * The route path for the current address, always leading-slashed.
+ *
+ * BASE carries a trailing slash, so `/manage` — which is what anyone types, and what the server
+ * happily serves the shell for — did not start with it and fell through as the literal path
+ * `/manage`, which matches no screen. The result was a "Not found" page at the CMS's own front door.
+ * Both spellings are stripped.
+ */
 export function currentPath() {
 	let path = window.location.pathname;
+	const root = BASE.replace( /\/+$/, '' );
 
 	if ( path.startsWith( BASE ) ) {
 		path = path.slice( BASE.length );
+	} else if ( path === root ) {
+		path = '';
 	}
 
 	return '/' + path.replace( /^\/+|\/+$/g, '' );

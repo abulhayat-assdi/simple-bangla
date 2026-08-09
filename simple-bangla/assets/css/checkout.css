@@ -20,79 +20,14 @@
 }
 
 .sb-checkout__title {
-	margin: 0 0 var(--sb-space-5);
+	/* Only thing in the banner now that the step bar is gone — the padding sets the height. */
+	margin: 0;
 	font-family: var(--sb-font-display);
 	font-size: 1.75rem;
 	font-weight: 600;
 	letter-spacing: 1px;
 	text-align: center;
 	color: #ffffff;
-}
-
-.sb-steps {
-	display: flex;
-	align-items: flex-start;
-	justify-content: center;
-	gap: 0;
-	list-style: none;
-	margin: 0 auto;
-	padding: 0;
-	max-width: 560px;
-}
-
-.sb-steps__item {
-	position: relative;
-	flex: 1 1 0;
-	text-align: center;
-}
-
-/*
- * The connecting rule is drawn by each step except the first, reaching back to its neighbour.
- * Doing it this way means the line is always exactly the gap between two markers.
- */
-.sb-steps__item + .sb-steps__item::before {
-	content: "";
-	position: absolute;
-	top: 21px;
-	right: 50%;
-	left: -50%;
-	height: 2px;
-	background: rgb(255 255 255 / 25%);
-}
-
-.sb-steps__item--done::before,
-.sb-steps__item--current::before {
-	background: #22c55e;
-}
-
-.sb-steps__link {
-	position: relative;
-	display: grid;
-	justify-items: center;
-	gap: var(--sb-space-2);
-	color: rgb(255 255 255 / 60%);
-	font-size: var(--sb-text-sm);
-	text-decoration: none;
-}
-
-.sb-steps__marker {
-	display: grid;
-	place-items: center;
-	width: 44px;
-	height: 44px;
-	border-radius: var(--sb-radius-pill);
-	background: rgb(255 255 255 / 15%);
-	color: #ffffff;
-}
-
-.sb-steps__item--done .sb-steps__link,
-.sb-steps__item--current .sb-steps__link {
-	color: #ffffff;
-}
-
-.sb-steps__item--done .sb-steps__marker,
-.sb-steps__item--current .sb-steps__marker {
-	background: #22c55e;
 }
 
 /* -- Instruction line -- */
@@ -685,14 +620,6 @@
 	text-align: center;
 }
 
-/*
- * Hidden on phones. It reports a journey already finished, so it is the least useful thing in the
- * banner — and at three markers plus labels it was the most expensive in vertical space.
- */
-.sb-checkout__banner--thankyou .sb-steps {
-	display: none;
-}
-
 .sb-thankyou__medallion {
 	display: grid;
 	place-items: center;
@@ -1047,11 +974,6 @@
 	.sb-checkout__banner--thankyou {
 		margin-bottom: var(--sb-space-5);
 		padding: var(--sb-space-5) var(--sb-space-5) var(--sb-space-6);
-	}
-
-	.sb-checkout__banner--thankyou .sb-steps {
-		display: flex;
-		margin-bottom: var(--sb-space-5);
 	}
 
 	.sb-thankyou__medallion {

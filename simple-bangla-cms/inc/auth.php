@@ -50,14 +50,22 @@ function simple_bangla_cms_abilities() {
 			'cap'   => 'edit_products',
 			'label' => __( 'Create and edit products', 'simple-bangla-cms' ),
 		),
-		'customers.view'     => array(
-			'cap'   => 'list_users',
-			'label' => __( 'View customers', 'simple-bangla-cms' ),
-		),
+		// There is no customers.view: the Customers screen was removed on 2026-08-09 because a
+		// cash-on-delivery shop's customers are its orders, not its registered accounts.
 		// Homepage rows, hero, banners, footer, colours — everything stored as a theme_mod.
 		'appearance.manage'  => array(
 			'cap'   => 'edit_theme_options',
 			'label' => __( 'Edit the homepage, footer and colours', 'simple-bangla-cms' ),
+		),
+		/*
+		 * Pages: About Us, Privacy Policy, Delivery & Return and anything else the owner writes.
+		 * `edit_pages` rather than `edit_theme_options`, because this is writing content, not
+		 * configuring the site — and it is the capability core itself checks on `wp/v2/pages`, so a
+		 * user who holds the ability can never be shown a screen every request on it would refuse.
+		 */
+		'content.manage'     => array(
+			'cap'   => 'edit_pages',
+			'label' => __( 'Write and edit site pages', 'simple-bangla-cms' ),
 		),
 		'store.manage'       => array(
 			'cap'   => 'manage_woocommerce',

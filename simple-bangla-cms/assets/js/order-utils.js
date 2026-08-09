@@ -17,9 +17,12 @@ import { SB } from './api.js';
  */
 export const ORDER_STATUSES = {
 	pending: { label: 'Pending payment', tone: 'warn' },
-	processing: { label: 'Processing', tone: 'ok' },
+	processing: { label: 'New — to confirm', tone: 'warn' },
 	'on-hold': { label: 'On hold', tone: 'warn' },
+	// Registered by the theme, in inc/order-status.php.
+	'sb-courier': { label: 'Courier-এ আছে', tone: 'ok' },
 	completed: { label: 'Completed', tone: 'ok' },
+	'sb-returned': { label: 'Returned', tone: 'bad' },
 	cancelled: { label: 'Cancelled', tone: 'muted' },
 	refunded: { label: 'Refunded', tone: 'bad' },
 	failed: { label: 'Failed', tone: 'bad' },
@@ -30,7 +33,9 @@ export const STATUS_ORDER = [
 	'pending',
 	'processing',
 	'on-hold',
+	'sb-courier',
 	'completed',
+	'sb-returned',
 	'cancelled',
 	'refunded',
 	'failed',
@@ -39,25 +44,43 @@ export const STATUS_ORDER = [
 /**
  * The five stages the shop actually thinks in, and the WooCommerce statuses behind each.
  *
- * The order list is filtered by these rather than by raw status (owner's decision, 2026-08-09).
- * WooCommerce has no "with the courier" or "returned" status and the owner chose to map onto the
- * existing ones rather than register new ones, so this table is the whole of that mapping — nothing
- * else in the CMS decides what "New Orders" means.
+ * The order list is filtered by these rather than by raw status (owner's decision, 2026-08-09), and
+ * this table is the whole of that mapping — nothing else in the CMS decides what "New Orders" means.
  *
- * Two rules this table has to keep:
+ * **Revised the same day, after a real test order.** The first version mapped the stages onto
+ * WooCommerce's existing statuses with `processing` standing in for "with the courier". That is
+ * wrong at the source: WooCommerce's Cash on Delivery gateway sets an order to `processing` as it
+ * is placed, so every new order arrived already looking dispatched. The theme now registers
+ * `sb-courier` and `sb-returned` (see `simple-bangla/inc/order-status.php`) and a stage is only
+ * entered by someone deciding it was.
  *
- * - **Every status appears exactly once.** These five are the only filters, so a status missing from
- *   all of them would be an order the owner can never find. `on-hold` therefore sits under New,
- *   where an order waiting for a confirmation call belongs, and `cancelled` sits beside `failed`.
- * - **`processing` means "with the courier"**, which is true because handing a parcel over is what
- *   moves an order there — the Send to Courier button does it, and nothing else in the CMS does.
+ * The rule that has to hold: **every status appears in exactly one view.** These five are the only
+ * filters, so a status missing from all of them would be an order the owner can never find. That is
+ * why `pending`, `processing` and `on-hold` all sit under New — they are the three ways an order can
+ * arrive un-dispatched — and why `refunded` sits with `sb-returned`.
  */
 export const ORDER_VIEWS = [
-	{ key: 'new', label: 'New Orders', statuses: [ 'pending', 'on-hold' ] },
-	{ key: 'courier', label: 'Courier-এ আছে', statuses: [ 'processing' ] },
+	{ key: 'new', label: 'New Orders', statuses: [ 'pending', 'processing', 'on-hold' ] },
+	{ key: 'courier', label: 'Courier-এ আছে', statuses: [ 'sb-courier' ] },
 	{ key: 'completed', label: 'Completed Orders', statuses: [ 'completed' ] },
-	{ key: 'returned', label: 'Returned', statuses: [ 'refunded' ] },
+	{ key: 'returned', label: 'Returned', statuses: [ 'sb-returned', 'refunded' ] },
 	{ key: 'failed', label: 'Failed / Cancelled', statuses: [ 'failed', 'cancelled' ] },
+];
+
+/** The status an order takes when it is handed to the courier. */
+export const STATUS_WITH_COURIER = 'sb-courier';
+
+/**
+ * The two ways a parcel that is with the courier can end, as buttons.
+ *
+ * The owner asked for exactly these two on an order at the courier stage. "Returned" rather than
+ * "Cancelled" for the second one: a parcel that came back is a different thing from an order killed
+ * before it ever shipped, and the shop needs to count them separately — the returns are what the
+ * courier fees were spent on. Cancelling before dispatch is still available from the status list.
+ */
+export const COURIER_OUTCOMES = [
+	{ status: 'completed', label: 'Delivered — mark completed', tone: 'primary' },
+	{ status: 'sb-returned', label: 'Returned / not received', tone: 'danger' },
 ];
 
 /** The view the order screen opens on: what arrived and still needs doing. */

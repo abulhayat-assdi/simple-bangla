@@ -23,7 +23,6 @@ defined( 'ABSPATH' ) || exit;
 	<div class="sb-checkout__banner">
 		<div class="sb-container">
 			<h1 class="sb-checkout__title"><?php esc_html_e( 'চেক আউট', 'simple-bangla' ); ?></h1>
-			<?php get_template_part( 'template-parts/checkout/steps', null, array( 'current' => 'review' ) ); ?>
 		</div>
 	</div>
 

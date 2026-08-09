@@ -125,7 +125,9 @@ simple-bangla-cms/
 
 The theme gained one file for the CMS's sake — and only because the CMS could not be allowed to own
 it: `simple-bangla/inc/blocklist.php`, which stores the order block list and enforces it at the
-checkout. See phase 7 below.
+checkout. See phase 7 below. A second followed on 2026-08-09 for the same reason —
+`simple-bangla/inc/order-status.php`, which registers the two order stages WooCommerce lacks; a
+status is customer-visible, so it cannot belong to a plugin that might be switched off.
 
 ---
 
@@ -641,10 +643,10 @@ silently drop the theme back to its compiled default — which reads as "the sav
   exists to avoid.
 - **Light theme in the site's own palette** (black + `#FBF4E2` cream), not the reference's dark
   gold dashboard.
-- **`/manage` sidebar** (final, 17 items in four groups): **Store** — Overview · Orders ·
+- **`/manage` sidebar** (16 items in four groups): **Store** — Overview · Orders ·
   Products · Categories · Coupons. **Homepage** — Hero Slider · Hot Deals · Category Circles ·
-  Product Rows · Banners. **Site** — Menu · Footer · Reviews · Settings. **People** — Customers ·
-  Blocked List · Manage Admins. Every item is visible from day one, filtered only by ability and
+  Product Rows · Banners. **Site** — Menu · Footer · Reviews · Settings. **People** —
+  Blocked List · Manage Admins. (Customers was removed 2026-08-09; see round two.) Every item is visible from day one, filtered only by ability and
   marked "soon" until its phase lands; a sidebar that grew week by week would hide what is still
   owed.
 
@@ -1060,16 +1062,31 @@ element does not exist. Resolve shared fixtures once, before the run leaves the 
 One message, ten requests. What changed and why, in the order it matters:
 
 - **Orders are filtered by stage, not by status.** Five tabs — New Orders, Courier-এ আছে, Completed
-  Orders, Returned, Failed / Cancelled — plus All, opening on New. The owner chose to map onto
-  WooCommerce's existing statuses rather than register new ones, so `ORDER_VIEWS` in
-  `order-utils.js` **is** that mapping and nothing else may decide it: New = `pending` + `on-hold`,
-  Courier = `processing`, Completed = `completed`, Returned = `refunded`, Failed = `failed` +
-  `cancelled`. Every status appears in exactly one tab; a status missing from all of them would be
-  an order the owner could never find. Tab counts come from `wc/v3/reports/orders/totals` — one
-  request, not five list calls made only to read their totals.
-- **`processing` means "with the courier"**, which holds because Send to Courier is the only thing
-  in the CMS that moves an order there — and it skips the move for an order already past that point,
-  so a completed order is never dragged backwards.
+  Orders, Returned, Failed / Cancelled — plus All, opening on New. `ORDER_VIEWS` in
+  `order-utils.js` **is** that mapping and nothing else may decide it: New = `pending` +
+  `processing` + `on-hold`, Courier = `sb-courier`, Completed = `completed`, Returned =
+  `sb-returned` + `refunded`, Failed = `failed` + `cancelled`. Every status appears in exactly one
+  tab; a status missing from all of them would be an order the owner could never find. Tab counts
+  come from `wc/v3/reports/orders/totals` — one request, not five list calls made only to read their
+  totals. The dashboard tiles sum the *same* table, so the two screens cannot disagree.
+- **The theme registers two order statuses** — `sb-courier` and `sb-returned`, in
+  `simple-bangla/inc/order-status.php`. **This corrects the same day's earlier decision to map the
+  stages onto existing statuses**, which the owner's first real test order disproved: WooCommerce's
+  Cash on Delivery gateway sets an order to `processing` the moment it is placed, so with
+  `processing` standing in for "with the courier" every new order appeared as already dispatched.
+  There was no spare status to borrow — `on-hold` means "waiting for payment" throughout WooCommerce
+  and in its emails. In the **theme**, not the plugin, for the block list's reason: an order's status
+  is customer-visible in My Account and in every WooCommerce email, so with the plugin off real
+  orders must still have a name. `sb-courier` is added to `woocommerce_order_is_paid_statuses` or
+  stock would be reduced twice; `sb-returned` restocks, guarded by WooCommerce's own
+  `_order_stock_reduced` flag so toggling twice cannot restock twice.
+- **A stage is only entered by someone deciding it was.** Send to Courier moves an order to
+  `sb-courier` from the three un-dispatched statuses only, so re-sending a delivered parcel cannot
+  drag it backwards. At the courier stage the screen — and the phone card — offer exactly two
+  buttons: *Delivered — mark completed* and *Returned / not received*. "Returned" rather than
+  "Cancelled" for the second: a parcel that came back is a different number from an order killed
+  before it shipped, and the returns are what the courier fees were spent on. Cancelling before
+  dispatch is still in the status list.
 - **Two order layouts, one data source.** Cards below 900px to the owner's screenshot, the table
   above it. Both are in the markup and CSS picks; a resize listener deciding what the owner can see
   would also decide what a printed page shows.
@@ -1128,9 +1145,18 @@ Other decisions from the same round:
 - **Each social link has a `*_show` switch**, default on. Blanking the URL already hid the icon but
   threw the address away; a shop pausing its Instagram for a month should not have to find the link
   again.
-- **One back button, in the topbar.** It is then in the same place on all twenty screens including
-  the ones drawn by shared components, and a new screen cannot forget it. It prefers real history —
+- **One back button, in the topbar.** It is then in the same place on every screen including the
+  ones drawn by shared components, and a new screen cannot forget it. It prefers real history —
   which brings scroll position and screen state back — and walks up the path only for a deep link.
+- **`/manage` with no trailing slash resolves to the dashboard.** `SB.base` carries the slash, so
+  the path anyone actually types did not start with it and fell through as the literal route
+  `/manage`, which matches no screen — a "Not found" page at the CMS's own front door.
+  `currentPath()` strips both spellings.
+- **There is no Customers screen** (removed 2026-08-09, owner's decision, and its `customers.view`
+  ability with it). It could only ever list registered accounts, and on a cash-on-delivery shop
+  almost nobody registers — so it showed an empty table beside a sentence explaining that the real
+  answer was on the Orders screen. Searching Orders by phone number *is* that answer, and the
+  `?search=` seeding that fed it stays for exactly that.
 
 **The import map is a real fix, not tidying.** Versioning the entry script never versioned the
 modules it imports, so a release changing `ui.js` under a changed `app.js` would ship a new entry

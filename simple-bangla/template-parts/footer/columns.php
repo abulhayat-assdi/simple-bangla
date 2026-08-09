@@ -6,6 +6,11 @@
  * install — it falls back to the pages the theme created on activation, so the footer is
  * never three empty headings.
  *
+ * The first column has a third source, ahead of both: the pages ticked for the footer on the CMS's
+ * Content Pages screen. See inc/pages.php for why a tick wins over an assigned menu — briefly,
+ * because a tick box that did nothing on a site that had been set up properly would be worse than
+ * no tick box. Tick nothing and this file behaves exactly as it did before that screen existed.
+ *
  * @package Simple_Bangla
  */
 
@@ -21,16 +26,15 @@ $simple_bangla_columns = array(
 		'fallback' => array( 'tutorials', 'warranty-policy', 'special-deals' ),
 	),
 	/*
-	 * No account, registration or login link here. The shop takes guest cash-on-delivery
-	 * orders and runs no membership, so customer service means the routes that actually
-	 * reach a person or answer a question — see simple_bangla_account_route_slugs(), which
-	 * also strips those links from an assigned menu.
+	 * There is no third column. It held Customer Service, and every route it offered — phone,
+	 * email, WhatsApp, the address — is already in the brand cell beside it, where a customer
+	 * looks first. A column repeating them as page links was a longer way round to the same
+	 * number.
 	 */
-	'footer-3' => array(
-		'heading'  => __( 'Customer Service', 'simple-bangla' ),
-		'fallback' => array( 'contact-us', 'refund_returns', 'terms-and-condition' ),
-	),
 );
+
+/** Pages the owner ticked for the footer. Empty on any site that has never used the screen. */
+$simple_bangla_ticked = simple_bangla_footer_link_pages();
 ?>
 
 <?php foreach ( $simple_bangla_columns as $simple_bangla_location => $simple_bangla_column ) : ?>
@@ -38,7 +42,21 @@ $simple_bangla_columns = array(
 		<h2 class="sb-footer__heading"><?php echo esc_html( $simple_bangla_column['heading'] ); ?></h2>
 
 		<?php
-		if ( has_nav_menu( $simple_bangla_location ) ) {
+		if ( 'footer-1' === $simple_bangla_location && $simple_bangla_ticked ) {
+
+			echo '<ul class="sb-footer__menu">';
+
+			foreach ( $simple_bangla_ticked as $simple_bangla_ticked_page ) {
+				printf(
+					'<li><a href="%s">%s</a></li>',
+					esc_url( (string) get_permalink( $simple_bangla_ticked_page ) ),
+					esc_html( get_the_title( $simple_bangla_ticked_page ) )
+				);
+			}
+
+			echo '</ul>';
+
+		} elseif ( has_nav_menu( $simple_bangla_location ) ) {
 
 			wp_nav_menu(
 				array(
