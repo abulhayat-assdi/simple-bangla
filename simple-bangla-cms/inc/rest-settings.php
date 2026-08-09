@@ -88,10 +88,13 @@ function simple_bangla_cms_settings_get( $request ) {
 		// The sanitiser is a server-side concern; sending it would only invite the client to
 		// think it can choose one.
 		$fields[ $key ] = array(
-			'type'    => $spec['type'],
-			'group'   => $spec['group'],
-			'label'   => $spec['label'],
-			'default' => $spec['default'],
+			'type'        => $spec['type'],
+			'group'       => $spec['group'],
+			'label'       => $spec['label'],
+			'default'     => $spec['default'],
+			// Carried from the theme's own registries so the interface explains a field with the
+			// sentence the theme already wrote for it.
+			'description' => isset( $spec['description'] ) ? $spec['description'] : '',
 		);
 
 		$values[ $key ] = $value;

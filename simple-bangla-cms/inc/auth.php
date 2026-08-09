@@ -67,6 +67,15 @@ function simple_bangla_cms_abilities() {
 			'cap'   => 'promote_users',
 			'label' => __( 'Add and remove staff accounts', 'simple-bangla-cms' ),
 		),
+		/*
+		 * Reviews are comments, and WooCommerce gates its review endpoints on `moderate_comments`
+		 * rather than on any product capability. Mapping them to `products.view` would have shown
+		 * the screen to a catalogue editor who then got a 403 from every request on it.
+		 */
+		'reviews.moderate'   => array(
+			'cap'   => 'moderate_comments',
+			'label' => __( 'Approve and remove product reviews', 'simple-bangla-cms' ),
+		),
 	);
 
 	/**

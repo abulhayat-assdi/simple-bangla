@@ -67,6 +67,20 @@ function simple_bangla_cms_current_path() {
 }
 
 /**
+ * Whether the site is set up so that /manage can reach WordPress at all.
+ *
+ * With "Plain" permalinks WordPress writes no rewrite block, so on most servers a request for
+ * /manage/ is answered by Apache looking for a directory of that name and returning its own 404 —
+ * PHP never runs and nothing here gets a chance to help. The owner would see a bare 404 on the
+ * only URL they use, with no clue why.
+ *
+ * @return bool
+ */
+function simple_bangla_cms_permalinks_ready() {
+	return (bool) get_option( 'permalink_structure' );
+}
+
+/**
  * Whether this request is for the CMS.
  *
  * @return bool

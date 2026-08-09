@@ -11,7 +11,7 @@
  */
 
 /** Phases at or below this are actually built. */
-export const BUILT_THROUGH = 4;
+export const BUILT_THROUGH = 7;
 
 export const NAV = [
 	{
@@ -41,8 +41,10 @@ export const NAV = [
 		items: [
 			{ path: '/menu', label: 'Menu', icon: 'menu', ability: 'appearance.manage', phase: 6 },
 			{ path: '/footer', label: 'Footer', icon: 'footer', ability: 'appearance.manage', phase: 6 },
-			{ path: '/reviews', label: 'Reviews', icon: 'star', ability: 'products.view', phase: 6 },
-			{ path: '/settings', label: 'Settings', icon: 'gear', ability: 'store.manage', phase: 6 },
+			{ path: '/reviews', label: 'Reviews', icon: 'star', ability: 'reviews.moderate', phase: 6 },
+			// Two abilities, because the screen holds both halves: the palette is appearance, the
+			// address and currency are the store's. Each card re-checks for itself.
+			{ path: '/settings', label: 'Settings', icon: 'gear', ability: [ 'appearance.manage', 'store.manage' ], phase: 6 },
 		],
 	},
 	{

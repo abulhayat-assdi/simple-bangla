@@ -20,6 +20,21 @@ export function can( ability ) {
 }
 
 /**
+ * Whether the user holds any one of several abilities.
+ *
+ * The Settings screen is the reason this exists: it carries the colour palette, which is
+ * `appearance.manage`, alongside the store address and currency, which are `store.manage`. Gating
+ * the sidebar link on either one would hide half a working screen from someone entitled to it, so
+ * the link asks for either and each card checks for itself.
+ *
+ * @param {string|string[]} ability One ability or a list of alternatives.
+ * @return {boolean}
+ */
+export function canAny( ability ) {
+	return Array.isArray( ability ) ? ability.some( can ) : can( ability );
+}
+
+/**
  * A cookie session can end while a tab sits open overnight. Rather than trying to renew a nonce
  * with a request that would itself be rejected, hand the problem back to the server: reloading
  * re-renders either a signed-in shell with a fresh nonce or the login screen.

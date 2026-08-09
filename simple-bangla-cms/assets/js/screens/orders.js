@@ -33,7 +33,17 @@ export function Orders() {
 	const [ busy, setBusy ] = useState( true );
 	const [ error, setError ] = useState( null );
 
-	const [ search, setSearch ] = useState( '' );
+	/*
+	 * Seeded from ?search= so another screen can hand this one a phone number. The Customers screen
+	 * does exactly that: a customer's real history on a cash-on-delivery store is their orders, and
+	 * most of those are placed as a guest under the same number.
+	 *
+	 * Read once, on mount. Routing is by path, so arriving here from elsewhere always mounts this
+	 * screen fresh; re-reading it on every render would fight with what the owner then types.
+	 */
+	const [ search, setSearch ] = useState(
+		() => new URLSearchParams( window.location.search ).get( 'search' ) || ''
+	);
 	const [ status, setStatus ] = useState( '' );
 
 	const [ selected, setSelected ] = useState( [] );

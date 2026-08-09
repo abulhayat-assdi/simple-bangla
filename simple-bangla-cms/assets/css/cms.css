@@ -1704,7 +1704,8 @@ a.sb-table__name:hover {
 	}
 
 	/* Room for it, so the last field is never trapped underneath. */
-	.sb-editor {
+	.sb-editor,
+	.sb-form {
 		padding-bottom: 72px;
 	}
 
@@ -1720,5 +1721,361 @@ a.sb-table__name:hover {
 @media (prefers-reduced-motion: reduce) {
 	.sb-rail {
 		transition: none;
+	}
+}
+
+/* ------------------------------------------------------------------ homepage screens */
+
+/*
+ * The single-column body of a settings screen. Distinct from .sb-editor, which is the two-column
+ * product form: these screens have no sidebar of metadata to put in a second column.
+ */
+.sb-form {
+	display: grid;
+	gap: var(--sb-space-4);
+	align-items: start;
+}
+
+/*
+ * Slides, rows and banner slots side by side once there is room. auto-fit rather than a fixed
+ * column count, because the same grid holds five hero slides and two banner panels.
+ */
+.sb-grid-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: var(--sb-space-4);
+	align-items: start;
+}
+
+/* A panel inside a card, for the two halves of a banner pair. */
+.sb-subcard {
+	padding: var(--sb-space-4);
+	background: var(--sb-surface-2);
+	border: 1px solid var(--sb-line-soft);
+	border-radius: var(--sb-radius-sm);
+}
+
+.sb-subcard > :last-child {
+	margin-bottom: 0;
+}
+
+/* Counts are two or three digits; a full-width box invites the wrong idea about the value. */
+.sb-input--num {
+	width: 7.5em;
+}
+
+/* ------------------------------------------------------------------ on-sale preview */
+
+.sb-minilist {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sb-minilist__item {
+	display: flex;
+	gap: var(--sb-space-3);
+	align-items: center;
+	padding: var(--sb-space-2) 0;
+	border-bottom: 1px solid var(--sb-line-soft);
+}
+
+.sb-minilist__item:last-child {
+	border-bottom: 0;
+}
+
+.sb-minilist__thumb {
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+	overflow: hidden;
+	background: var(--sb-surface-2);
+	border: 1px solid var(--sb-line-soft);
+	border-radius: var(--sb-radius-sm);
+}
+
+.sb-minilist__thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.sb-minilist__name {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sb-minilist__meta {
+	flex: 0 0 auto;
+	color: var(--sb-muted);
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ category circles */
+
+.sb-circlelist {
+	display: grid;
+	gap: var(--sb-space-3);
+}
+
+.sb-circlerow {
+	display: flex;
+	gap: var(--sb-space-4);
+	align-items: flex-start;
+	padding: var(--sb-space-3);
+	background: var(--sb-surface-2);
+	border: 1px solid var(--sb-line-soft);
+	border-radius: var(--sb-radius-sm);
+}
+
+/*
+ * Below the count cut-off. Dimmed rather than hidden or moved: the owner needs to see that the
+ * category exists and is one place away from being on the homepage.
+ */
+.sb-circlerow.is-hidden {
+	opacity: 0.62;
+}
+
+.sb-circlerow__image {
+	flex: 0 0 auto;
+}
+
+.sb-circlerow__image .sb-field {
+	margin-bottom: 0;
+}
+
+.sb-circlerow__body {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.sb-circlerow__name {
+	margin: 0 0 var(--sb-space-1);
+	font-weight: 600;
+}
+
+.sb-circlerow__body .sb-field {
+	margin-top: var(--sb-space-3);
+	margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+	.sb-circlerow {
+		flex-direction: column;
+	}
+}
+
+/* ------------------------------------------------------------------ colour fields */
+
+.sb-color {
+	display: flex;
+	gap: var(--sb-space-2);
+	align-items: center;
+}
+
+/*
+ * The native swatch renders as a bordered button with its own padding, and browsers disagree about
+ * all of it. Stripping the chrome and sizing the well by hand is the only way it sits level with
+ * the text input beside it.
+ */
+.sb-color__swatch {
+	flex: 0 0 auto;
+	width: 42px;
+	height: 38px;
+	padding: 2px;
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	cursor: pointer;
+}
+
+.sb-color__swatch::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+.sb-color__swatch::-webkit-color-swatch,
+.sb-color__swatch::-moz-color-swatch {
+	border: 0;
+	border-radius: 6px;
+}
+
+.sb-color__hex {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	text-transform: lowercase;
+}
+
+.sb-input.is-invalid {
+	border-color: var(--sb-bad);
+}
+
+.sb-hint--bad {
+	color: var(--sb-bad);
+}
+
+/* A button that reads as a link: opens an editor without pretending to be a navigation. */
+.sb-linkbtn {
+	padding: 0;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	background: none;
+	border: 0;
+	cursor: pointer;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.sb-linkbtn:hover {
+	color: var(--sb-ok);
+}
+
+/* ------------------------------------------------------------------ reviews */
+
+.sb-reviews {
+	display: grid;
+	gap: var(--sb-space-3);
+}
+
+.sb-review {
+	padding: var(--sb-space-4);
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+}
+
+.sb-review__head {
+	display: flex;
+	gap: var(--sb-space-3);
+	justify-content: space-between;
+	align-items: flex-start;
+}
+
+.sb-review__who {
+	margin: 0 0 var(--sb-space-1);
+}
+
+.sb-review__meta {
+	margin: 0;
+	color: var(--sb-muted);
+	font-size: 13px;
+}
+
+/* The body is inserted as text, so its own newlines are all that separate the paragraphs. */
+.sb-review__body {
+	margin: var(--sb-space-3) 0;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+.sb-review__tools {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sb-space-2);
+}
+
+.sb-stars {
+	display: inline-flex;
+	gap: 1px;
+	vertical-align: -2px;
+	color: var(--sb-line);
+}
+
+.sb-stars .is-on {
+	color: var(--sb-warn);
+}
+
+/* ------------------------------------------------------------------ menu tree */
+
+.sb-menutree {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sb-menutree.is-busy {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.sb-menurow {
+	display: flex;
+	gap: var(--sb-space-3);
+	align-items: center;
+	padding: var(--sb-space-2) var(--sb-space-3);
+	border: 1px solid var(--sb-line-soft);
+	border-radius: var(--sb-radius-sm);
+	margin-bottom: var(--sb-space-2);
+	background: var(--sb-surface);
+}
+
+/*
+ * Depth as margin rather than nested lists. The tree is rendered flat so that "move up" can treat
+ * siblings as a plain sequence; indenting the row is what puts the shape back.
+ */
+.sb-menurow--d1 {
+	margin-left: var(--sb-space-5);
+}
+
+.sb-menurow--d2 {
+	margin-left: calc(var(--sb-space-5) * 2);
+	background: var(--sb-surface-2);
+}
+
+.sb-menurow__icon {
+	display: flex;
+	flex: 0 0 auto;
+	width: 26px;
+	height: 26px;
+	align-items: center;
+	justify-content: center;
+	color: var(--sb-muted);
+}
+
+.sb-menurow__icon img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.sb-menurow__main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.sb-menurow__title {
+	display: block;
+	font-weight: 600;
+}
+
+.sb-menurow__url {
+	display: block;
+	overflow: hidden;
+	color: var(--sb-muted);
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sb-menurow__tools {
+	display: flex;
+	flex: 0 0 auto;
+	gap: var(--sb-space-1);
+}
+
+@media (max-width: 600px) {
+	/* Two levels of indent would leave a third-level label about eight characters wide. */
+	.sb-menurow--d1 {
+		margin-left: var(--sb-space-3);
+	}
+
+	.sb-menurow--d2 {
+		margin-left: var(--sb-space-5);
 	}
 }

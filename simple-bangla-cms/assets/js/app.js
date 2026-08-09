@@ -9,7 +9,7 @@
  */
 
 import { html, render, useState, useEffect, Icon, Placeholder, Toaster } from './ui.js';
-import { SB, can } from './api.js';
+import { SB, canAny } from './api.js';
 import { NAV, BUILT_THROUGH, findRoute } from './nav.js';
 import { useRoute, navigate, href, onLinkClick } from './router.js';
 import { Overview } from './screens/overview.js';
@@ -19,6 +19,45 @@ import { Categories } from './screens/categories.js';
 import { Orders } from './screens/orders.js';
 import { OrderDetail } from './screens/order-detail.js';
 import { Invoice } from './screens/invoice.js';
+import { Hero } from './screens/hero.js';
+import { HotDeals } from './screens/hot-deals.js';
+import { Circles } from './screens/circles.js';
+import { Rows } from './screens/rows.js';
+import { Banners } from './screens/banners.js';
+import { MenuScreen } from './screens/menu.js';
+import { FooterSettings } from './screens/footer.js';
+import { Reviews } from './screens/reviews.js';
+import { Settings } from './screens/settings.js';
+import { Coupons } from './screens/coupons.js';
+import { Customers } from './screens/customers.js';
+import { Blocked } from './screens/blocked.js';
+import { Admins } from './screens/admins.js';
+
+/**
+ * Screens with no parameters in their path.
+ *
+ * The homepage group added five at once, all of the same shape; another five `if` blocks would
+ * have buried the two routes that genuinely need a pattern match.
+ */
+const SIMPLE = {
+	'/': { title: 'Overview', view: () => html`<${ Overview } />` },
+	'/products': { title: 'Products', view: () => html`<${ Products } />` },
+	'/categories': { title: 'Categories', view: () => html`<${ Categories } />` },
+	'/orders': { title: 'Orders', view: () => html`<${ Orders } />` },
+	'/hero': { title: 'Hero Slider', view: () => html`<${ Hero } />` },
+	'/hot-deals': { title: 'Hot Deals', view: () => html`<${ HotDeals } />` },
+	'/circles': { title: 'Category Circles', view: () => html`<${ Circles } />` },
+	'/rows': { title: 'Product Rows', view: () => html`<${ Rows } />` },
+	'/banners': { title: 'Banners', view: () => html`<${ Banners } />` },
+	'/coupons': { title: 'Coupons', view: () => html`<${ Coupons } />` },
+	'/menu': { title: 'Menu', view: () => html`<${ MenuScreen } />` },
+	'/footer': { title: 'Footer', view: () => html`<${ FooterSettings } />` },
+	'/reviews': { title: 'Reviews', view: () => html`<${ Reviews } />` },
+	'/settings': { title: 'Settings', view: () => html`<${ Settings } />` },
+	'/customers': { title: 'Customers', view: () => html`<${ Customers } />` },
+	'/blocked': { title: 'Blocked List', view: () => html`<${ Blocked } />` },
+	'/admins': { title: 'Manage Admins', view: () => html`<${ Admins } />` },
+};
 
 /**
  * Map a path to the screen that renders it and the nav item it belongs under.
@@ -27,12 +66,8 @@ import { Invoice } from './screens/invoice.js';
  * leaving nothing selected while the owner edits.
  */
 function resolve( path ) {
-	if ( path === '/' ) {
-		return { navKey: '/', title: 'Overview', view: html`<${ Overview } />` };
-	}
-
-	if ( path === '/products' ) {
-		return { navKey: '/products', title: 'Products', view: html`<${ Products } />` };
+	if ( SIMPLE[ path ] ) {
+		return { navKey: path, title: SIMPLE[ path ].title, view: SIMPLE[ path ].view() };
 	}
 
 	const product = path.match( /^\/products\/([A-Za-z0-9-]+)$/ );
@@ -43,14 +78,6 @@ function resolve( path ) {
 			title: product[ 1 ] === 'new' ? 'New product' : 'Edit product',
 			view: html`<${ ProductEdit } id=${ product[ 1 ] } />`,
 		};
-	}
-
-	if ( path === '/categories' ) {
-		return { navKey: '/categories', title: 'Categories', view: html`<${ Categories } />` };
-	}
-
-	if ( path === '/orders' ) {
-		return { navKey: '/orders', title: 'Orders', view: html`<${ Orders } />` };
 	}
 
 	// The invoice is matched before the plain order route, or /orders/57/invoice would fall
@@ -149,7 +176,7 @@ function Rail( { navKey } ) {
 
 			<div class="sb-rail__nav">
 				${ NAV.map( ( group ) => {
-					const items = group.items.filter( ( item ) => can( item.ability ) );
+					const items = group.items.filter( ( item ) => canAny( item.ability ) );
 
 					if ( ! items.length ) {
 						return null;

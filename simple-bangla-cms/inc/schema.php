@@ -39,11 +39,14 @@ function simple_bangla_cms_settings_schema() {
 	if ( function_exists( 'simple_bangla_color_tokens' ) ) {
 		foreach ( simple_bangla_color_tokens() as $key => $token ) {
 			$schema[ 'simple_bangla_color_' . $key ] = array(
-				'type'     => 'color',
-				'default'  => $token['default'],
-				'sanitize' => 'simple_bangla_cms_sanitize_hex',
-				'group'    => 'colors',
-				'label'    => $token['label'],
+				'type'        => 'color',
+				'default'     => $token['default'],
+				'sanitize'    => 'simple_bangla_cms_sanitize_hex',
+				'group'       => 'colors',
+				'label'       => $token['label'],
+				// The theme already explains what each token paints. Repeating that sentence in the
+				// interface would be a second copy to keep true.
+				'description' => isset( $token['description'] ) ? $token['description'] : '',
 			);
 		}
 	}
@@ -53,11 +56,12 @@ function simple_bangla_cms_settings_schema() {
 	if ( function_exists( 'simple_bangla_contact_fields' ) ) {
 		foreach ( simple_bangla_contact_fields() as $key => $field ) {
 			$schema[ 'simple_bangla_contact_' . $key ] = array(
-				'type'     => $field['type'],
-				'default'  => $field['default'],
-				'sanitize' => $field['sanitize'],
-				'group'    => 'store',
-				'label'    => $field['label'],
+				'type'        => $field['type'],
+				'default'     => $field['default'],
+				'sanitize'    => $field['sanitize'],
+				'group'       => 'store',
+				'label'       => $field['label'],
+				'description' => isset( $field['description'] ) ? $field['description'] : '',
 			);
 		}
 	}

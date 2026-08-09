@@ -3,7 +3,7 @@
  * Plugin Name:       Simple Bangla CMS
  * Plugin URI:        https://simplebangla.com/
  * Description:       A custom store-management interface for Simple Bangla, so day-to-day work happens outside wp-admin. This plugin is the API half: authentication, the settings bridge and the dashboard endpoints.
- * Version:           0.4.0
+ * Version:           1.0.0
  * Requires at least: 6.4
  * Requires PHP:      7.4
  * Author:            Simple Bangla
@@ -21,7 +21,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SIMPLE_BANGLA_CMS_VERSION', '0.4.0' );
+define( 'SIMPLE_BANGLA_CMS_VERSION', '1.0.0' );
 define( 'SIMPLE_BANGLA_CMS_FILE', __FILE__ );
 define( 'SIMPLE_BANGLA_CMS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLE_BANGLA_CMS_URL', plugin_dir_url( __FILE__ ) );
@@ -32,7 +32,11 @@ define( 'SIMPLE_BANGLA_CMS_URL', plugin_dir_url( __FILE__ ) );
  * Products, orders, customers, coupons and reviews are NOT re-implemented here — WooCommerce's
  * own `wc/v3` already covers them, is maintained by WooCommerce, and stays correct across
  * updates. This namespace only fills the gaps `wc/v3` has no concept of: theme settings, an
- * aggregated dashboard, and later the menu and block-list modules.
+ * aggregated dashboard, the theme's menu locations, the order block list, and staff accounts.
+ *
+ * Staff is the one place something core already offers is reimplemented, and the reason is the
+ * guards rather than the CRUD — `wp/v2/users` will happily let an owner demote their only
+ * administrator from a phone. See inc/rest-staff.php.
  */
 define( 'SIMPLE_BANGLA_CMS_REST_NS', 'sb-cms/v1' );
 
@@ -47,6 +51,9 @@ require_once SIMPLE_BANGLA_CMS_DIR . 'inc/app.php';
 require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-session.php';
 require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-settings.php';
 require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-dashboard.php';
+require_once SIMPLE_BANGLA_CMS_DIR . 'inc/menu-icon.php';
+require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-blocklist.php';
+require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-staff.php';
 
 /**
  * Tell WooCommerce this plugin is safe under High-Performance Order Storage.
@@ -125,6 +132,18 @@ function simple_bangla_cms_admin_notices() {
 		printf(
 			'<div class="notice notice-warning"><p>%s</p></div>',
 			esc_html__( 'Simple Bangla CMS is active but the Simple Bangla theme is not. Content and appearance settings are disabled until it is, because theme settings are stored per theme.', 'simple-bangla-cms' )
+		);
+	}
+
+	if ( ! simple_bangla_cms_permalinks_ready() ) {
+		printf(
+			'<div class="notice notice-error"><p>%s</p></div>',
+			sprintf(
+				/* translators: %s: URL of the permalink settings screen. */
+				wp_kses_post( __( 'Permalinks are set to Plain, so <code>%1$s</code> will not open. Choose <strong>Post name</strong> under <a href="%2$s">Settings → Permalinks</a>.', 'simple-bangla-cms' ) ),
+				esc_html( simple_bangla_cms_url() ),
+				esc_url( admin_url( 'options-permalink.php' ) )
+			)
 		);
 	}
 

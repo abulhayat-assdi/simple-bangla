@@ -44,4 +44,10 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require_once SIMPLE_BANGLA_DIR . 'inc/woocommerce.php';
 	require_once SIMPLE_BANGLA_DIR . 'inc/recently-viewed.php';
 	require_once SIMPLE_BANGLA_DIR . 'inc/ajax-filter.php';
+	/*
+	 * The block list enforces itself at the checkout, so it belongs to the theme that owns the
+	 * checkout. The CMS plugin only edits the list; deactivating it must not quietly let blocked
+	 * customers order again.
+	 */
+	require_once SIMPLE_BANGLA_DIR . 'inc/blocklist.php';
 }

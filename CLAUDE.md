@@ -106,14 +106,24 @@ simple-bangla-cms/
 │   ├── app.php                   login page, no-access page, app shell + boot payload
 │   ├── rest-session.php          /session — user, abilities, store, environment
 │   ├── rest-settings.php         /settings — GET schema+values, POST batch write
-│   └── rest-dashboard.php        /dashboard — one request, every figure
+│   ├── rest-dashboard.php        /dashboard — one request, every figure
+│   ├── menu-icon.php             menu-item icon meta for REST + /menu-locations
+│   ├── rest-blocklist.php        /blocklist — editor for the theme's list
+│   └── rest-staff.php            /staff — staff accounts, with the lockout guards
 └── assets/
-    ├── css/cms.css               ~26 KB
-    ├── js/    api · ui · nav · router · media · order-utils · app
+    ├── css/cms.css               ~40 KB
+    ├── js/    api · ui · nav · router · media · order-utils · settings-form · app
     │           screens/  overview · products · product-edit · categories
     │                     orders · order-detail · invoice
+    │                     hero · hot-deals · circles · rows · banners
+    │                     menu · footer · reviews · settings · coupons
+    │                     customers · blocked · admins
     └── vendor/preact-htm.module.js   13 KB, vendored
 ```
+
+The theme gained one file for the CMS's sake — and only because the CMS could not be allowed to own
+it: `simple-bangla/inc/blocklist.php`, which stores the order block list and enforces it at the
+checkout. See phase 7 below.
 
 ---
 
@@ -788,6 +798,258 @@ appears in the status `<select>` and `'460'` is a substring of `'2,460'`, so two
 against text that had nothing to do with the totals block. And fixtures need every searched field
 unique per run, phone numbers included.
 
+### Phase 5 — homepage modules (2026-08-08)
+
+Five screens — Hero Slider, Hot Deals, Category Circles, Product Rows, Banners — and, like phases
+3 and 4, **no new PHP**. `/settings` was built in phase 1 to hand back schema and values together
+for any group, so every one of these screens is a form the plugin was never hard-coded for. Only
+the version moved (0.5.0) so browsers fetch the new assets.
+
+- **`settings-form.js` holds the shape all five share.** `useSettings( group )` loads a group,
+  tracks what changed against a server-confirmed baseline, and posts back **only the changed
+  keys**. Five hand-written copies of that loop would have meant five slightly different answers to
+  "what counts as unsaved", and the endpoint rejects an empty batch with a 400 — which is what a
+  save button that does not know it has nothing to send produces.
+- **The form trusts the server's echo, not the local value.** A sanitiser may clamp a count or tidy
+  a URL, and the field should show what was actually stored.
+- **Counts are bounded in the input at 2–24**, because `simple_bangla_sanitize_count()` silently
+  clamps to that range. Combined with trusting the echo, an unbounded input would let the owner
+  type 40 and watch the field jump to 24 on save with no explanation.
+- **Slide, row and banner-pair counts are read off the field names**, not hard-coded — the schema
+  is already generated from `SIMPLE_BANGLA_HERO_SLIDES` / `HOME_ROWS` / `HOME_BANNERS`, so raising
+  one of those constants puts a sixth slide on the screen with no front-end change.
+- **Hot Deals shows what the row will actually contain**, queried from WooCommerce with the same
+  `on_sale` filter the theme uses. The row has no product picker — it fills itself — so "how many"
+  is unanswerable without knowing how many products are on sale, and an empty preview is the honest
+  early warning that the homepage row will be empty too.
+- **Category Circles edits two different stores at once.** The count is a `theme_mod`; each
+  category's picture and position are WooCommerce's. They are on one screen because the owner is
+  answering one question, and the save is **not atomic across the two APIs** — categories are
+  written first, one at a time, and a failure stops the run with the successful ones already
+  committed and shown as saved. Claiming "nothing was saved" after four of six went through would
+  be the more comfortable lie.
+- **Row heading and row category stay two independent fields**, and the interface never derives one
+  from the other. That is the whole point of the screen: the reference site couples them and gets
+  it wrong on five of its six rows.
+- **`menu_order` is not in WooCommerce's `orderby` enum for terms**, so the circles list is sorted
+  client-side — by menu order, then name, which is the order the theme's `get_terms()` call
+  produces.
+
+**A bug worth remembering, caught before the browser run:** WooCommerce sends a category's `image`
+as an empty **array** when there is no thumbnail, and `[]` is truthy in JavaScript. The obvious
+`category.image ? category.image.id : 0` therefore yields `undefined` for exactly the categories
+that have no picture — so every one of them would have read as permanently unsaved, and the save
+button would never have gone back to "Saved". Hence `imageIdOf()`.
+
+**Not built, deliberately:** `simple_bangla_home_hotdeals_heading` exists in the Customizer and in
+the generated schema but **the theme reads it nowhere** — the Hot Deals shelf became the hero's
+left column when the hero was rebuilt on 2026-08-06 and the heading was left behind. The CMS does
+not render a control for it, because a field that visibly does nothing is worse than an absent one.
+It wants either wiring into `hero.php` or removing from `customizer-home.php`; until then it is
+dead in both interfaces.
+
+Verified with 47 browser assertions against real WordPress + WooCommerce with the demo catalogue
+imported: the five sidebar items losing their "soon" badge while phase 6/7 keep theirs, Save
+starting disabled and enabling on the first edit, a save on each of the four writing screens, and
+every value re-read after a reload so the check is server-side rather than self-confirming. Then
+the part that matters most — **the storefront**: the row heading typed into the CMS printing on the
+homepage, the hero and banner links present in the markup, exactly the 4 circles the count was set
+to, and 5 product rows after one was switched off. Plus category `menu_order` reaching WooCommerce
+and reordering the list, no horizontal overflow across three screens at 390/768/1360, and no
+console errors.
+
+Two lessons about the checks, both of which produced false failures first:
+
+- **Set state, do not toggle it.** The suite clicked row 6's switch and then asserted the row was
+  off. A previous run had already left it off, so the click turned it back on. A run has to
+  establish the state it asserts, not assume where it started.
+- **Type into a cleared field.** `page.type()` appends. The hero link field already held a URL from
+  the demo importer, so the new value landed as
+  `http://…/shop//shop/?hero=…` and the "did it persist" check failed against a value that had
+  in fact persisted perfectly.
+
+And one about this machine: **Playground here answers a single request in about 25 seconds** (three
+WASM workers on four CPUs). A 20-second wait for a save that writes a WooCommerce term and then a
+theme mod reported a working save as broken. Timeouts in these suites are set in minutes, not
+seconds.
+
+### Phase 6 — menu, footer, settings, reviews, coupons (2026-08-09)
+
+Five screens, and the first new PHP since phase 2 — 90 lines of it, all in `inc/menu-icon.php`.
+
+- **The theme's per-item menu icon had to be registered for REST.** `wp/v2/menu-items` has existed
+  since WP 5.9, so the Menu screen needs no endpoint of its own, but the icon lives in
+  `_simple_bangla_menu_icon`, a protected post meta key nothing had exposed. Without registering
+  it, the CMS could not see the icon and — worse — saving a menu item from the CMS would leave it
+  carrying an icon the owner could neither see nor remove. The meta stays the theme's; only its
+  REST exposure lives in the plugin, so deactivating the plugin still changes nothing.
+  `auth_callback` gates it on `edit_theme_options`, the same capability Appearance → Menus uses.
+- **`/menu-locations` is the one genuinely new endpoint.** `wp/v2/menus` says which locations a
+  menu is assigned to, which cannot answer "is the primary location empty?" — and an empty primary
+  location is exactly the state where the shop renders no navigation at all and the owner needs
+  telling.
+- **`reviews.moderate` was added to the ability map.** WooCommerce gates its review endpoints on
+  `moderate_comments`, not on any product capability, so the sidebar's original `products.view`
+  would have shown the screen to a catalogue editor who then got a 403 from every request on it.
+  This is the ability table doing the job it was built for.
+- **The schema now carries each field's description**, pulled from the theme's own registries.
+  `simple_bangla_contact_fields()` already explains that the phone number is also the mobile Call
+  button; the CMS prints that sentence rather than keeping a second copy of it.
+- **`SchemaField` picks its control from `spec.type`, never from a list of keys.** That is what
+  keeps the generated-schema promise alive one layer up: a colour token added to the theme gets a
+  colour picker here with no change to the plugin. `layoutFields()` names which settings each card
+  holds and sweeps anything unnamed into a trailing "Other" card, so a new field can never silently
+  vanish because nobody listed it.
+- **Settings holds two stores of truth and says so.** Colours are theme mods through `/settings`;
+  the address and currency are WooCommerce's through `wc/v3/settings/general`, written as one
+  batch. Same non-atomic caveat as the circles screen, and the same honesty about it.
+- **The sidebar's Settings item asks for either `appearance.manage` or `store.manage`** — hence
+  `canAny()`. Gating it on one would have hidden a working half of the screen from someone entitled
+  to it; each card re-checks for itself.
+- **Payment gateways and shipping are deliberately absent from Settings.** bKash, SSLCommerz and
+  Nagad are plugin screens with no REST API, and a payments card that silently omitted the gateway
+  the shop actually uses would be worse than sending the owner to wp-admin. This is the
+  "maintenance door" line drawn concretely.
+- **Review bodies are rendered as text, parsed with `DOMParser`.** It is the one field in the CMS
+  written by a stranger, and a moderation queue is precisely where an unreviewed review should not
+  be executing anything. `DOMParser` rather than assigning `innerHTML` to a detached div: a parsed
+  document is inert, while a detached div still kicks off `<img src>` loads in some browsers.
+- **Reviews open on the pending queue, not on "all".** The only reason to open the screen is that
+  something is waiting; a list opening on three hundred approved reviews buries the two that need
+  an answer.
+- **Menu reordering is buttons, not drag-and-drop**, and depth is changed by choosing a parent. A
+  three-level tree that has to work under a thumb is where drag-and-drop stops being obvious, and
+  "move up" is unambiguous in a way that dropping between two nested rows is not. The parent list
+  excludes the item itself, its own descendants, and anything already at the deepest level the
+  theme renders.
+- **Deleting a menu item takes its children with it, and the confirmation counts them.** WordPress
+  does not re-parent them; they would keep pointing at an id that no longer exists and vanish from
+  the menu with no way to find them again.
+- **Deleting a coupon is permanent, unlike a product.** WooCommerce would trash it, but the CMS has
+  no trash view to retrieve it from, so a trashed coupon would simply disappear.
+
+**Known weight on the Settings screen:** `woocommerce_default_country` is a country *and state*
+list — measured at **2,221 options, out of 2,388 on the whole page**. One field is therefore about
+ninety per cent of that screen's DOM. It renders fine and is left as it is, because it is the one
+control that says where the shop physically is and a Bangladeshi store sets it once; but if that
+screen ever needs trimming, this is the only thing on it worth trimming.
+
+**The bug the browser run caught**, and the second one in two phases to come from reading a value
+before checking its shape: `layoutFields()` guarded `Object.keys( fields || {} )` but then read
+`fields[ key ]` directly in the same function. `fields` is null until the fetch lands, and both
+callers run it during the very render in which `SettingsPage` is showing its spinner — so the
+first paint of Footer and Settings threw a TypeError and took the whole app down with it. The
+screen showed nothing at all, which the suite could only report as "timed out waiting for a
+selector."
+
+Two things followed from that. The guard belongs at the top of the function, not on one line of
+it. And the suite now prints the page's console errors and its URL when it throws, so a render
+that crashed names itself instead of arriving as an anonymous selector timeout — the failure and
+its cause were three minutes apart in wall-clock time and would have been one line apart in the
+log.
+
+**A second one, subtler:** the Menu screen has to resolve *which* menu to show before it can list
+anything, and it was setting `items` to `[]` while that was still in flight. An empty array is the
+empty state, so every visit flashed "This menu is empty" over a menu that was about to load. The
+two conditions are genuinely different — "we do not know yet" and "there is nothing" — and only
+the menu list can tell them apart, so `items` now stays null until it arrives. The theme registers
+four locations (`primary`, `footer-1..3`), so there is always more than one menu and the window
+was always there; it just took a browser reading the first paint to notice it.
+
+The matching test lesson: **wait for the thing you are asserting about, not for whichever state
+paints first.** `waitForSelector( '.sb-menutree, .sb-empty' )` was satisfied by the empty state
+during exactly that window and then counted zero rows.
+
+Verified with 47 browser assertions against real WordPress + WooCommerce with the demo catalogue:
+the five sidebar items losing their "soon" badge while phase 7 keeps its own, the footer hints
+arriving from the theme's own registry, a save on Footer, Settings, Coupons and Menu with every
+value re-read after a reload, a malformed hex flagged in the field and cleared when fixed, the
+colour reaching a theme mod while the store city reaches WooCommerce **in the same save**, a
+coupon created and reopened, the reviews queue defaulting to pending and its "all" filter loading,
+the imported menu rendering with its nesting, a new menu item added and reopened with its icon
+field — then the storefront showing the phone, the address, the brand colour and the new menu item
+that were typed into the CMS. Plus no horizontal overflow across four screens at 390/768/1360 and
+no console errors.
+
+One false failure worth naming: the coupon amount was asserted as the string `'15'` and WooCommerce
+returns `'15.00'`. Same discount, different string — **compare money numerically.**
+
+### Phase 7 — customers, block list, staff (2026-08-09)
+
+The last three screens, and the phase where a design rule had to be defended rather than followed.
+
+**The block list is enforced by the theme, not by the plugin** (owner's decision, 2026-08-09, after
+being asked). A block list is a safety control, and the project's standing rule is that
+deactivating the CMS plugin changes nothing about the storefront. Enforcing the list from the
+plugin would have broken that rule in the worst possible direction: deactivating the *management
+interface* would quietly let blocked customers order again. Checkout belongs to the theme, so the
+blocking belongs to the theme. `simple-bangla/inc/blocklist.php` owns the data and hooks
+`woocommerce_after_checkout_validation`; the plugin's `/blocklist` endpoint is only an editor for
+it and calls the theme's own `simple_bangla_save_blocklist()` rather than repeating the rules.
+
+- **Phone numbers are stored as typed and matched on their last ten digits.** The same Bangladeshi
+  mobile arrives as `01712345678`, `+8801712345678`, `8801712345678` and `01712-345678` depending
+  on the customer and the keyboard. Comparing raw strings would block one spelling and wave the
+  next one through, which is the same as not blocking at all. Stored as typed so the owner still
+  recognises the number in the list.
+- **Stored as an option, not a `theme_mod`.** It is operational data rather than appearance, and
+  the settings bridge carries scalars while this is a list of records.
+- **Validation, not order creation.** The customer is refused before anything is written, so there
+  is no half-order and no stock movement to undo.
+- **The refusal does not say "you are blocked."** It says the order cannot be placed and gives the
+  shop's phone number. The shop may want to talk to the person, and someone whose number was
+  mistyped onto the list deserves a way back rather than an accusation.
+- **The whole list is sent on every save.** It is short and edited rarely, so add, edit and remove
+  are one request with no half-applied state. The endpoint reports how many entries the theme
+  rejected, and the screen says so — claiming "saved" over a silently discarded row would only be
+  discovered when the blocked customer ordered again.
+
+**Staff is the one place core is re-implemented, and the reason is the guards, not the CRUD.**
+`wp/v2/users` will happily let an owner demote their only administrator from a phone. `/staff`
+enforces: you cannot change your own role, you cannot delete yourself, the last administrator
+cannot be removed or demoted, and only an administrator can hand out the administrator role.
+Enforcing those with filters instead would have applied them to wp-admin too — the escape hatch
+this whole project depends on staying unchanged. The screen mirrors the rules in what it offers,
+because a disabled control explains itself better than an error, but the endpoint is the control.
+
+- **No password is set or sent.** WordPress emails the new account a link to choose its own, which
+  keeps it out of the request, out of the response, and out of whatever the owner would otherwise
+  have typed it into to pass it on.
+- **Three roles offered, not eight.** WordPress ships a set that mostly describes a magazine;
+  `author` on a shop's staff screen invites a choice that means nothing here. A user holding some
+  other role is shown but marked unmanaged rather than silently converted.
+
+**Customers is read-only, deliberately.** Editing an address here would change it for future orders
+and not for the one being delivered, which is the opposite of what anyone clicking "edit" would
+expect. The row links to that customer's orders instead — and the screen says plainly that only
+registered accounts appear, because on a cash-on-delivery store most orders are placed as a guest
+and an empty result would otherwise read as "no such customer". That link seeds the Orders screen
+from `?search=`, which meant teaching Orders to read the parameter; before that it was a link that
+looked like it did something and did not.
+
+**The test lesson of this phase: do not drive a slow server through the UI to observe a server
+verdict.** The first suite filled the checkout form, clicked "Place order" and waited for either an
+error notice or the order-received page. On an instance answering in ~25 seconds that is a race with
+nothing useful at stake, and it timed out at three minutes having proved nothing — while a probe
+showed the block was working perfectly all along. The suite now posts the serialised form to
+`/?wc-ajax=checkout`, which is exactly what WooCommerce's own checkout script does, and reads
+`result` and `messages` out of the JSON. Deterministic, seconds instead of minutes, and it asserts
+the thing that actually matters.
+
+Verified with 26 browser assertions: every screen out of "soon", Customers loading and saying where
+guest orders live, the staff list marking the signed-in account and offering it neither a role
+select nor a Remove button, the sole-administrator warning, and — asked directly over REST, past the
+interface — **the server refusing a self-demotion with `sb_cms_not_self`**. Then the block list end
+to end: a number added from the CMS, surviving a reload, and the theme answering `result: failure`
+with the Bangla refusal when that number tries to check out; **the same number written `+880 …`
+refused too**, which is the normalisation doing its job; and a control order from an unrelated
+number succeeding, without which the two refusals would only prove the checkout was broken. Then
+unblocking, no horizontal overflow across three screens at 390/768/1360, and no console errors.
+
+One more test bug of the same family as the earlier ones: `attemptCheckout()` read the CMS boot
+payload for a product id, but after its first call the browser is on the storefront, where that
+element does not exist. Resolve shared fixtures once, before the run leaves the page that has them.
+
 ### Build order
 
 | Phase | Scope | State |
@@ -797,9 +1059,12 @@ unique per run, phone numbers included.
 | 2 | `/manage` route, branded login, sidebar shell, dashboard screen | ✅ done 2026-08-08 |
 | 3 | Products + Categories + media | ✅ done 2026-08-08 |
 | 4 | Orders, invoice, status, refunds | ✅ done 2026-08-08 |
-| 5 | Homepage modules (hero, rows, circles, banners) | next |
-| 6 | Menu, Footer, Settings, Reviews, Coupons | |
-| 7 | Customers, Blocked List, roles, audit log | |
+| 5 | Homepage modules (hero, rows, circles, banners) | ✅ done 2026-08-08 |
+| 6 | Menu, Footer, Settings, Reviews, Coupons | ✅ done 2026-08-09 |
+| 7 | Customers, Blocked List, staff accounts | ✅ done 2026-08-09 |
+
+All seventeen screens are built. The audit log listed against phase 7 in the original plan was
+never specified and is not built; it is the obvious next thing if the owner wants one.
 
 After phase 4 the store is genuinely runnable without wp-admin. The rest is control and polish.
 
