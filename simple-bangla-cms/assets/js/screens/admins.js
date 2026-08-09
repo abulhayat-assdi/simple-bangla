@@ -7,9 +7,9 @@
  * rules in what it offers, because a disabled control explains itself better than an error does, but
  * the disabling is a courtesy and the endpoint is the control.
  *
- * No password is set here. WordPress emails a new account a link to choose their own, which keeps it
- * out of this screen, out of the response, and out of whatever the owner would otherwise have typed
- * it into to pass it along.
+ * The password is set here, at the owner's request. It is deliberately not masked: it is being typed
+ * once in order to be handed to someone in the same room, and a masked field would only add the
+ * mistyped password that a "confirm" box then exists to catch. The endpoint never echoes it back.
  */
 
 import {
@@ -80,7 +80,7 @@ export function Admins() {
 
 			setData( ( current ) => ( { ...current, staff: [ ...current.staff, created ] } ) );
 			setAdding( false );
-			toast( created.name + ' added. They have been emailed a link to set a password.' );
+			toast( created.name + ' added. They can sign in with ' + created.email + ' and the password you set.' );
 		} catch ( e ) {
 			toast( e.message, 'bad' );
 		} finally {
@@ -225,16 +225,25 @@ export function Admins() {
 	`;
 }
 
+/** What the endpoint refuses below, mirrored so the message arrives while the field is in view. */
+const PASSWORD_MIN = 8;
+
 function StaffEditor( { roles, busy, onSave, onClose } ) {
 	const [ draft, setDraft ] = useState( {
-		username: '',
 		email: '',
+		password: '',
 		name: '',
 		role: roles.length ? roles[ roles.length - 1 ].value : 'customer',
 	} );
 
+	// Typed once and handed over, so it is shown rather than masked. Hiding it here would protect
+	// nothing — the owner is looking at their own screen and about to read it out loud anyway — and
+	// would only invite the mistyped password that a "confirm" field then exists to catch.
 	const set = ( patch ) => setDraft( ( current ) => ( { ...current, ...patch } ) );
-	const valid = draft.username.trim() && draft.email.trim() && draft.role;
+
+	const emailOk = /^\S+@\S+\.\S+$/.test( draft.email.trim() );
+	const passwordOk = draft.password.length >= PASSWORD_MIN;
+	const valid = emailOk && passwordOk && draft.role;
 
 	return html`
 		<${ Modal }
@@ -251,19 +260,9 @@ function StaffEditor( { roles, busy, onSave, onClose } ) {
 				<input class="sb-input" id="st-name" value=${ draft.name } onInput=${ ( e ) => set( { name: e.target.value } ) } />
 			<//>
 
-			<${ Field } label="Username" id="st-user" hint="What they sign in with. It cannot be changed later.">
+			<${ Field } label="Email" id="st-email" hint="This is what they sign in with.">
 				<input
-					class="sb-input"
-					id="st-user"
-					autocomplete="off"
-					value=${ draft.username }
-					onInput=${ ( e ) => set( { username: e.target.value } ) }
-				/>
-			<//>
-
-			<${ Field } label="Email" id="st-email" hint="Where the link to set a password is sent.">
-				<input
-					class="sb-input"
+					class=${ 'sb-input' + ( draft.email && ! emailOk ? ' is-invalid' : '' ) }
 					id="st-email"
 					type="email"
 					autocomplete="off"
@@ -272,9 +271,51 @@ function StaffEditor( { roles, busy, onSave, onClose } ) {
 				/>
 			<//>
 
+			<${ Field }
+				label="Password"
+				id="st-pass"
+				hint=${ 'At least ' + PASSWORD_MIN + ' characters. Shown as you type so you can pass it on — they can change it later.' }
+			>
+				<div class="sb-row">
+					<input
+						class=${ 'sb-input' + ( draft.password && ! passwordOk ? ' is-invalid' : '' ) }
+						id="st-pass"
+						type="text"
+						autocomplete="off"
+						spellcheck="false"
+						value=${ draft.password }
+						onInput=${ ( e ) => set( { password: e.target.value } ) }
+					/>
+					<button
+						class="sb-btn sb-btn--ghost sb-btn--sm"
+						type="button"
+						onClick=${ () => set( { password: suggestPassword() } ) }
+					>
+						Suggest
+					</button>
+				</div>
+			<//>
+
 			<${ Field } label="Role" id="st-role">
 				<${ Select } id="st-role" value=${ draft.role } options=${ roles } onChange=${ ( role ) => set( { role } ) } />
 			<//>
 		<//>
 	`;
+}
+
+/**
+ * A password worth suggesting.
+ *
+ * crypto.getRandomValues rather than Math.random, and an alphabet with no `l`, `1`, `O` or `0` in
+ * it — this password is going to be read off a screen and typed into a phone by someone else.
+ *
+ * @return {string}
+ */
+function suggestPassword() {
+	const alphabet = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+	const bytes = new Uint32Array( 14 );
+
+	crypto.getRandomValues( bytes );
+
+	return [ ...bytes ].map( ( n ) => alphabet[ n % alphabet.length ] ).join( '' );
 }

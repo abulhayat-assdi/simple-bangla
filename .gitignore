@@ -16,6 +16,9 @@ node_modules/
 vendor/
 *.log
 
+# Packaged theme/plugin zips — rebuilt from source, never the source of truth
+dist/
+
 # WordPress local install — the repo tracks only the theme
 wp-config.php
 wp-content/uploads/

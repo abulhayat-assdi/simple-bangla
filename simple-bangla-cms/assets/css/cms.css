@@ -423,6 +423,27 @@ img {
 	cursor: pointer;
 }
 
+/* One step back, in the topbar so every screen has it in the same place. */
+.sb-backbtn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px var(--sb-space-4) 7px var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-radius: 999px;
+	background: var(--sb-surface);
+	color: var(--sb-ink);
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.sb-backbtn:hover {
+	background: var(--sb-surface-2);
+	border-color: var(--sb-ink);
+}
+
 .sb-page {
 	padding: var(--sb-space-5);
 	max-width: 1400px;
@@ -767,6 +788,171 @@ img {
 	font-size: 13px;
 }
 
+/* ---------------------------------------------------------------- rich text */
+
+.sb-rte {
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface);
+	overflow: hidden;
+}
+
+.sb-rte__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 2px;
+	padding: 5px;
+	background: var(--sb-surface-2);
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-rte__tool {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 30px;
+	height: 30px;
+	padding: 0 6px;
+	border: 1px solid transparent;
+	border-radius: 7px;
+	background: none;
+	color: var(--sb-ink);
+	font: inherit;
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.sb-rte__tool:hover:not(:disabled) {
+	background: var(--sb-surface);
+	border-color: var(--sb-line);
+}
+
+.sb-rte__tool:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.sb-rte__tool--text {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+}
+
+.sb-rte__tool.is-on {
+	background: var(--sb-ink);
+	border-color: var(--sb-ink);
+	color: #fff;
+}
+
+.sb-rte__spacer {
+	flex: 1;
+}
+
+.sb-rte__box {
+	padding: var(--sb-space-4);
+	font-size: 15px;
+	line-height: 1.65;
+	overflow-wrap: anywhere;
+}
+
+.sb-rte__box:focus {
+	outline: 2px solid var(--sb-ink);
+	outline-offset: -2px;
+}
+
+/*
+ * The box shows what the storefront will show, near enough to judge it by. Only the shape is
+ * borrowed — sizes and weights, not the theme's brand fonts, which are not loaded here.
+ */
+.sb-rte__box > :first-child {
+	margin-top: 0;
+}
+
+.sb-rte__box > :last-child {
+	margin-bottom: 0;
+}
+
+.sb-rte__box h2 {
+	margin: 1em 0 0.4em;
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.sb-rte__box h3 {
+	margin: 1em 0 0.4em;
+	font-size: 17px;
+	font-weight: 700;
+}
+
+.sb-rte__box p {
+	margin: 0 0 0.8em;
+}
+
+.sb-rte__box ul,
+.sb-rte__box ol {
+	margin: 0 0 0.8em;
+	padding-left: 1.4em;
+}
+
+.sb-rte__box img {
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--sb-radius-sm);
+}
+
+.sb-rte__box a {
+	color: var(--sb-ink);
+}
+
+/* The HTML view sits inside the same frame, so switching does not move the field. */
+.sb-rte__source {
+	display: block;
+	width: 100%;
+	border: 0;
+	border-radius: 0;
+}
+
+.sb-rte__source:focus {
+	outline: 2px solid var(--sb-ink);
+	outline-offset: -2px;
+}
+
+/* A settings-once field folded away from the ones edited every time. */
+.sb-disclosure {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: var(--sb-space-2);
+	padding: 4px 0;
+	border: 0;
+	background: none;
+	color: var(--sb-muted);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.sb-disclosure:hover {
+	color: var(--sb-ink);
+}
+
+.sb-disclosure svg {
+	transition: transform 0.15s ease;
+}
+
+.sb-disclosure[aria-expanded='true'] svg {
+	transform: rotate(90deg);
+}
+
+.sb-disclosure__body {
+	margin-top: var(--sb-space-3);
+	padding-top: var(--sb-space-3);
+	border-top: 1px dashed var(--sb-line);
+}
+
 .sb-checklist {
 	max-height: 220px;
 	overflow-y: auto;
@@ -983,9 +1169,424 @@ a.sb-table__name:hover {
 	background: #9c3030;
 }
 
+/* A destructive action that is not the obvious next thing to do. */
+.sb-btn--danger.sb-btn--outline {
+	background: none;
+	border: 1px dashed var(--sb-bad);
+	color: var(--sb-bad);
+}
+
+.sb-btn--danger.sb-btn--outline:hover {
+	background: var(--sb-bad-bg);
+}
+
 .sb-btn:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- order stages */
+
+/*
+ * The five stages, as a scrolling strip. It has to hold "Failed / Cancelled" and a Bangla label on
+ * a 390px screen, so it scrolls sideways inside its own box rather than wrapping into three rows
+ * that push the list itself below the fold.
+ */
+.sb-tabs {
+	display: flex;
+	gap: var(--sb-space-2);
+	margin-bottom: var(--sb-space-4);
+	padding-bottom: var(--sb-space-2);
+	overflow-x: auto;
+	scrollbar-width: thin;
+	-webkit-overflow-scrolling: touch;
+}
+
+.sb-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	flex: 0 0 auto;
+	padding: 8px var(--sb-space-4);
+	border: 1px solid var(--sb-line);
+	border-radius: 999px;
+	background: var(--sb-surface);
+	color: var(--sb-ink);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.sb-tab:hover {
+	border-color: var(--sb-ink);
+}
+
+.sb-tab.is-active {
+	background: var(--sb-rail);
+	border-color: var(--sb-rail);
+	color: #fff;
+}
+
+.sb-tab__count {
+	min-width: 20px;
+	padding: 1px 6px;
+	border-radius: 999px;
+	background: var(--sb-surface-2);
+	color: var(--sb-muted);
+	font-size: 11px;
+	font-weight: 700;
+	text-align: center;
+}
+
+.sb-tab.is-active .sb-tab__count {
+	background: rgba(255, 255, 255, 0.16);
+	color: #fff;
+}
+
+.sb-orders__search {
+	margin-bottom: var(--sb-space-3);
+}
+
+/* ---------------------------------------------------------------- order cards */
+
+/*
+ * Two layouts over one list: cards under 900px, the table above it. Both are in the markup and CSS
+ * picks, so nothing depends on a resize listener having fired and a printed page gets the table.
+ */
+.sb-ordercards {
+	display: none;
+}
+
+.sb-ordercard {
+	margin-bottom: var(--sb-space-3);
+	padding: var(--sb-space-4);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+	background: var(--sb-surface);
+}
+
+.sb-ordercard.is-selected {
+	border-color: var(--sb-ink);
+	background: var(--sb-surface-2);
+}
+
+.sb-ordercard__top {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	margin-bottom: var(--sb-space-3);
+	padding-bottom: var(--sb-space-3);
+	border-bottom: 1px solid var(--sb-line-soft);
+}
+
+.sb-ordercard__pick {
+	display: flex;
+	/* A 20px checkbox is not a thumb target; the label around it is. */
+	padding: 4px;
+	margin: -4px;
+}
+
+.sb-ordercard__no {
+	flex: 1;
+	color: var(--sb-ink);
+	font-size: 15px;
+	font-weight: 800;
+	text-decoration: none;
+}
+
+.sb-ordercard__row {
+	display: grid;
+	grid-template-columns: 96px minmax(0, 1fr);
+	gap: var(--sb-space-3);
+	padding: 7px 0;
+	border-bottom: 1px solid var(--sb-line-soft);
+}
+
+.sb-ordercard__row:last-of-type {
+	border-bottom: 0;
+}
+
+.sb-ordercard__label {
+	color: var(--sb-muted);
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	padding-top: 2px;
+}
+
+.sb-ordercard__value {
+	font-size: 14px;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.sb-ordercard__name {
+	display: block;
+	font-weight: 700;
+}
+
+.sb-ordercard__phone {
+	color: var(--sb-muted);
+	font-size: 13px;
+}
+
+.sb-ordercard__address {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	color: var(--sb-muted);
+}
+
+.sb-ordercard__product {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+}
+
+.sb-ordercard__product img,
+.sb-ordercard__product .sb-thumb__empty {
+	width: 40px;
+	height: 40px;
+	flex: 0 0 40px;
+	border-radius: 8px;
+	object-fit: cover;
+}
+
+.sb-ordercard__more {
+	color: var(--sb-muted);
+	font-size: 12px;
+}
+
+.sb-ordercard__foot {
+	margin-top: var(--sb-space-4);
+}
+
+@media (max-width: 900px) {
+	.sb-ordercards {
+		display: block;
+	}
+
+	.sb-orders__table {
+		display: none;
+	}
+}
+
+/* ---------------------------------------------------------------- variation chips */
+
+.sb-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 6px;
+}
+
+.sb-chip {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 5px;
+	padding: 3px 9px;
+	border: 1px solid var(--sb-line);
+	border-radius: 7px;
+	background: var(--sb-surface-2);
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.sb-chip__key {
+	color: var(--sb-muted);
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+/* ---------------------------------------------------------------- ordered items */
+
+.sb-item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-3) 0;
+	border-bottom: 1px solid var(--sb-line-soft);
+}
+
+.sb-item:last-child {
+	border-bottom: 0;
+}
+
+.sb-item__thumb img,
+.sb-item__thumb .sb-thumb__empty {
+	display: block;
+	width: 56px;
+	height: 56px;
+	border-radius: var(--sb-radius-sm);
+	object-fit: cover;
+}
+
+.sb-item__body {
+	flex: 1;
+	min-width: 0;
+}
+
+.sb-item__name {
+	margin: 0;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+.sb-item__meta {
+	margin: 2px 0 0;
+	color: var(--sb-muted);
+	font-size: 13px;
+}
+
+.sb-item__total {
+	font-weight: 800;
+	white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- fraud report */
+
+.sb-scoreboard {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+	gap: var(--sb-space-3);
+	margin: var(--sb-space-2) 0 var(--sb-space-5);
+}
+
+.sb-score {
+	padding: var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+	text-align: center;
+}
+
+.sb-score--ok {
+	border-color: rgba(31, 122, 77, 0.3);
+	background: var(--sb-ok-bg);
+}
+
+.sb-score--bad {
+	border-color: rgba(178, 59, 59, 0.3);
+	background: var(--sb-bad-bg);
+}
+
+.sb-score__value {
+	display: block;
+	font-size: 24px;
+	font-weight: 800;
+	line-height: 1.2;
+}
+
+.sb-score--ok .sb-score__value {
+	color: var(--sb-ok);
+}
+
+.sb-score--bad .sb-score__value {
+	color: var(--sb-bad);
+}
+
+.sb-score__label {
+	display: block;
+	margin-top: 2px;
+	color: var(--sb-muted);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.sb-courier-records {
+	display: grid;
+	gap: var(--sb-space-2);
+	margin-top: var(--sb-space-2);
+}
+
+.sb-courier-record {
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: var(--sb-space-3);
+	padding: var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+}
+
+.sb-courier-record__name {
+	min-width: 90px;
+	font-weight: 700;
+}
+
+.sb-courier-record__rate {
+	color: var(--sb-ok);
+	font-size: 18px;
+	font-weight: 800;
+}
+
+.sb-courier-record__rate.is-bad {
+	color: var(--sb-bad);
+}
+
+.sb-courier-record__error {
+	color: var(--sb-bad);
+	font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- courier settings */
+
+.sb-courier-block {
+	margin-top: var(--sb-space-5);
+	padding-top: var(--sb-space-4);
+	border-top: 1px solid var(--sb-line);
+}
+
+.sb-courier-block__head {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--sb-space-2);
+	margin: 0 0 var(--sb-space-3);
+}
+
+.sb-courier-block__name {
+	font-size: 15px;
+	font-weight: 800;
+}
+
+.sb-shipment {
+	margin-bottom: var(--sb-space-4);
+	padding: var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+}
+
+.sb-shipment__label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 4px;
+	font-weight: 700;
+}
+
+.sb-shipment p {
+	margin: 0;
+}
+
+.sb-mono {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 13px;
+	overflow-wrap: anywhere;
+}
+
+.sb-inline-link {
+	margin-left: var(--sb-space-3);
+	font-family: var(--sb-font);
+	font-size: 12px;
+	white-space: nowrap;
 }
 
 .sb-icon-btn {

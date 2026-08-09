@@ -56,7 +56,12 @@ $simple_bangla_socials = simple_bangla_social_links();
 				<li>
 					<a
 						href="<?php echo esc_url( $simple_bangla_social['url'] ); ?>"
-						<?php echo ( 0 === strpos( $simple_bangla_social['url'], 'mailto:' ) ) ? '' : 'target="_blank" rel="noopener"'; ?>
+						<?php
+						// mailto: and tel: are handed to the device, not opened in a tab — a
+						// target="_blank" on either leaves an empty window behind on mobile.
+						$simple_bangla_handoff = preg_match( '/^(mailto|tel):/', $simple_bangla_social['url'] );
+						echo $simple_bangla_handoff ? '' : 'target="_blank" rel="noopener"';
+						?>
 					>
 						<?php simple_bangla_icon( $simple_bangla_social['key'], 20 ); ?>
 						<span class="screen-reader-text"><?php echo esc_html( $simple_bangla_social['label'] ); ?></span>

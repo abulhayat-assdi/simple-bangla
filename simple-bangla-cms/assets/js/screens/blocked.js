@@ -14,6 +14,9 @@
  * on their last ten digits, so `01712345678` and `+8801712345678` are the same person. That
  * normalisation lives in the theme and is not repeated here; two copies of it would eventually
  * disagree, and the disagreement would look like a blocked customer who could still order.
+ *
+ * The second kind of entry is an IP address, which replaced email on 2026-08-09. An order's own IP
+ * is shown on its detail screen precisely so it can be copied into here.
  */
 
 import {
@@ -34,7 +37,7 @@ import { useUnsavedWarning } from '../settings-form.js';
 
 const TYPES = [
 	{ value: 'phone', label: 'Phone number' },
-	{ value: 'email', label: 'Email address' },
+	{ value: 'ip', label: 'IP address' },
 ];
 
 export function Blocked() {
@@ -101,7 +104,7 @@ export function Blocked() {
 		const trimmed = value.trim();
 
 		if ( ! trimmed ) {
-			toast( 'Enter a number or an email address first.', 'bad' );
+			toast( 'Enter a number or an IP address first.', 'bad' );
 			return;
 		}
 
@@ -134,8 +137,8 @@ export function Blocked() {
 				<div>
 					<h1 class="sb-page__title">Blocked List</h1>
 					<p class="sb-page__lead">
-						Numbers and addresses that cannot place an order. Checked at the checkout, before
-						anything is written.
+						Phone numbers and IP addresses that cannot place an order. Checked at the checkout,
+						before anything is written.
 					</p>
 				</div>
 			</div>
@@ -144,6 +147,9 @@ export function Blocked() {
 				<${ Card } title="Block someone">
 					<p class="sb-hint">
 						A phone number matches however it is typed — with or without +880, spaces or dashes.
+						An IP address must match exactly; you will find each order's on its own screen. Mobile
+						networks share addresses between many people, so block an IP only when a number is
+						not enough.
 					</p>
 
 					<div class="sb-grid-cards">
@@ -151,13 +157,14 @@ export function Blocked() {
 							<${ Select } id="bl-type" value=${ type } options=${ TYPES } onChange=${ setType } />
 						<//>
 
-						<${ Field } label=${ type === 'email' ? 'Email address' : 'Phone number' } id="bl-value">
+						<${ Field } label=${ type === 'ip' ? 'IP address' : 'Phone number' } id="bl-value">
 							<input
 								class="sb-input"
 								id="bl-value"
 								type="text"
 								autocomplete="off"
-								placeholder=${ type === 'email' ? 'someone@example.com' : '01712345678' }
+								spellcheck="false"
+								placeholder=${ type === 'ip' ? '103.86.220.14' : '01712345678' }
 								value=${ value }
 								onInput=${ ( e ) => setValue( e.target.value ) }
 							/>
@@ -206,7 +213,7 @@ export function Blocked() {
 														<td>
 															<span class="sb-table__name">${ entry.value }</span>
 															<div class="sb-table__sub">
-																<${ Badge }>${ entry.type === 'email' ? 'Email' : 'Phone' }<//>
+																<${ Badge }>${ entry.type === 'ip' ? 'IP address' : 'Phone' }<//>
 															</div>
 														</td>
 														<td class="sb-table__sub">${ entry.note || '—' }</td>

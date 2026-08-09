@@ -36,8 +36,6 @@ while ( have_posts() ) :
 				/** This hook is documented in woocommerce/templates/content-single-product.php */
 				do_action( 'woocommerce_single_product_summary' );
 				?>
-
-				<?php get_template_part( 'template-parts/product/assurances' ); ?>
 			</main>
 
 		</div>
@@ -48,8 +46,11 @@ while ( have_posts() ) :
 		?>
 
 		<?php
-		if ( function_exists( 'simple_bangla_recently_viewed' ) ) {
-			simple_bangla_recently_viewed( get_the_ID() );
+		// Products from this product's own categories. Replaces the recently-viewed strip that
+		// used to sit here — a shopper on a product page wants alternatives to it, not a list
+		// of the pages they have already been on.
+		if ( function_exists( 'simple_bangla_related_products' ) ) {
+			simple_bangla_related_products( get_the_ID() );
 		}
 		?>
 

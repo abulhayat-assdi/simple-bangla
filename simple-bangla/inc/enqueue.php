@@ -245,9 +245,36 @@ function simple_bangla_enqueue_assets() {
 		simple_bangla_enqueue_style( 'checkout', 'checkout.css' );
 	}
 
+	// The quantity stepper only exists on the checkout's order summary — the thank-you page
+	// runs through is_checkout() too, and has no cart left to edit.
+	if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_order_received_page() ) {
+		simple_bangla_enqueue_script( 'checkout', 'checkout.js' );
+		wp_localize_script(
+			'simple-bangla-checkout',
+			'simpleBanglaCheckout',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'simple_bangla_cart_qty' ),
+				'i18n'    => array(
+					'error' => __( 'পরিমাণ পরিবর্তন করা যায়নি। আবার চেষ্টা করুন।', 'simple-bangla' ),
+				),
+			)
+		);
+	}
+
 	if ( $is_product ) {
 		simple_bangla_enqueue_style( 'product', 'product.css' );
 		simple_bangla_enqueue_script( 'product', 'product.js' );
+		wp_localize_script(
+			'simple-bangla-product',
+			'simpleBanglaProduct',
+			array(
+				'i18n' => array(
+					'giveReview'   => __( 'Give Review', 'simple-bangla' ),
+					'cancelReview' => __( 'Cancel', 'simple-bangla' ),
+				),
+			)
+		);
 	}
 
 	simple_bangla_enqueue_script( 'header', 'header.js' );

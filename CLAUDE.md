@@ -103,20 +103,22 @@ simple-bangla-cms/
 │   ├── schema.php                theme_mod bridge, generated from the theme's own registries
 │   ├── stats.php                 dashboard figures via wc_order_stats / wc_product_meta_lookup
 │   ├── router.php                /manage matching, sign-in + throttle, sign-out
-│   ├── app.php                   login page, no-access page, app shell + boot payload
+│   ├── app.php                   login page, no-access page, app shell + boot payload + import map
 │   ├── rest-session.php          /session — user, abilities, store, environment
 │   ├── rest-settings.php         /settings — GET schema+values, POST batch write
 │   ├── rest-dashboard.php        /dashboard — one request, every figure
 │   ├── menu-icon.php             menu-item icon meta for REST + /menu-locations
 │   ├── rest-blocklist.php        /blocklist — editor for the theme's list
-│   └── rest-staff.php            /staff — staff accounts, with the lockout guards
+│   ├── rest-staff.php            /staff — staff accounts, with the lockout guards
+│   └── courier.php               /courier + /orders/{id}/courier + /record; dispatch and the
+│                                 delivery-record lookup for Steadfast, Pathao and RedX
 └── assets/
-    ├── css/cms.css               ~40 KB
-    ├── js/    api · ui · nav · router · media · order-utils · settings-form · app
+    ├── css/cms.css               ~46 KB
+    ├── js/    api · ui · nav · router · media · editor · order-utils · settings-form · app
     │           screens/  overview · products · product-edit · categories
     │                     orders · order-detail · invoice
     │                     hero · hot-deals · circles · rows · banners
-    │                     menu · footer · reviews · settings · coupons
+    │                     menu · footer · reviews · settings · coupons · courier
     │                     customers · blocked · admins
     └── vendor/preact-htm.module.js   13 KB, vendored
 ```
@@ -700,8 +702,9 @@ so browsers fetch the new assets.
   Backbone and a dependency chain that only assembles inside wp-admin. Uploads go straight to the
   library — an image added while editing a product is then available everywhere, not trapped on
   that product. Files are sent as a raw body with `Content-Disposition` rather than multipart.
-- **Descriptions are textareas holding raw HTML, not a rich-text editor.** A half-working editor
-  that silently mangles markup is worse than a box that does exactly what it appears to.
+- ~~**Descriptions are textareas holding raw HTML, not a rich-text editor.**~~ **Superseded
+  2026-08-09** — the owner asked for an editor and got `editor.js`, the plugin's own. The textarea
+  survives as its "HTML" toggle, and the stored field is unchanged. See round two.
 - **Deleting a product trashes it; deleting a category is permanent.** WooCommerce's `DELETE`
   default for products is the trash, which is what an owner mis-tapping on a phone needs. Terms
   have no trash in WordPress at all — `force=true` is required — so that confirmation says so
@@ -994,6 +997,7 @@ it and calls the theme's own `simple_bangla_save_blocklist()` rather than repeat
   recognises the number in the list.
 - **Stored as an option, not a `theme_mod`.** It is operational data rather than appearance, and
   the settings bridge carries scalars while this is a list of records.
+- **The second entry type is an IP address, not an email** (revised 2026-08-09 — see round two).
 - **Validation, not order creation.** The customer is refused before anything is written, so there
   is no half-order and no stock movement to undo.
 - **The refusal does not say "you are blocked."** It says the order cannot be placed and gives the
@@ -1012,9 +1016,10 @@ Enforcing those with filters instead would have applied them to wp-admin too —
 this whole project depends on staying unchanged. The screen mirrors the rules in what it offers,
 because a disabled control explains itself better than an error, but the endpoint is the control.
 
-- **No password is set or sent.** WordPress emails the new account a link to choose its own, which
-  keeps it out of the request, out of the response, and out of whatever the owner would otherwise
-  have typed it into to pass it on.
+- ~~**No password is set or sent.**~~ **Superseded 2026-08-09** — the owner sets the password on
+  the form and hands it over; a "check your email" step fails whenever the site cannot send mail,
+  which on a shared Bangladeshi host is most of the time. The welcome mail still goes out with a
+  reset link as a second route in. The password is never echoed back. See round two.
 - **Three roles offered, not eight.** WordPress ships a set that mostly describes a magazine;
   `author` on a shop's staff screen invites a choice that means nothing here. A user holding some
   other role is shown but marked unmanaged rather than silently converted.
@@ -1050,6 +1055,96 @@ One more test bug of the same family as the earlier ones: `attemptCheckout()` re
 payload for a product id, but after its first call the browser is on the storefront, where that
 element does not exist. Resolve shared fixtures once, before the run leaves the page that has them.
 
+### Round two — the owner's ten changes (2026-08-09, plugin 1.1.0)
+
+One message, ten requests. What changed and why, in the order it matters:
+
+- **Orders are filtered by stage, not by status.** Five tabs — New Orders, Courier-এ আছে, Completed
+  Orders, Returned, Failed / Cancelled — plus All, opening on New. The owner chose to map onto
+  WooCommerce's existing statuses rather than register new ones, so `ORDER_VIEWS` in
+  `order-utils.js` **is** that mapping and nothing else may decide it: New = `pending` + `on-hold`,
+  Courier = `processing`, Completed = `completed`, Returned = `refunded`, Failed = `failed` +
+  `cancelled`. Every status appears in exactly one tab; a status missing from all of them would be
+  an order the owner could never find. Tab counts come from `wc/v3/reports/orders/totals` — one
+  request, not five list calls made only to read their totals.
+- **`processing` means "with the courier"**, which holds because Send to Courier is the only thing
+  in the CMS that moves an order there — and it skips the move for an order already past that point,
+  so a completed order is never dragged backwards.
+- **Two order layouts, one data source.** Cards below 900px to the owner's screenshot, the table
+  above it. Both are in the markup and CSS picks; a resize listener deciding what the owner can see
+  would also decide what a printed page shows.
+- **The reference screenshots are dark; the CMS stays black-and-cream** (owner's choice). Layout
+  borrowed, palette not, so all twenty screens still look like one product.
+
+**Couriers** — `simple-bangla-cms/inc/courier.php`, entirely in the plugin. Unlike the block list,
+nothing on the storefront reads it and a shop with the plugin off simply has no button, so the
+theme knows nothing about couriers. Three are supported and the active one is chosen in Settings.
+
+Each courier needs **two unrelated sets of credentials**, and this is the thing to remember:
+
+| | Dispatch — documented API | Delivery record — portal session |
+|---|---|---|
+| Steadfast | `portal.packzy.com/api/v1/create_order`, Api-Key + Secret-Key | `steadfast.com.bd/login` (CSRF + cookie) → `/user/frauds/check/{phone}` |
+| Pathao | `api-hermes.pathao.com/aladdin/api/v1/orders`, OAuth | `merchant.pathao.com/api/v1/login` → `/api/v1/user/success` |
+| RedX | `openapi.redx.com.bd/v1.0.0-beta/parcel`, access token | `api.redx.com.bd/v4/auth/login` → `customer-success-return-rate` |
+
+**No courier publishes an API for the delivery record.** Every Bangladeshi fraud-check site signs
+in to the merchant portal and calls what that portal's dashboard calls, and so does this. It is
+therefore treated as something that will break: cached six hours, never in the way of a dispatch,
+and a failure is reported per courier as "could not be read" rather than as a number. The local
+half — this shop's own orders for that number — needs nobody and is shown first. Pathao and RedX
+address parcels by **numeric city/zone/area ID**, not by address text, so each carries a default in
+Settings; that is a real limitation and the field says so.
+
+Other decisions from the same round:
+
+- **`register_rest_field( 'shop_order', 'sb_courier' )`** rather than reading `_sb_courier` out of
+  `meta_data`. Which meta WooCommerce exposes has changed more than once and the order list would
+  have quietly lost its courier column the next time it did.
+- **A dispatch is refused twice** unless `force` is sent; the interface turns that 409 into "send it
+  again?" rather than a red toast. Two consignments for one parcel is a bill paid twice.
+- **Deleting an order erases it**, unlike a product. There is no trash view here to retrieve it
+  from, and a "deleted" order that kept appearing in search would be worse.
+- **A staff password is set on the form and shown, not masked.** It is typed once to be read out to
+  someone in the same room; masking adds only the typo a confirm field then exists to catch. The
+  username is derived from the email and never shown. Sign-in already accepted an email — core
+  registers `wp_authenticate_email_password` — so that half needed labels, not code.
+- **Rich text is the plugin's own `editor.js`**, ~9 KB, contenteditable plus a short toolbar, with
+  an HTML view as the escape hatch. WordPress's TinyMCE was the alternative and would have brought
+  jQuery, ~300 KB and wp-admin's stylesheets into the one page built to avoid them. `execCommand`
+  is deprecated with no replacement; if it ever stops working the textarea is already there and the
+  stored data does not change.
+- **A category's slug is generated and Parent is folded under "Advanced".** Parent stays because
+  several of the shop's categories are already nested and removing the control would make that
+  unreachable — but it is answered once and never again, so it is not in the way. An empty slug is
+  *omitted* from the request rather than sent blank: on an update, blank asks WooCommerce to
+  regenerate, which silently breaks every link to a category that was only being renamed.
+- **The block list is phone + IP; email is gone.** Entries stored as `type: email` are ignored and
+  dropped by the next save. IP matching uses `WC_Geolocation::get_ip_address()` — deliberately *not*
+  `REMOTE_ADDR` as the sign-in throttle does — so the address blocked is the same one WooCommerce
+  writes on the order and the CMS shows, which is where the owner copies it from. Checkout only, and
+  the file says plainly that a shared mobile-carrier address makes this a nuisance control rather
+  than a security one.
+- **Each social link has a `*_show` switch**, default on. Blanking the URL already hid the icon but
+  threw the address away; a shop pausing its Instagram for a month should not have to find the link
+  again.
+- **One back button, in the topbar.** It is then in the same place on all twenty screens including
+  the ones drawn by shared components, and a new screen cannot forget it. It prefers real history —
+  which brings scroll position and screen state back — and walks up the path only for a deep link.
+
+**The import map is a real fix, not tidying.** Versioning the entry script never versioned the
+modules it imports, so a release changing `ui.js` under a changed `app.js` would ship a new entry
+point beside cached copies of its own dependencies. `simple_bangla_cms_import_map()` reads
+`assets/` and rewrites every import to a versioned URL. Two things about it:
+`GLOB_BRACE` **silently matches nothing** on some libc builds including Playground's, which printed
+an empty map that looked like it was working — hence the directory iterator; and the map covers
+`assets/vendor/` too, or the Preact bundle every screen depends on would be the one unversioned
+import.
+
+Not verified against a live courier account — nobody has real credentials here, so dispatch and the
+record lookup are written to their documented and observed request shapes and exercised only for
+their failure paths. Send the first real parcel with the courier's own panel open beside the screen.
+
 ### Build order
 
 | Phase | Scope | State |
@@ -1062,6 +1157,7 @@ element does not exist. Resolve shared fixtures once, before the run leaves the 
 | 5 | Homepage modules (hero, rows, circles, banners) | ✅ done 2026-08-08 |
 | 6 | Menu, Footer, Settings, Reviews, Coupons | ✅ done 2026-08-09 |
 | 7 | Customers, Blocked List, staff accounts | ✅ done 2026-08-09 |
+| 8 | Round two: back button, socials, staff passwords, slugs, rich text, order stages, couriers, IP blocking | ✅ done 2026-08-09 |
 
 All seventeen screens are built. The audit log listed against phase 7 in the original plan was
 never specified and is not built; it is the obvious next thing if the owner wants one.

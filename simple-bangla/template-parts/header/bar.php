@@ -33,14 +33,15 @@ defined( 'ABSPATH' ) || exit;
 		</div>
 
 		<div class="sb-header__actions">
-
-			<a class="sb-header__action sb-header__action--account" href="<?php echo esc_url( simple_bangla_account_url() ); ?>">
-				<?php simple_bangla_icon( 'user', 26 ); ?>
-				<span class="screen-reader-text"><?php esc_html_e( 'Account', 'simple-bangla' ); ?></span>
-			</a>
-
-			<?php simple_bangla_cart_link(); ?>
-
+			<?php
+			/*
+			 * No account icon. Every order here is a guest cash-on-delivery order, so the link
+			 * only ever led to WooCommerce's My Account page — a sign-in form for accounts the
+			 * shop does not ask anyone to create. simple_bangla_account_url() is still there if
+			 * it is ever wanted back.
+			 */
+			simple_bangla_cart_link();
+			?>
 		</div>
 
 	</div>

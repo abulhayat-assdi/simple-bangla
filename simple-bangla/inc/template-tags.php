@@ -70,7 +70,7 @@ function simple_bangla_product_search_form() {
 			</button>
 		</form>
 
-		<?php // Filled by assets/js/search.js. Stays empty — and harmless — without JavaScript. ?>
+		<?php // Filled by assets/js/header.js. Stays empty — and harmless — without JavaScript. ?>
 		<div class="sb-search__results" id="<?php echo esc_attr( $results_id ); ?>" role="listbox" hidden></div>
 	</div>
 	<?php
@@ -405,6 +405,69 @@ function simple_bangla_render_product_loop( $query, $slider = false, $extra_clas
 	}
 
 	wp_reset_postdata();
+}
+
+/**
+ * Render the "You may also like" strip under a single product.
+ *
+ * Deliberately not WooCommerce's own related-products query: that one relates by category *or*
+ * tag, caps itself at the loop column count and orders randomly, so a shopper reloading the page
+ * sees a different set every time. The store owner asked for one thing — the rest of this
+ * product's categories — so the query says exactly that.
+ *
+ * @param int $product_id Product to find neighbours for. Defaults to the current post.
+ * @param int $count      How many cards at most.
+ */
+function simple_bangla_related_products( $product_id = 0, $count = 12 ) {
+
+	$product_id = $product_id ? (int) $product_id : (int) get_the_ID();
+
+	if ( ! $product_id || ! post_type_exists( 'product' ) ) {
+		return;
+	}
+
+	$terms = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
+
+	// An uncategorised product has no neighbours to offer, so the strip stays absent rather
+	// than falling back to "any twelve products", which would not be related to anything.
+	if ( is_wp_error( $terms ) || empty( $terms ) ) {
+		return;
+	}
+
+	$query_args = array(
+		'post_type'           => 'product',
+		'post_status'         => 'publish',
+		'posts_per_page'      => (int) $count,
+		'post__not_in'        => array( $product_id ),
+		'orderby'             => 'date',
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true,
+	);
+
+	// Respect the store's "hide out of stock" and catalog visibility settings.
+	if ( function_exists( 'WC' ) ) {
+		$query_args['tax_query'] = WC()->query->get_tax_query(); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+	}
+
+	$query_args['tax_query'][] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+		'taxonomy' => 'product_cat',
+		'field'    => 'term_id',
+		'terms'    => $terms,
+	);
+
+	$query = new WP_Query( $query_args );
+
+	if ( ! $query->have_posts() ) {
+		return;
+	}
+	?>
+	<section class="sb-strip sb-related">
+		<?php
+		simple_bangla_section_head( __( 'You may also like', 'simple-bangla' ) );
+		simple_bangla_render_product_loop( $query, true );
+		?>
+	</section>
+	<?php
 }
 
 /**

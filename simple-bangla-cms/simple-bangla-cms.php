@@ -3,7 +3,7 @@
  * Plugin Name:       Simple Bangla CMS
  * Plugin URI:        https://simplebangla.com/
  * Description:       A custom store-management interface for Simple Bangla, so day-to-day work happens outside wp-admin. This plugin is the API half: authentication, the settings bridge and the dashboard endpoints.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.4
  * Requires PHP:      7.4
  * Author:            Simple Bangla
@@ -21,7 +21,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SIMPLE_BANGLA_CMS_VERSION', '1.0.0' );
+define( 'SIMPLE_BANGLA_CMS_VERSION', '1.1.0' );
 define( 'SIMPLE_BANGLA_CMS_FILE', __FILE__ );
 define( 'SIMPLE_BANGLA_CMS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLE_BANGLA_CMS_URL', plugin_dir_url( __FILE__ ) );
@@ -32,7 +32,8 @@ define( 'SIMPLE_BANGLA_CMS_URL', plugin_dir_url( __FILE__ ) );
  * Products, orders, customers, coupons and reviews are NOT re-implemented here — WooCommerce's
  * own `wc/v3` already covers them, is maintained by WooCommerce, and stays correct across
  * updates. This namespace only fills the gaps `wc/v3` has no concept of: theme settings, an
- * aggregated dashboard, the theme's menu locations, the order block list, and staff accounts.
+ * aggregated dashboard, the theme's menu locations, the order block list, staff accounts, and
+ * courier dispatch.
  *
  * Staff is the one place something core already offers is reimplemented, and the reason is the
  * guards rather than the CRUD — `wp/v2/users` will happily let an owner demote their only
@@ -54,6 +55,7 @@ require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-dashboard.php';
 require_once SIMPLE_BANGLA_CMS_DIR . 'inc/menu-icon.php';
 require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-blocklist.php';
 require_once SIMPLE_BANGLA_CMS_DIR . 'inc/rest-staff.php';
+require_once SIMPLE_BANGLA_CMS_DIR . 'inc/courier.php';
 
 /**
  * Tell WooCommerce this plugin is safe under High-Performance Order Storage.

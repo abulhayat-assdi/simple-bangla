@@ -19,56 +19,85 @@ defined( 'ABSPATH' ) || exit;
  */
 function simple_bangla_contact_fields() {
 	return array(
-		'phone'     => array(
+		'phone'          => array(
 			'label'       => __( 'Phone number', 'simple-bangla' ),
 			'description' => __( 'Shown in the footer, the menu drawer and the mobile Call button.', 'simple-bangla' ),
 			'default'     => '+880 1XXX-XXXXXX',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
 		),
-		'whatsapp'  => array(
+		'whatsapp'       => array(
 			'label'       => __( 'WhatsApp number', 'simple-bangla' ),
 			'description' => __( 'Powers the floating WhatsApp button and the Order on WhatsApp button on each product.', 'simple-bangla' ),
 			'default'     => '+880 1XXX-XXXXXX',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
 		),
-		'email'     => array(
+		'email'          => array(
 			'label'       => __( 'Email address', 'simple-bangla' ),
 			'description' => __( 'Shown in the footer contact row.', 'simple-bangla' ),
 			'default'     => 'hello@simplebangla.com',
 			'sanitize'    => 'sanitize_email',
 			'type'        => 'email',
 		),
-		'messenger' => array(
+		'messenger'      => array(
 			'label'       => __( 'Messenger username', 'simple-bangla' ),
 			'description' => __( 'Just the username, without m.me/. Used by the mobile Chat button.', 'simple-bangla' ),
 			'default'     => 'simplebangla',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
 		),
-		'facebook'  => array(
+		/*
+		 * Each social profile is a URL plus a switch.
+		 *
+		 * Blanking the URL already drops the icon, but that throws the address away — and a shop that
+		 * pauses its Instagram for a month should not have to find the link again afterwards. The
+		 * switch is the reversible version of the same decision. Default on, so nothing disappears
+		 * from a footer that was working before this field existed.
+		 */
+		'facebook'       => array(
 			'label'       => __( 'Facebook URL', 'simple-bangla' ),
 			'description' => '',
 			'default'     => 'https://facebook.com/simplebangla',
 			'sanitize'    => 'esc_url_raw',
 			'type'        => 'url',
 		),
-		'instagram' => array(
+		'facebook_show'  => array(
+			'label'       => __( 'Show Facebook', 'simple-bangla' ),
+			'description' => __( 'Uncheck to hide the icon without losing the address.', 'simple-bangla' ),
+			'default'     => true,
+			'sanitize'    => 'simple_bangla_sanitize_checkbox',
+			'type'        => 'bool',
+		),
+		'instagram'      => array(
 			'label'       => __( 'Instagram URL', 'simple-bangla' ),
 			'description' => '',
 			'default'     => 'https://instagram.com/simplebangla',
 			'sanitize'    => 'esc_url_raw',
 			'type'        => 'url',
 		),
-		'youtube'   => array(
+		'instagram_show' => array(
+			'label'       => __( 'Show Instagram', 'simple-bangla' ),
+			'description' => __( 'Uncheck to hide the icon without losing the address.', 'simple-bangla' ),
+			'default'     => true,
+			'sanitize'    => 'simple_bangla_sanitize_checkbox',
+			'type'        => 'bool',
+		),
+		'youtube'        => array(
 			'label'       => __( 'YouTube URL', 'simple-bangla' ),
 			'description' => '',
 			'default'     => 'https://youtube.com/@simplebangla',
 			'sanitize'    => 'esc_url_raw',
 			'type'        => 'url',
 		),
-		'address'   => array(
+		'youtube_show'   => array(
+			'label'       => __( 'Show YouTube', 'simple-bangla' ),
+			'description' => __( 'Uncheck to hide the icon without losing the address.', 'simple-bangla' ),
+			'default'     => true,
+			'sanitize'    => 'simple_bangla_sanitize_checkbox',
+			'type'        => 'bool',
+		),
+		'address'        => array(
 			'label'       => __( 'Street address', 'simple-bangla' ),
 			'description' => __( 'One line. Shown under the footer logo.', 'simple-bangla' ),
 			'default'     => 'Dhaka, Bangladesh',
@@ -95,6 +124,28 @@ function simple_bangla_get_contact( $key ) {
 	$value = get_theme_mod( 'simple_bangla_contact_' . $key, $fields[ $key ]['default'] );
 
 	return is_string( $value ) ? trim( $value ) : '';
+}
+
+/**
+ * Whether a store-detail switch is on.
+ *
+ * Separate from simple_bangla_get_contact() because that one is typed for strings and a boolean
+ * field run through it would come back as an empty string — which reads as "off" whether it is or
+ * not. An unknown key answers true, so a caller asking about a field that has no switch behaves as
+ * it did before switches existed.
+ *
+ * @param string $key Field key from simple_bangla_contact_fields().
+ * @return bool
+ */
+function simple_bangla_contact_enabled( $key ) {
+
+	$fields = simple_bangla_contact_fields();
+
+	if ( ! isset( $fields[ $key ] ) ) {
+		return true;
+	}
+
+	return (bool) get_theme_mod( 'simple_bangla_contact_' . $key, $fields[ $key ]['default'] );
 }
 
 /**
@@ -162,7 +213,7 @@ function simple_bangla_social_links() {
 
 		$url = simple_bangla_get_contact( $key );
 
-		if ( ! $url ) {
+		if ( ! $url || ! simple_bangla_contact_enabled( $key . '_show' ) ) {
 			continue;
 		}
 
@@ -170,6 +221,21 @@ function simple_bangla_social_links() {
 			'key'   => $key,
 			'label' => $label,
 			'url'   => $url,
+		);
+	}
+
+	/*
+	 * The phone number already appears as a line of text above these circles, but a shopper
+	 * looking for "how do I call them" scans the icon row, not the paragraph — and on a phone
+	 * the circle is the tap target. tel: rather than a page, so it dials straight away.
+	 */
+	$phone = simple_bangla_tel_href( simple_bangla_get_contact( 'phone' ) );
+
+	if ( $phone ) {
+		$links[] = array(
+			'key'   => 'phone',
+			'label' => __( 'Call us', 'simple-bangla' ),
+			'url'   => 'tel:' . $phone,
 		);
 	}
 
@@ -233,7 +299,9 @@ function simple_bangla_customize_store( $wp_customize ) {
 				'label'       => $field['label'],
 				'description' => $field['description'],
 				'section'     => 'simple_bangla_store',
-				'type'        => $field['type'],
+				// The registry names the data's type; the Customizer wants a control's name, and it
+				// has no control called "bool".
+				'type'        => 'bool' === $field['type'] ? 'checkbox' : $field['type'],
 			)
 		);
 	}

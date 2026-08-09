@@ -11,7 +11,7 @@
 import { html, render, useState, useEffect, Icon, Placeholder, Toaster } from './ui.js';
 import { SB, canAny } from './api.js';
 import { NAV, BUILT_THROUGH, findRoute } from './nav.js';
-import { useRoute, navigate, href, onLinkClick } from './router.js';
+import { useRoute, href, onLinkClick, canGoBack, goBack, parentPath } from './router.js';
 import { Overview } from './screens/overview.js';
 import { Products } from './screens/products.js';
 import { ProductEdit } from './screens/product-edit.js';
@@ -151,6 +151,7 @@ function App() {
 					>
 						<${ Icon } name="menu" size=${ 20 } />
 					</button>
+					<${ BackButton } path=${ path } />
 					<span class="sb-topbar__spacer"></span>
 					<${ UserChip } />
 				</header>
@@ -160,6 +161,41 @@ function App() {
 
 			<${ Toaster } />
 		</div>
+	`;
+}
+
+/**
+ * One step back.
+ *
+ * It lives in the topbar rather than in each screen for two reasons: it is then in the same place on
+ * all twenty screens, including the ones drawn by shared components like SettingsPage, and adding a
+ * screen cannot forget it.
+ *
+ * It carries a real href to the path it would fall back to, so it can be middle-clicked and reads as
+ * a link to assistive technology; the click handler prefers the browser's own history, which brings
+ * the scroll position and the previous screen's state back with it.
+ */
+function BackButton( { path } ) {
+	if ( ! canGoBack( path ) ) {
+		return null;
+	}
+
+	return html`
+		<a
+			class="sb-backbtn"
+			href=${ href( parentPath( path ) ) }
+			onClick=${ ( event ) => {
+				if ( event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0 ) {
+					return;
+				}
+
+				event.preventDefault();
+				goBack( path );
+			} }
+		>
+			<${ Icon } name="back" size=${ 18 } />
+			<span>Back</span>
+		</a>
 	`;
 }
 

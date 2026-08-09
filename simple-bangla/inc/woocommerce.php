@@ -101,6 +101,13 @@ add_filter( 'loop_shop_columns', 'simple_bangla_loop_columns' );
 remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10 );
 
 /*
+ * The single-product template prints its own category-based "You may also like" strip via
+ * simple_bangla_related_products(), so WooCommerce's related shelf is unhooked — with both on,
+ * the same products would appear twice under every product.
+ */
+remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+
+/*
  * woocommerce/content-product.php draws its own image and ribbon, then fires
  * `woocommerce_before_shop_loop_item_title` so badge plugins still get their hook. WooCommerce
  * itself hangs the stock thumbnail and sale flash on that same hook, which rendered a second
@@ -207,6 +214,95 @@ function simple_bangla_whatsapp_order_button() {
 	);
 }
 add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_whatsapp_order_button', 20 );
+
+/**
+ * Offer the shop's phone number as an ordering route, beside WhatsApp.
+ *
+ * A large share of this store's customers would rather talk to someone than fill in a form, and
+ * on a phone a tel: link is one tap to a dialer with the number already in it.
+ */
+function simple_bangla_call_order_button() {
+
+	$phone = simple_bangla_get_contact( 'phone' );
+	$tel   = simple_bangla_tel_href( $phone );
+
+	if ( ! $tel ) {
+		return;
+	}
+
+	printf(
+		'<a class="sb-btn sb-call-order" href="%1$s">%2$s<span>%3$s</span></a>',
+		esc_url( 'tel:' . $tel ),
+		// wp_kses_post() strips <svg> and <path>, so the theme's own icon markup is echoed
+		// as-is. It contains no dynamic input.
+		simple_bangla_get_icon( 'phone', 20 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		sprintf(
+			/* translators: %s: the shop's phone number. */
+			esc_html__( 'Call for order: %s', 'simple-bangla' ),
+			esc_html( $phone )
+		)
+	);
+}
+add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_call_order_button', 25 );
+
+/**
+ * Drop the quantity box from the product page.
+ *
+ * A shopper on a product page is deciding *whether* to buy, not how many; the count belongs at
+ * the checkout, where the stepper beside each line changes it against the real cart. Buffering
+ * between WooCommerce's own two hooks removes the field without overriding
+ * `global/quantity-input.php`, which the cart and the mini-cart also render.
+ *
+ * The hidden input is what keeps this a removal rather than a break: WooCommerce reads
+ * `$_REQUEST['quantity']` when the form is submitted, and Buy Now posts the same form.
+ */
+function simple_bangla_hide_quantity_start() {
+
+	if ( ! is_product() ) {
+		return;
+	}
+
+	simple_bangla_quantity_buffering( true );
+	ob_start();
+}
+// Last on the way in, first on the way out, so the buffer contains the quantity field and
+// nothing else — anything another plugin hangs on these two hooks is printed, not swallowed.
+add_action( 'woocommerce_before_add_to_cart_quantity', 'simple_bangla_hide_quantity_start', 999 );
+
+/**
+ * Discard the buffered quantity field and post 1 instead.
+ */
+function simple_bangla_hide_quantity_end() {
+
+	// Only close a buffer this theme opened. `ob_get_level()` would also be true for someone
+	// else's buffer, and closing that one would swallow a page.
+	if ( ! simple_bangla_quantity_buffering() ) {
+		return;
+	}
+
+	simple_bangla_quantity_buffering( false );
+	ob_end_clean();
+
+	echo '<input type="hidden" name="quantity" value="1" />';
+}
+
+/**
+ * Remember whether the quantity buffer above is currently open.
+ *
+ * @param bool|null $set New state, or null to read.
+ * @return bool
+ */
+function simple_bangla_quantity_buffering( $set = null ) {
+
+	static $open = false;
+
+	if ( null !== $set ) {
+		$open = (bool) $set;
+	}
+
+	return $open;
+}
+add_action( 'woocommerce_after_add_to_cart_quantity', 'simple_bangla_hide_quantity_end', 0 );
 
 /**
  * Cut the checkout down to what a cash-on-delivery order actually needs.
@@ -429,3 +525,56 @@ function simple_bangla_cart_fragments( $fragments ) {
 	return $fragments;
 }
 add_filter( 'woocommerce_add_to_cart_fragments', 'simple_bangla_cart_fragments' );
+
+/**
+ * Change one cart line's quantity from the checkout's own stepper.
+ *
+ * The product page no longer asks how many, so this is where the question gets answered. It
+ * writes to the real cart rather than to a form field, which is why the page can then simply
+ * ask WooCommerce to re-render the order review — totals, coupons and delivery charge included
+ * — instead of trying to recompute anything in the browser.
+ */
+function simple_bangla_ajax_cart_quantity() {
+
+	check_ajax_referer( 'simple_bangla_cart_qty', 'nonce' );
+
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		wp_send_json_error( array( 'message' => __( 'কার্ট পাওয়া যায়নি।', 'simple-bangla' ) ), 500 );
+	}
+
+	$key      = isset( $_POST['key'] ) ? sanitize_text_field( wp_unslash( $_POST['key'] ) ) : '';
+	$quantity = isset( $_POST['quantity'] ) ? absint( $_POST['quantity'] ) : 0;
+	$item     = $key ? WC()->cart->get_cart_item( $key ) : null;
+
+	if ( ! $item ) {
+		wp_send_json_error( array( 'message' => __( 'পণ্যটি আর কার্টে নেই।', 'simple-bangla' ) ), 404 );
+	}
+
+	$product = $item['data'];
+
+	// Removing a line is the × button's job; the stepper only ever counts.
+	$quantity = max( 1, $quantity );
+
+	if ( $product->is_sold_individually() ) {
+		$quantity = 1;
+	}
+
+	if ( ! $product->has_enough_stock( $quantity ) ) {
+		wp_send_json_error(
+			array(
+				'message' => sprintf(
+					/* translators: %s: the number of units still in stock. */
+					__( 'স্টকে আছে মাত্র %s টি।', 'simple-bangla' ),
+					number_format_i18n( (float) $product->get_stock_quantity() )
+				),
+			),
+			409
+		);
+	}
+
+	WC()->cart->set_quantity( $key, $quantity, true );
+
+	wp_send_json_success( array( 'quantity' => $quantity ) );
+}
+add_action( 'wp_ajax_simple_bangla_cart_qty', 'simple_bangla_ajax_cart_quantity' );
+add_action( 'wp_ajax_nopriv_simple_bangla_cart_qty', 'simple_bangla_ajax_cart_quantity' );

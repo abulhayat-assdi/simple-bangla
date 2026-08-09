@@ -20,9 +20,15 @@ $simple_bangla_columns = array(
 		'heading'  => __( 'Helps', 'simple-bangla' ),
 		'fallback' => array( 'tutorials', 'warranty-policy', 'special-deals' ),
 	),
+	/*
+	 * No account, registration or login link here. The shop takes guest cash-on-delivery
+	 * orders and runs no membership, so customer service means the routes that actually
+	 * reach a person or answer a question — see simple_bangla_account_route_slugs(), which
+	 * also strips those links from an assigned menu.
+	 */
 	'footer-3' => array(
 		'heading'  => __( 'Customer Service', 'simple-bangla' ),
-		'fallback' => array( 'contact-us', 'register', 'terms-and-condition' ),
+		'fallback' => array( 'contact-us', 'refund_returns', 'terms-and-condition' ),
 	),
 );
 ?>

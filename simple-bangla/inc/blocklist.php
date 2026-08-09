@@ -16,6 +16,20 @@
  * theme mod would also be the wrong shape: the settings bridge carries scalars, and this is a list of
  * records.
  *
+ * **Two kinds of entry: a phone number and an IP address** (owner's decision, 2026-08-09, replacing
+ * the email entry the first version had). Email was the least useful of the three on a store where
+ * most orders are placed as a guest and the address box is filled in with whatever gets past
+ * validation. An IP is the opposite: it is recorded automatically, and it is what catches the same
+ * person coming back with a fresh number.
+ *
+ * An IP is a weak identifier and this file does not pretend otherwise. Mobile carriers in Bangladesh
+ * put thousands of subscribers behind one address, so an IP block can catch people it was not aimed
+ * at, and anyone determined can change theirs in seconds. It is a way to stop a nuisance cheaply,
+ * not a security control, and the refusal it produces is the same polite one a blocked number gets.
+ *
+ * Entries stored by the earlier version with `type: email` are no longer valid and are ignored —
+ * they stop being enforced, and the next save from the CMS drops them.
+ *
  * @package Simple_Bangla
  */
 
@@ -71,21 +85,23 @@ function simple_bangla_blocklist_entry( $entry ) {
 		return null;
 	}
 
-	$type  = isset( $entry['type'] ) && 'email' === $entry['type'] ? 'email' : 'phone';
+	// Anything that is not explicitly an IP is treated as a phone number, which is also what turns a
+	// leftover `email` entry from the previous version into one that then fails validation below.
+	$type  = isset( $entry['type'] ) && 'ip' === $entry['type'] ? 'ip' : 'phone';
 	$value = isset( $entry['value'] ) ? trim( (string) $entry['value'] ) : '';
 
 	if ( '' === $value ) {
 		return null;
 	}
 
-	if ( 'email' === $type ) {
-		$value = sanitize_email( $value );
+	if ( 'ip' === $type ) {
+		// Both families, because a Bangladeshi mobile network can hand out either and the address
+		// shown on the order is whatever the customer arrived on.
+		$value = filter_var( $value, FILTER_VALIDATE_IP );
 
 		if ( ! $value ) {
 			return null;
 		}
-
-		$value = strtolower( $value );
 	} else {
 		$value = sanitize_text_field( $value );
 
@@ -144,16 +160,38 @@ function simple_bangla_save_blocklist( $entries ) {
 }
 
 /**
- * Whether this phone or email is on the list.
+ * The address the shopper appears to be on.
+ *
+ * WooCommerce's own resolver rather than `REMOTE_ADDR`, deliberately, and for a different reason
+ * than the CMS sign-in throttle — which ignores forwarded-for headers precisely because they are
+ * spoofable. Here the goal is that the address matched is the same one WooCommerce writes onto the
+ * order and the CMS then shows, so that copying it from an order into this list actually blocks that
+ * customer. Two resolvers disagreeing would produce a block that silently never fires.
+ *
+ * @return string
+ */
+function simple_bangla_client_ip() {
+
+	if ( class_exists( 'WC_Geolocation' ) ) {
+		return (string) WC_Geolocation::get_ip_address();
+	}
+
+	return isset( $_SERVER['REMOTE_ADDR'] )
+		? (string) filter_var( wp_unslash( $_SERVER['REMOTE_ADDR'] ), FILTER_VALIDATE_IP )
+		: '';
+}
+
+/**
+ * Whether this phone number or IP address is on the list.
  *
  * @param string $phone Billing phone.
- * @param string $email Billing email.
+ * @param string $ip    Client IP address.
  * @return array|false The matching entry, or false.
  */
-function simple_bangla_find_block( $phone, $email ) {
+function simple_bangla_find_block( $phone, $ip = '' ) {
 
 	$phone_key = simple_bangla_normalize_phone( $phone );
-	$email_key = strtolower( trim( (string) $email ) );
+	$ip_key    = filter_var( trim( (string) $ip ), FILTER_VALIDATE_IP );
 
 	foreach ( simple_bangla_blocklist() as $entry ) {
 
@@ -167,7 +205,7 @@ function simple_bangla_find_block( $phone, $email ) {
 			return $entry;
 		}
 
-		if ( 'email' === $entry['type'] && $email_key && $entry['value'] === $email_key ) {
+		if ( 'ip' === $entry['type'] && $ip_key && $entry['value'] === $ip_key ) {
 			return $entry;
 		}
 	}
@@ -191,9 +229,8 @@ function simple_bangla_find_block( $phone, $email ) {
 function simple_bangla_block_checkout( $data, $errors ) {
 
 	$phone = isset( $data['billing_phone'] ) ? $data['billing_phone'] : '';
-	$email = isset( $data['billing_email'] ) ? $data['billing_email'] : '';
 
-	if ( ! simple_bangla_find_block( $phone, $email ) ) {
+	if ( ! simple_bangla_find_block( $phone, simple_bangla_client_ip() ) ) {
 		return;
 	}
 

@@ -432,6 +432,60 @@
 	font-weight: 400;
 }
 
+/*
+ * Quantity stepper — the only place the shopper sets how many, now that the product page has
+ * stopped asking. Sized for a thumb: 30px targets, not the 20px the remove × can get away with,
+ * because this one is meant to be used.
+ */
+.sb-qty {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--sb-space-1);
+	margin-top: var(--sb-space-1);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-pill);
+	background: var(--sb-bg);
+}
+
+.sb-qty.is-busy {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.sb-qty__btn {
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	padding: 0;
+	border: 0;
+	border-radius: var(--sb-radius-pill);
+	background: transparent;
+	color: var(--sb-ink);
+	font-size: var(--sb-text-base);
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color var(--sb-transition), color var(--sb-transition);
+}
+
+.sb-qty__btn:hover:not(:disabled),
+.sb-qty__btn:focus-visible:not(:disabled) {
+	background: var(--sb-ink);
+	color: #ffffff;
+}
+
+.sb-qty__btn:disabled {
+	color: var(--sb-line);
+	cursor: default;
+}
+
+.sb-qty__value {
+	min-width: 22px;
+	text-align: center;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
 /* -- Payment -- */
 
 .sb-checkout #payment {

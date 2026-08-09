@@ -29,11 +29,16 @@ const CARDS = [
 	},
 	{
 		title: 'Social links',
-		lead: 'The circular icons in the footer. Leave one blank to drop it.',
+		lead: 'The circular icons in the footer. Untick one to hide it without losing the address.',
 		keys: [
+			// URL then switch, so the pair reads as one decision rather than three addresses
+			// followed by three unattached tickboxes.
 			'simple_bangla_contact_facebook',
+			'simple_bangla_contact_facebook_show',
 			'simple_bangla_contact_instagram',
+			'simple_bangla_contact_instagram_show',
 			'simple_bangla_contact_youtube',
+			'simple_bangla_contact_youtube_show',
 		],
 	},
 	{

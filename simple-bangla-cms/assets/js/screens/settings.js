@@ -19,6 +19,7 @@
 import { html, useState, useEffect, Card, Field, Select, ErrorBox, EmptyState, toast } from '../ui.js';
 import { api, apiList, can, SB } from '../api.js';
 import { useSettings, SettingsPage, SchemaField, layoutFields } from '../settings-form.js';
+import { CourierCard } from './courier.js';
 
 /** WooCommerce general settings this screen edits, in the order they are shown. */
 const ADDRESS_KEYS = [
@@ -180,6 +181,8 @@ export function Settings() {
 							onRetry=${ loadWoo }
 							onChange=${ setWooValue }
 						/>
+
+						<${ CourierCard } />
 				  `
 				: null }
 

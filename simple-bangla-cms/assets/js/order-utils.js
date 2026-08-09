@@ -25,7 +25,7 @@ export const ORDER_STATUSES = {
 	failed: { label: 'Failed', tone: 'bad' },
 };
 
-/** The statuses offered as a filter or a bulk change, in the order a COD store moves through them. */
+/** The statuses offered as a bulk change, in the order a COD store moves through them. */
 export const STATUS_ORDER = [
 	'pending',
 	'processing',
@@ -35,6 +35,48 @@ export const STATUS_ORDER = [
 	'refunded',
 	'failed',
 ];
+
+/**
+ * The five stages the shop actually thinks in, and the WooCommerce statuses behind each.
+ *
+ * The order list is filtered by these rather than by raw status (owner's decision, 2026-08-09).
+ * WooCommerce has no "with the courier" or "returned" status and the owner chose to map onto the
+ * existing ones rather than register new ones, so this table is the whole of that mapping — nothing
+ * else in the CMS decides what "New Orders" means.
+ *
+ * Two rules this table has to keep:
+ *
+ * - **Every status appears exactly once.** These five are the only filters, so a status missing from
+ *   all of them would be an order the owner can never find. `on-hold` therefore sits under New,
+ *   where an order waiting for a confirmation call belongs, and `cancelled` sits beside `failed`.
+ * - **`processing` means "with the courier"**, which is true because handing a parcel over is what
+ *   moves an order there — the Send to Courier button does it, and nothing else in the CMS does.
+ */
+export const ORDER_VIEWS = [
+	{ key: 'new', label: 'New Orders', statuses: [ 'pending', 'on-hold' ] },
+	{ key: 'courier', label: 'Courier-এ আছে', statuses: [ 'processing' ] },
+	{ key: 'completed', label: 'Completed Orders', statuses: [ 'completed' ] },
+	{ key: 'returned', label: 'Returned', statuses: [ 'refunded' ] },
+	{ key: 'failed', label: 'Failed / Cancelled', statuses: [ 'failed', 'cancelled' ] },
+];
+
+/** The view the order screen opens on: what arrived and still needs doing. */
+export const DEFAULT_VIEW = 'new';
+
+/**
+ * The statuses behind a view, as WooCommerce's `status` parameter wants them.
+ *
+ * A comma-separated string rather than an array, because the query builder writes each parameter
+ * once and WordPress splits a string into an array for an array-typed parameter anyway.
+ *
+ * @param {string} key View key.
+ * @return {string}
+ */
+export function viewStatuses( key ) {
+	const view = ORDER_VIEWS.find( ( v ) => v.key === key );
+
+	return view ? view.statuses.join( ',' ) : '';
+}
 
 export function statusLabel( status ) {
 	return ORDER_STATUSES[ status ] ? ORDER_STATUSES[ status ].label : status;
@@ -111,6 +153,9 @@ export function addressLines( address, hideHomeland = false ) {
  * WooCommerce sends `date_created` as local store time with no zone marker. Appending "Z" would
  * claim it is UTC and shift every order by the store's offset — six hours, for Dhaka. It is
  * parsed as-is and shown as-is.
+ *
+ * A `Date` is accepted as well as a string, for the few values the plugin stores as real unix
+ * timestamps and therefore does know the zone of.
  */
 export function dateTime( value ) {
 	if ( ! value ) {
@@ -155,4 +200,25 @@ export function refundedTotal( order ) {
 /** The store's own details, for the invoice header. Filled in by the caller from /settings. */
 export function storeName() {
 	return ( SB.store && SB.store.name ) || '';
+}
+
+/**
+ * The variation a line item was bought in — size, colour and anything else the product defines.
+ *
+ * WooCommerce puts these in the item's own `meta_data` alongside private bookkeeping keys, which are
+ * the ones prefixed with an underscore. `display_key` and `display_value` are the labels WooCommerce
+ * has already resolved for the customer, so they are preferred over the raw slugs.
+ *
+ * @param {object} item Line item.
+ * @return {Array<{label:string,value:string}>}
+ */
+export function itemAttributes( item ) {
+	return ( ( item && item.meta_data ) || [] )
+		.filter( ( meta ) => meta.key && ! String( meta.key ).startsWith( '_' ) )
+		.map( ( meta ) => ( {
+			label: String( meta.display_key || meta.key ),
+			// A value can be an object for a plugin-added field; only a scalar is worth printing.
+			value: typeof meta.display_value === 'object' ? '' : String( meta.display_value ?? meta.value ?? '' ),
+		} ) )
+		.filter( ( meta ) => meta.value.trim() );
 }

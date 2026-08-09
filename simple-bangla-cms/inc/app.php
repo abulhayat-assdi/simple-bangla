@@ -27,6 +27,68 @@ function simple_bangla_cms_asset( $relative ) {
 }
 
 /**
+ * Cache-bust the modules `app.js` imports, not just `app.js`.
+ *
+ * A version query on the entry script only busts the entry script. Everything it imports is
+ * requested at its own bare URL — `.../assets/js/ui.js` — which the browser will happily serve from
+ * cache, so an update could ship a new `app.js` beside a month-old `ui.js` and break screens in ways
+ * that look nothing like a caching problem. Nothing before this had noticed because no release had
+ * changed a shared module and an entry point together.
+ *
+ * An import map fixes it with no build step: a map whose key is a URL-like specifier is matched
+ * against the *resolved* URL of an import, so every relative import in the bundle is rewritten to
+ * the versioned one. The list is read off the directory rather than written out, so a new module
+ * cannot be forgotten.
+ *
+ * Falls back silently to unversioned URLs if the directory cannot be read — a stale module is a
+ * smaller problem than no interface at all.
+ */
+function simple_bangla_cms_import_map() {
+
+	// The whole assets directory, not just js/ — `ui.js` imports the vendored Preact bundle out of
+	// `assets/vendor/`, and a map that stopped at js/ would leave the one file every screen depends
+	// on as the single unversioned import.
+	$base = SIMPLE_BANGLA_CMS_DIR . 'assets/';
+	$url  = SIMPLE_BANGLA_CMS_URL . 'assets/';
+
+	if ( ! is_dir( $base ) ) {
+		return;
+	}
+
+	/*
+	 * An iterator rather than glob() with GLOB_BRACE. The brace flag is a GNU extension: PHP defines
+	 * the constant everywhere but the pattern silently matches nothing where the underlying libc has
+	 * no support for it, and this printed an empty map under Playground's WASM build before that was
+	 * noticed. An empty map is invisible — every import simply resolves unversioned, which is the
+	 * exact bug this function exists to prevent.
+	 */
+	$files = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator( $base, FilesystemIterator::SKIP_DOTS )
+	);
+
+	$imports = array();
+
+	foreach ( $files as $file ) {
+
+		if ( 'js' !== strtolower( $file->getExtension() ) ) {
+			continue;
+		}
+
+		$relative = str_replace( '\\', '/', substr( $file->getPathname(), strlen( $base ) ) );
+
+		$imports[ $url . $relative ] = add_query_arg( 'ver', SIMPLE_BANGLA_CMS_VERSION, $url . $relative );
+	}
+
+	if ( ! $imports ) {
+		return;
+	}
+
+	?>
+	<script type="importmap"><?php echo wp_json_encode( array( 'imports' => $imports ) ); ?></script>
+	<?php
+}
+
+/**
  * Open a CMS document.
  *
  * @param string $title      Document title.
@@ -239,6 +301,11 @@ function simple_bangla_cms_render_app() {
 		// can then terminate the script early, whatever a store name happens to contain.
 		echo wp_json_encode( $boot );
 	?></script>
+
+	<?php
+	// The map has to be in the document before the module that its imports are resolved for.
+	simple_bangla_cms_import_map();
+	?>
 
 	<script type="module" src="<?php echo esc_url( simple_bangla_cms_asset( 'js/app.js' ) ); ?>"></script>
 	<?php

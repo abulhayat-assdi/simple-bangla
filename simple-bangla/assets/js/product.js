@@ -59,3 +59,57 @@
 		});
 	});
 })();
+
+/**
+ * Reviews: the list of what other people said is the point of the tab, so the write-a-review
+ * form starts folded behind a button instead of filling the panel.
+ *
+ * Progressive enhancement — with this script blocked the form is simply open, which is
+ * WooCommerce's own behaviour and still perfectly usable.
+ */
+(function () {
+	'use strict';
+
+	var wrapper = document.getElementById('review_form_wrapper');
+
+	if (!wrapper) {
+		return;
+	}
+
+	var i18n = (window.simpleBanglaProduct || {}).i18n || {};
+
+	// Someone who followed a #respond link, or whom WordPress bounced back here after a
+	// validation error, is mid-review already — do not fold the form away from them.
+	var startOpen = /^#(respond|review_form|comment)/.test(window.location.hash);
+
+	var button = document.createElement('button');
+
+	button.type = 'button';
+	button.className = 'sb-btn sb-review-toggle';
+	button.setAttribute('aria-controls', 'review_form_wrapper');
+
+	function setOpen(open) {
+		wrapper.hidden = !open;
+		button.setAttribute('aria-expanded', open ? 'true' : 'false');
+		button.textContent = open ? i18n.cancelReview || 'Cancel' : i18n.giveReview || 'Give Review';
+	}
+
+	wrapper.parentNode.insertBefore(button, wrapper);
+	setOpen(startOpen);
+
+	button.addEventListener('click', function () {
+		var open = wrapper.hidden;
+
+		setOpen(open);
+
+		if (!open) {
+			return;
+		}
+
+		var field = wrapper.querySelector('textarea, input:not([type="hidden"])');
+
+		if (field) {
+			field.focus();
+		}
+	});
+})();

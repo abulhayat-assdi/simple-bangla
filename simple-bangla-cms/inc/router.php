@@ -174,6 +174,13 @@ function simple_bangla_cms_handle_login() {
 		);
 	}
 
+	/*
+	 * Either an email address or a username is accepted, because staff accounts are created from an
+	 * email and the username the CMS derives from it is never shown to them. No work is needed for
+	 * that: core registers both wp_authenticate_username_password and wp_authenticate_email_password
+	 * on `authenticate`, and sanitize_user() in its non-strict mode keeps the "@" and the dots. The
+	 * strict flag must stay off here — it would quietly turn an address into a username nobody has.
+	 */
 	$user = wp_signon(
 		array(
 			'user_login'    => isset( $_POST['log'] ) ? sanitize_user( wp_unslash( $_POST['log'] ) ) : '',
@@ -189,7 +196,7 @@ function simple_bangla_cms_handle_login() {
 
 		// WordPress's own messages distinguish "no such user" from "wrong password", which tells
 		// an attacker which half of the guess was right. One message for both.
-		return new WP_Error( 'failed', __( 'That username or password is not right.', 'simple-bangla-cms' ) );
+		return new WP_Error( 'failed', __( 'That email, username or password is not right.', 'simple-bangla-cms' ) );
 	}
 
 	simple_bangla_cms_clear_failures();

@@ -59,17 +59,37 @@ defined( 'ABSPATH' ) || exit;
 							// WooCommerce's own filter, which plugins use to add markup to the name.
 							echo wp_kses_post( apply_filters( 'woocommerce_cart_item_name', $_product->get_name(), $cart_item, $cart_item_key ) );
 
-							echo wp_kses_post(
-								apply_filters(
-									'woocommerce_checkout_cart_item_quantity',
-									' <strong class="product-quantity">' . sprintf( '&times;&nbsp;%s', $cart_item['quantity'] ) . '</strong>',
-									$cart_item,
-									$cart_item_key
-								)
-							);
-
 							wc_get_formatted_cart_item_data( $cart_item );
 							?>
+
+							<?php
+							/*
+							 * The stepper replaces the "× 2" that WooCommerce prints here — and with it
+							 * the `woocommerce_checkout_cart_item_quantity` filter, which only exists to
+							 * restyle that static text. This is the one place a customer can change how
+							 * many they are buying, because the product page no longer asks.
+							 */
+							$sold_individually = $_product->is_sold_individually();
+							?>
+							<span class="sb-qty" data-sb-qty data-sb-key="<?php echo esc_attr( $cart_item_key ); ?>">
+								<button
+									type="button"
+									class="sb-qty__btn"
+									data-sb-qty-step="-1"
+									<?php disabled( true, $sold_individually || $cart_item['quantity'] <= 1 ); ?>
+									aria-label="<?php esc_attr_e( 'পরিমাণ কমান', 'simple-bangla' ); ?>"
+								>&minus;</button>
+
+								<span class="sb-qty__value" aria-live="polite"><?php echo esc_html( (string) $cart_item['quantity'] ); ?></span>
+
+								<button
+									type="button"
+									class="sb-qty__btn"
+									data-sb-qty-step="1"
+									<?php disabled( true, $sold_individually ); ?>
+									aria-label="<?php esc_attr_e( 'পরিমাণ বাড়ান', 'simple-bangla' ); ?>"
+								>+</button>
+							</span>
 						</span>
 					</div>
 				</td>

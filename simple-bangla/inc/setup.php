@@ -147,11 +147,11 @@ function simple_bangla_default_pages() {
 	return array(
 		'tutorials'           => __( 'Tutorials', 'simple-bangla' ),
 		'special-deals'       => __( 'Special Deals', 'simple-bangla' ),
-		'user'                => __( 'User', 'simple-bangla' ),
-		'login'               => __( 'Login', 'simple-bangla' ),
-		'register'            => __( 'Register', 'simple-bangla' ),
-		'password-reset'      => __( 'Password Reset', 'simple-bangla' ),
-		'logout'              => __( 'Logout', 'simple-bangla' ),
+		/*
+		 * No user / login / register / logout pages. They were empty placeholders standing in
+		 * for an account system this store does not run — every order is a guest
+		 * cash-on-delivery order — and the footer no longer links to them.
+		 */
 		'warranty-policy'     => __( 'Warranty Policy', 'simple-bangla' ),
 		'about-us'            => __( 'About Us', 'simple-bangla' ),
 		'privacy-policy'      => __( 'Privacy Policy', 'simple-bangla' ),

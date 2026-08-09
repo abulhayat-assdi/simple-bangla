@@ -410,3 +410,50 @@ function simple_bangla_menu_icon_assets( $hook ) {
 	);
 }
 add_action( 'admin_enqueue_scripts', 'simple_bangla_menu_icon_assets' );
+
+/**
+ * The account routes the storefront does not offer.
+ *
+ * The store takes cash-on-delivery orders from guests; there is no membership, no order history
+ * to sign in for and nothing behind a password. Left in the footer, these were links to empty
+ * placeholder pages — a customer-service column advertising a service the shop does not run.
+ *
+ * @return string[] Path segments, lowercase.
+ */
+function simple_bangla_account_route_slugs() {
+	return array( 'login', 'register', 'logout', 'user', 'password-reset', 'lost-password', 'my-account', 'wp-login.php' );
+}
+
+/**
+ * Drop account links from the footer columns.
+ *
+ * Filtered at render rather than deleted from the menu, because the menu is the store owner's
+ * to edit — from the CMS or from Appearance → Menus — and a save there must not be silently
+ * undone by a template. Only the footer locations are touched; the primary menu is untouched.
+ *
+ * @param array    $items Menu item objects.
+ * @param stdClass $args  wp_nav_menu() arguments.
+ * @return array
+ */
+function simple_bangla_filter_footer_account_items( $items, $args ) {
+
+	$location = isset( $args->theme_location ) ? (string) $args->theme_location : '';
+
+	if ( 0 !== strpos( $location, 'footer-' ) ) {
+		return $items;
+	}
+
+	$blocked = simple_bangla_account_route_slugs();
+
+	return array_filter(
+		$items,
+		static function ( $item ) use ( $blocked ) {
+
+			$path = (string) wp_parse_url( isset( $item->url ) ? $item->url : '', PHP_URL_PATH );
+			$last = basename( untrailingslashit( $path ) );
+
+			return ! in_array( strtolower( $last ), $blocked, true );
+		}
+	);
+}
+add_filter( 'wp_nav_menu_objects', 'simple_bangla_filter_footer_account_items', 10, 2 );

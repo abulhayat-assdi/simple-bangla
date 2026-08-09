@@ -30,11 +30,9 @@ defined( 'ABSPATH' ) || exit;
 		</nav>
 
 		<div class="sb-drawer__foot">
-			<a class="sb-btn sb-btn--block" href="<?php echo esc_url( simple_bangla_account_url() ); ?>">
-				<?php simple_bangla_icon( 'user' ); ?>
-				<?php esc_html_e( 'My Account', 'simple-bangla' ); ?>
-			</a>
 			<?php
+			// No My Account button — see the note in template-parts/header/bar.php. The phone
+			// number is what a shopper opening this drawer actually wants from it.
 			$simple_bangla_phone = simple_bangla_get_contact( 'phone' );
 
 			if ( $simple_bangla_phone ) :

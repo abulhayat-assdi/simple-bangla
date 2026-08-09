@@ -1,6 +1,90 @@
 # Simple Bangla — Progress
 
-Last updated: 2026-08-07
+Last updated: 2026-08-09
+
+## CMS round two — the owner's ten changes (2026-08-09)
+
+Plugin **1.1.0**. Ten requests from one message, four of which needed a decision before anything
+could be written. What was decided, and what it cost:
+
+| Asked for | Shipped |
+|---|---|
+| A back button on every screen | One button in the topbar, not twenty in twenty screens |
+| Show/hide switches on the three social links | A `*_show` theme mod per network, default on |
+| Set a staff password when adding one | Password on the form, email as the sign-in name |
+| Auto slug for a new category, and "what is Parent for?" | Slug generated, Parent kept but folded away |
+| A rich-text editor for product descriptions | Own ~9 KB `editor.js`, no library, no build step |
+| Five business filters on Orders, opening on New | `ORDER_VIEWS` in `order-utils.js`, tabs with counts |
+| The mobile order list and detail from two screenshots | Card layout under 900px, detail rebuilt |
+| Send to Courier, via API keys | `inc/courier.php` — Steadfast, Pathao, RedX |
+| The global fraud report seen on other sites | Same source those sites use, with the caveat attached |
+| Block by IP instead of by email | `type: ip` in the theme's block list, email dropped |
+
+### The four decisions
+
+- **Statuses are mapped, not invented** (owner's choice). New = `pending` + `on-hold`,
+  Courier-এ আছে = `processing`, Completed = `completed`, Returned = `refunded`, Failed/Cancelled =
+  `failed` + `cancelled`. Every status appears in exactly one tab, so no order can become
+  unreachable. `ORDER_VIEWS` is the whole of that mapping and nothing else decides it.
+- **The order screens borrow the reference's layout, not its colours.** The screenshots are a dark
+  dashboard; the CMS stays black-and-cream so all twenty screens still look like one product.
+- **All three couriers, chosen in Settings** rather than one hard-coded.
+- **A password is set on the staff form and shown, not masked.** It is typed once in order to be
+  read out to someone in the same room; masking it would only add the typo a confirm field then
+  exists to catch. Sign-in already accepted an email address — core registers
+  `wp_authenticate_email_password` — so that half needed no code, only honest labels.
+
+### What the courier research actually found
+
+The fraud figure every Bangladeshi checker site shows **is not in any courier's documented API.**
+Each one signs in to the courier's own merchant portal and calls the endpoint that portal's
+dashboard calls:
+
+| | Dispatch (documented) | Delivery record (portal session) |
+|---|---|---|
+| Steadfast | `portal.packzy.com/api/v1/create_order`, Api-Key + Secret-Key | `steadfast.com.bd/login` → `/user/frauds/check/{phone}` |
+| Pathao | `api-hermes.pathao.com/aladdin/api/v1/orders`, OAuth | `merchant.pathao.com/api/v1/login` → `/api/v1/user/success` |
+| RedX | `openapi.redx.com.bd/v1.0.0-beta/parcel`, access token | `api.redx.com.bd/v4/auth/login` → `customer-success-return-rate` |
+
+So each courier takes **two** sets of credentials and either can be filled in alone. Because the
+record half is undocumented, it is treated as something that will break: cached six hours, never
+in the way of a dispatch, and a failure is reported per courier as "could not be read" rather than
+as a number. The local half — this shop's own orders for that number — needs nobody and cannot
+break, which is why it is shown first.
+
+Pathao and RedX both address parcels by **numeric city/zone/area ID**, not by the text a customer
+types, so each carries a default ID in Settings. That is a real limitation and the field says so.
+
+### Also worth knowing
+
+- **`register_rest_field( 'shop_order', 'sb_courier' )`** rather than reading `_sb_courier` out of
+  `meta_data`. Which meta WooCommerce exposes has changed more than once, and the order list would
+  have quietly lost its courier column the next time it did.
+- **A dispatch is refused a second time** unless `force` is sent — two consignments for one parcel
+  is a bill the shop pays twice — so the interface turns that 409 into "send it again?" rather than
+  a red toast.
+- **Deleting an order erases it** rather than trashing it, because there is no trash view here to
+  retrieve it from and a "deleted" order that kept appearing in search would be worse.
+- **The import map is new and is a real fix, not tidying.** Versioning the entry script never
+  versioned the modules it imports, so this release — which changes `ui.js`, `router.js` and
+  `order-utils.js` under a changed `app.js` — would have shipped a new entry point beside cached
+  copies of its own dependencies. `simple_bangla_cms_import_map()` reads the directory and rewrites
+  every import to a versioned URL. No build step; the list cannot go stale.
+- **Block-list entries stored as `type: email` are now ignored** and dropped by the next save.
+  IP matching uses `WC_Geolocation::get_ip_address()` — deliberately *not* `REMOTE_ADDR`, unlike the
+  sign-in throttle — so the address blocked is the same one WooCommerce writes on the order and the
+  CMS shows, which is where the owner copies it from.
+
+### Verified
+
+`php -l` on every PHP file in both the theme and the plugin, every ES module parsed, and no unused
+imports introduced. Runtime checks against real WordPress + WooCommerce under Playground are
+recorded below.
+
+**Not verified against a live courier account.** Nobody has real Steadfast, Pathao or RedX
+credentials here, so dispatch and the delivery record are written to their documented and observed
+request shapes and exercised only for their failure paths. The first real parcel should be sent
+with the courier's own panel open beside the screen.
 
 ## Thank-you page rebuilt to the owner's screenshot (2026-08-07)
 

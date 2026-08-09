@@ -3,10 +3,10 @@
  *
  * Two decisions worth knowing about.
  *
- * Descriptions are plain textareas holding raw HTML rather than a rich-text editor. WordPress's
- * own editor is a large dependency that only loads properly inside wp-admin, and a half-working
- * rich editor that silently mangles markup is worse than a textarea that does exactly what it
- * appears to.
+ * Descriptions are edited with the plugin's own small rich-text control (`editor.js`), which the
+ * owner asked for on 2026-08-09 in place of the raw-HTML textareas this screen shipped with. What
+ * is stored is unchanged — HTML in the same two fields — so a product written before the change
+ * opens correctly, and its "HTML" toggle is still the textarea for anything the toolbar cannot say.
  *
  * Deleting sends a product to the trash rather than erasing it. WooCommerce's default for
  * `DELETE` is exactly that, and a store owner who mis-taps on a phone should not lose a product
@@ -30,6 +30,7 @@ import {
 import { api, apiList, money, SB } from '../api.js';
 import { navigate, href, onLinkClick } from '../router.js';
 import { GalleryField } from '../media.js';
+import { RichText } from '../editor.js';
 
 /** What a brand-new product starts as. */
 const BLANK = {
@@ -256,23 +257,21 @@ export function ProductEdit( { id } ) {
 								onInput=${ ( e ) => set( { name: e.target.value } ) }
 							/>
 						<//>
-						<${ Field } label="Short description" id="p-short" hint="Shown near the price on the product page. HTML is allowed.">
-							<textarea
-								class="sb-input sb-textarea"
+						<${ Field } label="Short description" id="p-short" hint="Shown near the price on the product page.">
+							<${ RichText }
 								id="p-short"
-								rows="3"
+								rows=${ 4 }
 								value=${ product.short_description }
-								onInput=${ ( e ) => set( { short_description: e.target.value } ) }
-							></textarea>
+								onChange=${ ( short_description ) => set( { short_description } ) }
+							/>
 						<//>
-						<${ Field } label="Description" id="p-desc" hint="The full description tab. HTML is allowed.">
-							<textarea
-								class="sb-input sb-textarea"
+						<${ Field } label="Description" id="p-desc" hint="The full description tab.">
+							<${ RichText }
 								id="p-desc"
-								rows="9"
+								rows=${ 10 }
 								value=${ product.description }
-								onInput=${ ( e ) => set( { description: e.target.value } ) }
-							></textarea>
+								onChange=${ ( description ) => set( { description } ) }
+							/>
 						<//>
 					<//>
 

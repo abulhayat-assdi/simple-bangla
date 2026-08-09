@@ -64,9 +64,12 @@ function simple_bangla_cms_register_staff_routes() {
 				'callback'            => 'simple_bangla_cms_staff_create',
 				'permission_callback' => simple_bangla_cms_permission( 'staff.manage' ),
 				'args'                => array(
-					'username' => array( 'type' => 'string', 'required' => true ),
+					// The email is the identity; the username is derived from it when not sent, so
+					// the owner is asked for one thing rather than two that must not collide.
 					'email'    => array( 'type' => 'string', 'required' => true ),
+					'password' => array( 'type' => 'string', 'required' => true ),
 					'name'     => array( 'type' => 'string', 'required' => false ),
+					'username' => array( 'type' => 'string', 'required' => false ),
 					'role'     => array( 'type' => 'string', 'required' => true ),
 				),
 			),
@@ -248,11 +251,43 @@ function simple_bangla_cms_check_last_admin( $user, $new_role = '' ) {
 }
 
 /**
+ * A username that is free, derived from an email address.
+ *
+ * The owner is asked for an email and a password, not a username — one identity to hand over rather
+ * than two, and no chance of a staff member being told the wrong half. WordPress still needs a
+ * `user_login`, so the local part of the address becomes one, with a number appended until it is
+ * free. It is never shown as something to type: sign-in accepts the email.
+ *
+ * @param string $email Sanitised email address.
+ * @return string Empty when nothing usable can be made of it.
+ */
+function simple_bangla_cms_username_from_email( $email ) {
+
+	$base = sanitize_user( substr( $email, 0, strpos( $email, '@' ) ), true );
+	$base = trim( (string) $base );
+
+	if ( '' === $base ) {
+		return '';
+	}
+
+	$candidate = $base;
+
+	// Bounded rather than a while(true): a hundred collisions on one local part means something is
+	// wrong, and an endpoint that can spin forever is worse than one that gives up and says so.
+	for ( $suffix = 2; $suffix < 100 && username_exists( $candidate ); $suffix++ ) {
+		$candidate = $base . $suffix;
+	}
+
+	return username_exists( $candidate ) ? '' : $candidate;
+}
+
+/**
  * Create a staff account.
  *
- * No password is set or sent here. WordPress emails the new user a link to choose their own, which
- * keeps the password out of this request, out of the response, and out of whatever the owner would
- * otherwise have typed it into to pass it on.
+ * The password is set here, at the owner's request: this is a small shop where a new account is
+ * usually being handed to someone sitting in the same room, and "check your email for a link" is a
+ * step that fails whenever the site cannot send mail — which, on a shared Bangladeshi host with no
+ * SMTP plugin, is most of the time. The password is never echoed back in the response.
  *
  * @param WP_REST_Request $request Request.
  * @return WP_REST_Response|WP_Error
@@ -266,30 +301,44 @@ function simple_bangla_cms_staff_create( $request ) {
 		return $check;
 	}
 
-	$username = sanitize_user( $request->get_param( 'username' ), true );
 	$email    = sanitize_email( $request->get_param( 'email' ) );
-
-	if ( ! $username ) {
-		return new WP_Error( 'sb_cms_bad_username', __( 'That username cannot be used.', 'simple-bangla-cms' ), array( 'status' => 400 ) );
-	}
+	$password = (string) $request->get_param( 'password' );
 
 	if ( ! is_email( $email ) ) {
 		return new WP_Error( 'sb_cms_bad_email', __( 'That is not a valid email address.', 'simple-bangla-cms' ), array( 'status' => 400 ) );
-	}
-
-	if ( username_exists( $username ) ) {
-		return new WP_Error( 'sb_cms_username_taken', __( 'That username is already taken.', 'simple-bangla-cms' ), array( 'status' => 400 ) );
 	}
 
 	if ( email_exists( $email ) ) {
 		return new WP_Error( 'sb_cms_email_taken', __( 'An account already uses that email address.', 'simple-bangla-cms' ), array( 'status' => 400 ) );
 	}
 
+	// Not sanitised: a password is compared byte for byte, and stripping characters out of it would
+	// store something other than what the owner typed and then hand it to the staff member.
+	if ( strlen( $password ) < 8 ) {
+		return new WP_Error(
+			'sb_cms_weak_password',
+			__( 'The password needs to be at least 8 characters.', 'simple-bangla-cms' ),
+			array( 'status' => 400 )
+		);
+	}
+
+	$username = sanitize_user( (string) $request->get_param( 'username' ), true );
+
+	if ( '' === $username ) {
+		$username = simple_bangla_cms_username_from_email( $email );
+	} elseif ( username_exists( $username ) ) {
+		return new WP_Error( 'sb_cms_username_taken', __( 'That username is already taken.', 'simple-bangla-cms' ), array( 'status' => 400 ) );
+	}
+
+	if ( '' === $username ) {
+		return new WP_Error( 'sb_cms_bad_username', __( 'No usable sign-in name could be made from that email address.', 'simple-bangla-cms' ), array( 'status' => 400 ) );
+	}
+
 	$user_id = wp_insert_user(
 		array(
 			'user_login'   => $username,
 			'user_email'   => $email,
-			'user_pass'    => wp_generate_password( 24, true, true ),
+			'user_pass'    => $password,
 			'display_name' => sanitize_text_field( (string) $request->get_param( 'name' ) ) ?: $username,
 			'role'         => $role,
 		)
@@ -299,8 +348,12 @@ function simple_bangla_cms_staff_create( $request ) {
 		return new WP_Error( 'sb_cms_create_failed', $user_id->get_error_message(), array( 'status' => 400 ) );
 	}
 
-	// 'user' sends the "set your password" email; the admin copy is not wanted for an account the
-	// owner just created on purpose.
+	/*
+	 * 'user' rather than 'both': the admin copy is noise for an account the owner just created on
+	 * purpose. The welcome mail carries the sign-in name and a link to change the password — useful
+	 * as a second route in, and harmless when it never arrives, because the password the owner typed
+	 * already works.
+	 */
 	wp_new_user_notification( $user_id, null, 'user' );
 
 	return rest_ensure_response( simple_bangla_cms_staff_payload( get_userdata( $user_id ) ) );

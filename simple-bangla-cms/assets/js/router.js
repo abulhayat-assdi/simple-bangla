@@ -17,6 +17,16 @@ const BASE = SB.base || '/manage/';
 
 const listeners = new Set();
 
+/*
+ * How many entries this app has pushed onto the browser's history.
+ *
+ * The back button needs to know whether history.back() would land on another CMS screen or leave
+ * the site altogether — a deep link opened from a bookmark or a WhatsApp message has the store's
+ * previous page, or nothing at all, behind it. The browser will not say, so the count is kept here:
+ * a push adds one, a popstate spends one. When it reaches zero the button walks up the path instead.
+ */
+let depth = 0;
+
 /** The route path for the current address, always leading-slashed. */
 export function currentPath() {
 	let path = window.location.pathname;
@@ -48,10 +58,63 @@ export function navigate( path, replace = false ) {
 		window.history.replaceState( {}, '', url );
 	} else {
 		window.history.pushState( {}, '', url );
+		depth += 1;
 	}
 
 	announce();
 	window.scrollTo( 0, 0 );
+}
+
+/**
+ * The route one level up from a path.
+ *
+ * Used only when there is nothing of ours to go back to. `/orders/57/invoice` climbs to
+ * `/orders/57`, then `/orders`, then the dashboard — which is the same journey the back button
+ * would have made, just reconstructed rather than replayed.
+ *
+ * @param {string} path Route path.
+ * @return {string}
+ */
+export function parentPath( path ) {
+	const parts = path.replace( /^\/+|\/+$/g, '' ).split( '/' ).filter( Boolean );
+
+	parts.pop();
+
+	return '/' + parts.join( '/' );
+}
+
+/**
+ * Whether a back button has anywhere to go.
+ *
+ * True on the dashboard too, when the owner arrived there from another screen — "back" there means
+ * the screen they came from, not "up", and refusing to move would be the surprising answer.
+ *
+ * @param {string} path Current route path.
+ * @return {boolean}
+ */
+export function canGoBack( path ) {
+	return depth > 0 || path !== '/';
+}
+
+/**
+ * Go back one step.
+ *
+ * Prefers the browser's own history, so the scroll position and the screen's state come back with
+ * it. Falls back to walking up the path for a deep link, where history.back() would leave the CMS.
+ *
+ * @param {string} path Current route path.
+ */
+export function goBack( path ) {
+	if ( depth > 0 ) {
+		window.history.back();
+		return;
+	}
+
+	if ( path !== '/' ) {
+		// replace, not push: a fallback that stacked entries would make the button need two presses
+		// the second time it was used on the same screen.
+		navigate( parentPath( path ), true );
+	}
 }
 
 function announce() {
@@ -59,7 +122,10 @@ function announce() {
 	listeners.forEach( ( fn ) => fn( path ) );
 }
 
-window.addEventListener( 'popstate', announce );
+window.addEventListener( 'popstate', () => {
+	depth = Math.max( 0, depth - 1 );
+	announce();
+} );
 
 /** Subscribe a component to the current route. */
 export function useRoute() {
