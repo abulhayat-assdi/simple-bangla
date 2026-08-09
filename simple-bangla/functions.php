@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * Used as the asset cache-buster in production. During development inc/enqueue.php
  * prefers the file modification time so edits show up without bumping this.
  */
-define( 'SIMPLE_BANGLA_VERSION', '1.1.0' );
+define( 'SIMPLE_BANGLA_VERSION', '1.2.0' );
 
 /** Absolute path to the theme directory, with a trailing slash. */
 define( 'SIMPLE_BANGLA_DIR', trailingslashit( get_template_directory() ) );
@@ -35,6 +35,11 @@ require_once SIMPLE_BANGLA_DIR . 'inc/template-tags.php';
  * too, and a page ticked for it must appear whether or not the shop is running.
  */
 require_once SIMPLE_BANGLA_DIR . 'inc/pages.php';
+/*
+ * The browser-tab icon. Outside the WooCommerce guard for the same reason as the footer's pages:
+ * without it WordPress prints its own default favicon on every page of a stock install.
+ */
+require_once SIMPLE_BANGLA_DIR . 'inc/site-icon.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/nav-walker.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/ajax-search.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/demo-content.php';

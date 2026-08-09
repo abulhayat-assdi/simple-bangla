@@ -27,6 +27,7 @@ import {
 	Select,
 } from '../ui.js';
 import { apiList, SB } from '../api.js';
+import { titleText } from '../text.js';
 import { navigate, href, onLinkClick } from '../router.js';
 
 const PER_PAGE = 20;
@@ -208,34 +209,14 @@ export function Pages() {
 /**
  * A page's title, as text.
  *
- * `raw` rather than `rendered`, because a text node prints an entity literally — the theme's own
- * default page is stored as "Delivery &amp; Return Policy" and would read that way on screen. So
- * the entities are decoded here, with DOMParser rather than innerHTML: a parsed document is inert,
- * and a title is one of the few strings on this screen that a stranger could have written.
+ * The theme's own default page is stored as "Delivery &amp; Return Policy" and a text node prints
+ * that entity literally, so it goes through the shared decoder in text.js.
  *
  * @param {object} page Page record.
  * @return {string}
  */
 export function pageTitle( page ) {
-	const raw = ( page.title && ( page.title.raw ?? page.title.rendered ) ) || '';
-
-	return decodeEntities( raw ) || '(no title)';
-}
-
-/**
- * Turn `&amp;` back into `&`.
- *
- * @param {string} text Possibly entity-encoded text.
- * @return {string}
- */
-export function decodeEntities( text ) {
-	if ( ! text || text.indexOf( '&' ) === -1 ) {
-		return text || '';
-	}
-
-	const doc = new DOMParser().parseFromString( '<body>' + text + '</body>', 'text/html' );
-
-	return doc.body.textContent || '';
+	return titleText( page.title ) || '(no title)';
 }
 
 /** Whether a page is ticked for the footer. */

@@ -20,6 +20,7 @@ import {
 	Select,
 } from '../ui.js';
 import { apiList, money } from '../api.js';
+import { stripTags, titleText } from '../text.js';
 import { navigate, href, onLinkClick } from '../router.js';
 
 const PER_PAGE = 20;
@@ -187,7 +188,7 @@ function Row( { product } ) {
 			</td>
 			<td>
 				<a class="sb-table__name" href=${ href( path ) } onClick=${ ( e ) => onLinkClick( e, path ) }>
-					${ product.name }
+					${ titleText( product.name ) }
 				</a>
 				<div class="sb-table__sub">
 					${ product.sku ? 'SKU ' + product.sku : 'No SKU' }
@@ -250,14 +251,3 @@ function Status( { status } ) {
 	return html`<${ Badge } tone=${ tones[ status ] || 'muted' }>${ labels[ status ] || status }<//>`;
 }
 
-/** WooCommerce hands price_html back as markup; the list wants the text of it. */
-function stripTags( value ) {
-	if ( ! value ) {
-		return '';
-	}
-
-	const el = document.createElement( 'div' );
-	el.innerHTML = value;
-
-	return el.textContent.replace( /\s+/g, ' ' ).trim();
-}

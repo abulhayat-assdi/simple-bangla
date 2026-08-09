@@ -320,7 +320,7 @@ function Notices( { env, revenue } ) {
 
 	if ( revenue && revenue.source === 'unavailable' ) {
 		notices.push(
-			'WooCommerce Analytics has not built its reporting tables yet, so revenue reads zero until it does.'
+			'WooCommerce has not created its order tables yet, so revenue reads zero until it does.'
 		);
 	}
 

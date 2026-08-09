@@ -276,6 +276,19 @@ function simple_bangla_cms_order_counts( $range = null ) {
  * Two figures rather than one, because "৳48,000 this month" only means something next to what the
  * shop has taken altogether. `total` therefore ignores the period on purpose.
  *
+ * **Summed from the orders themselves, not from WooCommerce Analytics** (revised 2026-08-09). It
+ * read `wc_order_stats` before, which is the table Analytics maintains — and Analytics fills it
+ * from a *scheduled* action. On a shop whose cron is late, throttled or switched off, and on every
+ * order placed before Analytics first ran, that table is empty while the orders are real. The
+ * dashboard then reported ৳0 beside an Orders screen listing paid orders, which is the worst
+ * possible failure for the first number an owner looks at: silent, plausible and wrong.
+ *
+ * The cost of the change is nil at this store's scale. This is one indexed aggregate over the same
+ * table the order counts on this very screen are already grouped from — not `wc_get_orders()`,
+ * which instantiates every order and is the thing the original note was warning against. Summing
+ * the same source as the counts also means the two figures can no longer disagree, which is the
+ * rule the order stages were rebuilt around.
+ *
  * @param array|null $range From simple_bangla_cms_resolve_period().
  * @return array{total:float,period:float,source:string}
  */
@@ -283,54 +296,74 @@ function simple_bangla_cms_revenue( $range = null ) {
 
 	global $wpdb;
 
-	$table = $wpdb->prefix . 'wc_order_stats';
+	$paid = function_exists( 'wc_get_is_paid_statuses' ) ? wc_get_is_paid_statuses() : array( 'processing', 'completed' );
+
+	$hpos = class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+		&& \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+
+	if ( $hpos ) {
+		$table  = $wpdb->prefix . 'wc_orders';
+		$amount = 'o.total_amount';
+		$from   = "{$table} o";
+		$where  = "o.type = 'shop_order'";
+	} else {
+		/*
+		 * Legacy storage keeps the total in postmeta, so it needs the join. Still an aggregate the
+		 * database answers on its own — the row count is the same either way, and `meta_key` is
+		 * indexed.
+		 */
+		$table  = $wpdb->posts;
+		$amount = 'CAST( m.meta_value AS DECIMAL(18,4) )';
+		$from   = "{$wpdb->posts} o INNER JOIN {$wpdb->postmeta} m ON m.post_id = o.ID AND m.meta_key = '_order_total'";
+		$where  = "o.post_type = 'shop_order'";
+	}
 
 	if ( ! simple_bangla_cms_table_exists( $table ) ) {
 		return array(
 			'total'  => 0.0,
 			'period' => 0.0,
-			// The interface shows a hint rather than a wrong number when analytics is unavailable.
+			// The interface shows a hint rather than a wrong number when the table is not there.
 			'source' => 'unavailable',
 		);
 	}
 
-	$paid = function_exists( 'wc_get_is_paid_statuses' ) ? wc_get_is_paid_statuses() : array( 'processing', 'completed' );
-	$paid = array_map(
+	$status_col = $hpos ? 'o.status' : 'o.post_status';
+	$date_col   = $hpos ? 'o.date_created_gmt' : 'o.post_date_gmt';
+
+	// Both backends store the `wc-` prefix; wc_get_is_paid_statuses() answers without it.
+	$prefixed = array_map(
 		static function ( $status ) {
 			return 'wc-' . $status;
 		},
 		$paid
 	);
 
-	$placeholders = implode( ',', array_fill( 0, count( $paid ), '%s' ) );
+	$placeholders = implode( ',', array_fill( 0, count( $prefixed ), '%s' ) );
 
-	// Direct query against WooCommerce's own analytics summary table: it is indexed on
-	// date_created and status, which is the whole reason it exists. Result is cached by the
-	// caller, so this runs at most once every five minutes.
 	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$total = (float) $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT COALESCE( SUM( total_sales ), 0 ) FROM {$table} WHERE status IN ( {$placeholders} )",
-			$paid
+			"SELECT COALESCE( SUM( {$amount} ), 0 ) FROM {$from} WHERE {$where} AND {$status_col} IN ( {$placeholders} )",
+			$prefixed
 		)
 	);
 
-	$clauses = array( "status IN ( {$placeholders} )" );
-	$params  = $paid;
+	$clauses = array( $where, "{$status_col} IN ( {$placeholders} )" );
+	$params  = $prefixed;
 
 	if ( $range && $range['from'] ) {
-		$clauses[] = 'date_created_gmt >= %s';
+		$clauses[] = "{$date_col} >= %s";
 		$params[]  = $range['from'];
 	}
 
 	if ( $range && $range['to'] ) {
-		$clauses[] = 'date_created_gmt < %s';
+		$clauses[] = "{$date_col} < %s";
 		$params[]  = $range['to'];
 	}
 
 	$period = (float) $wpdb->get_var(
 		$wpdb->prepare(
-			"SELECT COALESCE( SUM( total_sales ), 0 ) FROM {$table} WHERE " . implode( ' AND ', $clauses ),
+			"SELECT COALESCE( SUM( {$amount} ), 0 ) FROM {$from} WHERE " . implode( ' AND ', $clauses ),
 			$params
 		)
 	);
@@ -339,7 +372,7 @@ function simple_bangla_cms_revenue( $range = null ) {
 	return array(
 		'total'  => round( $total, 2 ),
 		'period' => round( $period, 2 ),
-		'source' => 'order_stats',
+		'source' => 'orders',
 	);
 }
 

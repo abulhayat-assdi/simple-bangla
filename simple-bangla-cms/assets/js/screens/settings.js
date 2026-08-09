@@ -16,9 +16,10 @@
  * gateway the shop actually uses would be worse than sending the owner to wp-admin for it.
  */
 
-import { html, useState, useEffect, Card, Field, Select, ErrorBox, EmptyState, toast } from '../ui.js';
+import { html, useState, useEffect, Card, Field, Fields, Select, ErrorBox, EmptyState, toast } from '../ui.js';
 import { api, apiList, can, SB } from '../api.js';
 import { useSettings, SettingsPage, SchemaField, layoutFields } from '../settings-form.js';
+import { decodeEntities, stripTags } from '../text.js';
 import { CourierCard } from './courier.js';
 
 /** WooCommerce general settings this screen edits, in the order they are shown. */
@@ -42,11 +43,16 @@ const CURRENCY_KEYS = [
  * The logo sits first because it is the one thing on this screen a shop changes on day one, and
  * it is the same `custom_logo` mod WordPress's Site Identity panel writes — so the header, the
  * footer and this CMS's own sign-in page all follow it. Empty means the site name in text.
+ *
+ * The tab icon is beside it because they are one decision — "what picture is this shop?" — asked
+ * twice at two sizes. Leaving the icon empty is a real answer: the theme falls back to the logo.
  */
+const LOGO_CARD = 'Logo and tab icon';
+
 const APPEARANCE_CARDS = [
 	{
-		title: 'Logo',
-		keys: [ 'custom_logo' ],
+		title: LOGO_CARD,
+		keys: [ 'custom_logo', 'site_icon' ],
 	},
 	{
 		title: 'Brand',
@@ -163,7 +169,7 @@ export function Settings() {
 
 	// The logo is lifted out of the run so it can sit at the top of the page. The colours stay
 	// below the store's own details, where they already were.
-	const logoCard = appearanceCards.find( ( card ) => card.title === 'Logo' );
+	const logoCard = appearanceCards.find( ( card ) => card.title === LOGO_CARD );
 	const colorCards = appearanceCards.filter( ( card ) => card !== logoCard );
 
 	return html`
@@ -226,9 +232,8 @@ export function Settings() {
  */
 function SchemaCard( { card, state } ) {
 	return html`
-		<${ Card } title=${ card.title }>
-			${ card.lead ? html`<p class="sb-hint">${ card.lead }</p>` : null }
-			<div class="sb-grid-cards">
+		<${ Card } title=${ card.title } lead=${ card.lead }>
+			<${ Fields }>
 				${ card.fields.map(
 					( field ) => html`
 						<${ SchemaField }
@@ -241,7 +246,7 @@ function SchemaCard( { card, state } ) {
 						/>
 					`
 				) }
-			</div>
+			<//>
 		<//>
 	`;
 }
@@ -271,8 +276,8 @@ function WooCard( { title, lead, ids, woo, error, onRetry, onChange } ) {
 	}
 
 	return html`
-		<${ Card } title=${ title }>
-			${ lead ? html`<p class="sb-hint">${ lead }</p>` : null }
+		<${ Card } title=${ title } lead=${ lead }>
+			<${ Fields }>
 			${ rows.map( ( setting ) => {
 				const id = 'woo-' + setting.id;
 				const options = setting.options
@@ -280,14 +285,18 @@ function WooCard( { title, lead, ids, woo, error, onRetry, onChange } ) {
 							value,
 							// Country groups arrive as nested objects; flattening them is not worth
 							// it when the flat entries are the ones a Bangladeshi store needs.
-							label: typeof label === 'string' ? label : value,
+							//
+							// Decoded, because WooCommerce writes the currency symbol into the label as
+							// an entity: the taka option arrives as "Bangladeshi taka (&#2547;&nbsp;)"
+							// and an <option> is a text node, so it read exactly like that on screen.
+							label: typeof label === 'string' ? decodeEntities( label ) : value,
 					  } ) )
 					: null;
 
 				return html`
 					<${ Field }
 						key=${ setting.id }
-						label=${ setting.label }
+						label=${ decodeEntities( setting.label ) }
 						id=${ id }
 						hint=${ stripTags( setting.description ) }
 					>
@@ -309,18 +318,8 @@ function WooCard( { title, lead, ids, woo, error, onRetry, onChange } ) {
 					<//>
 				`;
 			} ) }
+			<//>
 		<//>
 	`;
 }
 
-/** WooCommerce's setting descriptions carry markup; the hint line wants the words. */
-function stripTags( value ) {
-	if ( ! value ) {
-		return '';
-	}
-
-	const el = document.createElement( 'div' );
-	el.innerHTML = value;
-
-	return el.textContent.replace( /\s+/g, ' ' ).trim();
-}

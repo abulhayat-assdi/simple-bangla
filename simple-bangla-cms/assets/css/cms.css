@@ -352,8 +352,16 @@ img {
 	background: transparent;
 }
 
+/*
+ * Sixteen destinations have to fit a laptop.
+ *
+ * The nav scrolls when it must, but a sidebar the owner has to scroll to reach Settings reads as
+ * broken rather than as long — the screenshot that started this pass showed exactly that, cut off
+ * mid-list. Trimming the row and the gaps fits the whole list in about 700px of rail, which is what
+ * a 1080p screen leaves after the browser's own furniture.
+ */
 .sb-rail__group {
-	margin-bottom: var(--sb-space-4);
+	margin-bottom: var(--sb-space-3);
 }
 
 .sb-rail__group:last-child {
@@ -361,9 +369,9 @@ img {
 }
 
 .sb-rail__legend {
-	margin: 0 0 var(--sb-space-2);
+	margin: 0 0 var(--sb-space-1);
 	padding: 0 var(--sb-space-3);
-	font-size: 11px;
+	font-size: 10px;
 	font-weight: 700;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
@@ -374,10 +382,10 @@ img {
 	display: flex;
 	align-items: center;
 	gap: var(--sb-space-3);
-	padding: 9px var(--sb-space-3);
+	padding: 7px var(--sb-space-3);
 	border-radius: var(--sb-radius-sm);
 	color: var(--sb-rail-ink);
-	font-size: 14.5px;
+	font-size: 14px;
 	text-decoration: none;
 	transition: background-color 0.15s ease;
 }
@@ -410,19 +418,32 @@ img {
 	color: var(--sb-rail-muted);
 }
 
+/*
+ * One link, not three.
+ *
+ * Sign out and "WordPress admin — updates and payment settings only" used to live here as well, in
+ * 12px grey, the last of them wrapping onto two lines against the bottom of the rail. Both are
+ * about the person signed in rather than about the shop, so both moved under the avatar where an
+ * interface is expected to keep them; what is left is the one link that answers "show me the shop".
+ */
 .sb-rail__foot {
-	padding: var(--sb-space-4) var(--sb-space-3);
+	padding: var(--sb-space-3);
 	border-top: 1px solid rgba(255, 255, 255, 0.08);
-	font-size: 12px;
-	color: var(--sb-rail-muted);
 }
 
-.sb-rail__foot a {
+.sb-rail__link {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	padding: 8px var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
 	color: var(--sb-rail-muted);
+	font-size: 13px;
 	text-decoration: none;
 }
 
-.sb-rail__foot a:hover {
+.sb-rail__link:hover {
+	background: rgba(255, 255, 255, 0.06);
 	color: var(--sb-rail-ink);
 }
 
@@ -509,14 +530,36 @@ img {
 /* ---------------------------------------------------------------- user chip */
 
 .sb-user {
+	position: relative;
+	flex: 0 0 auto;
+}
+
+.sb-user__button {
 	display: flex;
 	align-items: center;
 	gap: var(--sb-space-3);
-	flex: 0 0 auto;
-	padding: 4px var(--sb-space-4) 4px 4px;
+	padding: 4px var(--sb-space-3) 4px 4px;
 	border: 1px solid var(--sb-line);
 	border-radius: 999px;
 	background: var(--sb-surface);
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.sb-user__button:hover {
+	border-color: var(--sb-ink);
+}
+
+.sb-user__caret {
+	display: flex;
+	color: var(--sb-muted);
+	transform: rotate(90deg);
+}
+
+.sb-user__button[aria-expanded='true'] .sb-user__caret {
+	transform: rotate(-90deg);
 }
 
 /*
@@ -565,6 +608,102 @@ img {
 	color: var(--sb-rail-ink);
 	font-size: 13px;
 	font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- profile menu */
+
+/*
+ * What is about the person rather than about the shop: who is signed in, the way into wp-admin for
+ * the few things that must happen there, and the way out.
+ */
+.sb-usermenu {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	z-index: 45;
+	width: 260px;
+	max-width: calc(100vw - var(--sb-space-4) * 2);
+	padding: var(--sb-space-2);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+	background: var(--sb-surface);
+	box-shadow: 0 12px 32px rgba(17, 18, 20, 0.14);
+}
+
+.sb-usermenu__head {
+	padding: var(--sb-space-3) var(--sb-space-3) var(--sb-space-3);
+	border-bottom: 1px solid var(--sb-line-soft);
+	margin-bottom: var(--sb-space-2);
+}
+
+.sb-usermenu__name {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+/*
+ * The address in full, wrapped if it has to be. A shop's account is often set up under its own
+ * email, so this is frequently the same string as the name above it and the one the owner would
+ * recognise — truncating it to "simplebangl…" would make the only identifying line unreadable.
+ */
+.sb-usermenu__email {
+	margin: 2px 0 0;
+	color: var(--sb-muted);
+	font-size: 12px;
+	overflow-wrap: anywhere;
+}
+
+.sb-usermenu__role {
+	margin: 6px 0 0;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--sb-muted);
+}
+
+.sb-usermenu__item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--sb-space-3);
+	padding: 9px var(--sb-space-3);
+	border-radius: var(--sb-radius-sm);
+	color: var(--sb-ink);
+	font-size: 14px;
+	text-decoration: none;
+}
+
+.sb-usermenu__item svg {
+	flex: 0 0 auto;
+	margin-top: 2px;
+	color: var(--sb-muted);
+}
+
+.sb-usermenu__item small {
+	display: block;
+	color: var(--sb-muted);
+	font-size: 11px;
+	line-height: 1.4;
+}
+
+.sb-usermenu__item:hover {
+	background: var(--sb-surface-2);
+}
+
+/* Sign out is the one thing here that ends the session, so it is separated and coloured. */
+.sb-usermenu__item--out {
+	margin-top: var(--sb-space-2);
+	border-top: 1px solid var(--sb-line-soft);
+	padding-top: var(--sb-space-3);
+	border-radius: 0 0 var(--sb-radius-sm) var(--sb-radius-sm);
+	color: var(--sb-bad);
+	font-weight: 600;
+}
+
+.sb-usermenu__item--out svg {
+	color: var(--sb-bad);
 }
 
 .sb-burger {
@@ -1045,10 +1184,34 @@ img {
 	border-bottom: 1px solid var(--sb-line-soft);
 }
 
+.sb-card__heading {
+	min-width: 0;
+}
+
 .sb-card__title {
 	margin: 0;
 	font-size: 15px;
 	font-weight: 700;
+}
+
+/*
+ * The card's own sentence, under its title.
+ *
+ * It used to be the first `.sb-hint` inside the body, which put it directly above the first field's
+ * label in the identical muted grey — so it read as help for that field rather than for the card,
+ * and every settings screen opened with a line that appeared to be answering the wrong question.
+ */
+.sb-card__lead {
+	margin: 4px 0 0;
+	max-width: 78ch;
+	color: var(--sb-muted);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* A card whose head carries a button keeps the two on the same line. */
+.sb-card__head > .sb-btn {
+	flex: 0 0 auto;
 }
 
 .sb-card__body {
@@ -1057,6 +1220,37 @@ img {
 
 .sb-card__body > :last-child {
 	margin-bottom: 0;
+}
+
+/*
+ * Two fields abreast, once the card is wide enough for two to be readable.
+ *
+ * A single column meant a phone number in a box eleven hundred pixels wide with nothing beside it,
+ * which is most of what "the form does not fit the page" meant: the value used a tenth of the field
+ * and the eye travelled the width of the monitor between one label and the next.
+ *
+ * 420px per column rather than a fixed two, so the same grid is one column inside the 340px editor
+ * sidebar and two in a full-width card without either knowing where it is.
+ */
+.sb-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+	gap: 0 var(--sb-space-5);
+	align-items: start;
+}
+
+.sb-fields--single {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+/*
+ * The controls that are not a single value spanning the whole row: an image picker with its
+ * preview, a switch and its explanation, a rich-text box. Named here rather than at each call site,
+ * so a screen never has to know which of its generated fields is which.
+ */
+.sb-fields > .sb-field--wide,
+.sb-fields > .sb-switch {
+	grid-column: 1 / -1;
 }
 
 .sb-editor {
@@ -1363,6 +1557,20 @@ img {
 
 .sb-table__actions-col {
 	width: 1%;
+}
+
+/*
+ * Row actions stay on one line.
+ *
+ * `.sb-row` wraps by default, which is right everywhere else and wrong in a cell the table has been
+ * told to shrink to its content: the browser resolved `width: 1%` by wrapping Edit above Delete,
+ * so every row in Categories and Content Pages was two buttons tall and the list scrolled twice as
+ * far as it needed to. Refusing to wrap makes the column's min-content the width of both buttons,
+ * which is the width it should have had.
+ */
+.sb-table td .sb-row {
+	flex-wrap: nowrap;
+	justify-content: flex-end;
 }
 
 .sb-table__thumb {
@@ -1838,10 +2046,17 @@ a.sb-table__name:hover {
 
 /* ---------------------------------------------------------------- courier settings */
 
+/*
+ * One courier, folded shut unless it is the one this shop uses.
+ *
+ * Three couriers with eleven fields between them made this the longest card in the CMS by some
+ * distance, on a screen whose other cards are five fields each — and a shop books with one of them.
+ */
 .sb-courier-block {
-	margin-top: var(--sb-space-5);
-	padding-top: var(--sb-space-4);
-	border-top: 1px solid var(--sb-line);
+	margin-top: var(--sb-space-4);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
 }
 
 .sb-courier-block__head {
@@ -1849,12 +2064,43 @@ a.sb-table__name:hover {
 	align-items: center;
 	flex-wrap: wrap;
 	gap: var(--sb-space-2);
-	margin: 0 0 var(--sb-space-3);
+	margin: 0;
+	padding: var(--sb-space-3) var(--sb-space-4);
+	cursor: pointer;
+	list-style: none;
+}
+
+/* Safari draws its own triangle through ::-webkit-details-marker, which `list-style` misses. */
+.sb-courier-block__head::-webkit-details-marker {
+	display: none;
 }
 
 .sb-courier-block__name {
 	font-size: 15px;
 	font-weight: 800;
+}
+
+/* A chevron drawn in CSS: the summary is not a component and cannot render an <svg> icon. */
+.sb-courier-block__toggle {
+	margin-left: auto;
+	width: 8px;
+	height: 8px;
+	border-right: 2px solid var(--sb-muted);
+	border-bottom: 2px solid var(--sb-muted);
+	transform: rotate(45deg) translate(-2px, -2px);
+	transition: transform 0.15s ease;
+}
+
+.sb-courier-block[open] .sb-courier-block__toggle {
+	transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+.sb-courier-block[open] .sb-courier-block__head {
+	border-bottom: 1px solid var(--sb-line);
+}
+
+.sb-courier-block .sb-fields {
+	padding: var(--sb-space-4) var(--sb-space-4) 0;
 }
 
 .sb-shipment {
@@ -2620,6 +2866,17 @@ a.sb-table__name:hover {
 		padding-bottom: 72px;
 	}
 
+	/*
+	 * And room on every other screen that has one.
+	 *
+	 * The two rules above only cover forms, so on the dashboard the bar sat over "Figures updated
+	 * at…" and on a list it covered the pager — the two lines that come last on exactly the screens
+	 * that are not forms. `:has()` asks the only question that matters: is there a bar on this page?
+	 */
+	.sb-page:has(> .sb-page__header .sb-page__actions) {
+		padding-bottom: 84px;
+	}
+
 	.sb-toasts {
 		right: var(--sb-space-3);
 		left: var(--sb-space-3);
@@ -2641,8 +2898,18 @@ a.sb-table__name:hover {
  * The single-column body of a settings screen. Distinct from .sb-editor, which is the two-column
  * product form: these screens have no sidebar of metadata to put in a second column.
  */
+/*
+ * `minmax(0, 1fr)`, not the implicit `auto`.
+ *
+ * A grid column sized `auto` is never allowed to be narrower than its widest item's min-content, so
+ * one long product name in the Hot Deals preview pushed the column — and with it both cards and the
+ * page — 17px past the edge of a 390px phone. The truncation that was supposed to prevent that
+ * never got the chance: the row can only ellipsize once something upstream says the column stops at
+ * the container. Every grid on these screens takes the same precaution.
+ */
 .sb-form {
 	display: grid;
+	grid-template-columns: minmax(0, 1fr);
 	gap: var(--sb-space-4);
 	align-items: start;
 }
@@ -2653,7 +2920,7 @@ a.sb-table__name:hover {
  */
 .sb-grid-cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
 	gap: var(--sb-space-4);
 	align-items: start;
 }
@@ -2734,10 +3001,19 @@ a.sb-table__name:hover {
 	gap: var(--sb-space-3);
 }
 
+/*
+ * Three fixed columns: the picture, the category, the position.
+ *
+ * It was one flex row, and the picture column was as wide as its buttons happened to be — "Replace"
+ * plus "Remove" for a category that has an image, a single wider "Choose image" for one that does
+ * not. Every row therefore started its text at a different place and the list looked ragged. A grid
+ * puts every name, every count and every number box on the same vertical line.
+ */
 .sb-circlerow {
-	display: flex;
+	display: grid;
+	grid-template-columns: 190px minmax(0, 1fr) 110px;
 	gap: var(--sb-space-4);
-	align-items: flex-start;
+	align-items: center;
 	padding: var(--sb-space-3);
 	background: var(--sb-surface-2);
 	border: 1px solid var(--sb-line-soft);
@@ -2752,16 +3028,37 @@ a.sb-table__name:hover {
 	opacity: 0.62;
 }
 
-.sb-circlerow__image {
-	flex: 0 0 auto;
-}
-
 .sb-circlerow__image .sb-field {
 	margin-bottom: 0;
 }
 
+/*
+ * A smaller thumbnail and buttons that keep to one line, so the picker fits the fixed column
+ * whichever pair of buttons a category needs. Wrapping them made every row three times as tall as
+ * the one line of text beside it.
+ */
+.sb-circlerow__image .sb-mediafield {
+	gap: var(--sb-space-2);
+}
+
+.sb-circlerow__image .sb-thumb {
+	width: 48px;
+	height: 48px;
+	flex-basis: 48px;
+}
+
+.sb-circlerow__image .sb-row {
+	flex-wrap: nowrap;
+	gap: var(--sb-space-1);
+}
+
+.sb-circlerow__image .sb-btn {
+	padding: 5px var(--sb-space-2);
+	font-size: 12px;
+	white-space: nowrap;
+}
+
 .sb-circlerow__body {
-	flex: 1 1 auto;
 	min-width: 0;
 }
 
@@ -2770,14 +3067,20 @@ a.sb-table__name:hover {
 	font-weight: 600;
 }
 
-.sb-circlerow__body .sb-field {
-	margin-top: var(--sb-space-3);
+.sb-circlerow__order .sb-field {
 	margin-bottom: 0;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
+	/* One column on a phone: the picker is 190px on its own and a name has nowhere to go beside it. */
 	.sb-circlerow {
-		flex-direction: column;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--sb-space-3);
+		align-items: start;
+	}
+
+	.sb-circlerow__order {
+		max-width: 140px;
 	}
 }
 

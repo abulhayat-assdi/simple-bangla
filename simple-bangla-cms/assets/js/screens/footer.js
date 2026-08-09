@@ -12,7 +12,7 @@
  * and if it is not named in a card, `layoutFields` puts it under "Other" instead of hiding it.
  */
 
-import { html, Card } from '../ui.js';
+import { html, Card, Fields } from '../ui.js';
 import { useSettings, SettingsPage, SchemaField, layoutFields } from '../settings-form.js';
 
 const CARDS = [
@@ -60,20 +60,21 @@ export function FooterSettings() {
 		>
 			${ cards.map(
 				( card ) => html`
-					<${ Card } key=${ card.title } title=${ card.title }>
-						${ card.lead ? html`<p class="sb-hint">${ card.lead }</p>` : null }
-						${ card.fields.map(
-							( field ) => html`
-								<${ SchemaField }
-									key=${ field.name }
-									name=${ field.name }
-									spec=${ field.spec }
-									hint=${ field.spec.description }
-									value=${ state.values[ field.name ] }
-									onChange=${ ( value ) => state.set( field.name, value ) }
-								/>
-							`
-						) }
+					<${ Card } key=${ card.title } title=${ card.title } lead=${ card.lead }>
+						<${ Fields }>
+							${ card.fields.map(
+								( field ) => html`
+									<${ SchemaField }
+										key=${ field.name }
+										name=${ field.name }
+										spec=${ field.spec }
+										hint=${ field.spec.description }
+										value=${ state.values[ field.name ] }
+										onChange=${ ( value ) => state.set( field.name, value ) }
+									/>
+								`
+							) }
+						<//>
 					<//>
 				`
 			) }

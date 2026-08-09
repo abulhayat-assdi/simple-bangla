@@ -2,6 +2,90 @@
 
 Last updated: 2026-08-09
 
+## The tidy-up pass (2026-08-09, plugin 1.4.0)
+
+The owner opened the CMS and reported it as messy: alignment off, empty space around everything, the
+profile chip in the top right wrong. Audited against a real install at 1440 / 1024 / 390 rather than
+from the screenshot, it came down to four layout faults repeating across the screens, one class of
+text bug, and one figure that was quietly wrong.
+
+- ✅ **Revenue read ৳0 on a shop with paid orders.** It summed `wc_order_stats`, which WooCommerce
+  Analytics fills from a *scheduled* action — so on any shop whose cron is late, throttled or off,
+  the first number an owner looks at was zero beside an Orders screen listing real orders. It is now
+  an indexed `SUM()` over the same order table the counts on that screen already come from, so the
+  two can no longer disagree. HPOS reads `wc_orders.total_amount`, legacy joins `_order_total`.
+- ✅ **Raw HTML entities on screen.** `Airpod&#8217;s` throughout the Menu tree,
+  `Bangladeshi taka (&#2547;&nbsp;)` in the currency select. `assets/js/text.js` is now the one place
+  an API's HTML becomes text, replacing three private half-copies; the menu edit dialog had been
+  loading the encoded title as the value to save, which would have re-encoded it each time.
+- ✅ **The profile chip only displayed.** Sign out and the wp-admin link lived in small grey type at
+  the foot of the rail, the second wrapping onto two lines. Both are now in a proper profile menu
+  under the avatar, with the account's email shown in full; the rail keeps "View the store" alone.
+- ✅ **Row actions stacked.** `.sb-row` wrapped inside the shrink-to-fit actions cell, making every
+  Categories and Content Pages row two buttons tall.
+- ✅ **Category Circles was ragged.** Its picker column was as wide as whichever buttons a category
+  needed — two with a picture, one without — so no two rows started their text at the same place. It
+  is a three-column grid now.
+- ✅ **Settings and Footer fields ran the full width of the page.** They sit two abreast at 1440px,
+  and a card's explanatory sentence moved out of the body (where it read as help for the first
+  field) into the card header. The three couriers fold shut, which took roughly two thirds off the
+  length of the Settings screen.
+- ✅ **The sidebar did not fit a laptop** and the owner's screenshot showed it cut off mid-list.
+- ✅ **Hot Deals overflowed a phone by 17px.** A grid column sized `auto` is never narrower than its
+  widest item's min-content, so one long product name widened the page; the row could not truncate
+  until the column was capped.
+
+Verified with 31 browser assertions against real WordPress + WooCommerce with the demo catalogue and
+five seeded orders — including the revenue tile matched against a total summed independently from
+`wc/v3/orders` — plus no horizontal overflow at 1440/1024/390 across all seventeen screens and zero
+console errors.
+
+## Content Pages (2026-08-09)
+
+The owner asked where the About Us, Privacy Policy and Refund pages in the footer are edited. The
+honest answer was wp-admin, which is the one answer this project exists to stop giving. **Content
+Pages** is now the first item in the sidebar's Site group: pick an existing page, write it in the
+rich-text editor, or add a new one with a name, an address and a tick for the footer.
+
+- ✅ **Built on core's `wp/v2/pages`**, which has covered pages since WordPress 4.7. The plugin adds
+  one file — `inc/rest-pages.php`, 62 lines — registering the theme's footer tick for REST. Same
+  split as the menu-item icon.
+- ✅ **The tick lives in the theme** — `simple-bangla/inc/pages.php`, the third file the theme has
+  taken for the CMS's sake, after the block list and the order statuses, and for the same reason: the
+  footer is the theme's, so switching the plugin off must not empty it.
+- ✅ **A tick beats the menu assigned to `footer-1`.** The demo importer assigns one there, so if the
+  menu won, the tick box would silently do nothing on exactly the installs that had been set up
+  properly. Tick nothing and the column is unchanged; columns two and three stay menu-driven.
+- ✅ **Only published pages appear**, and the tick's hint says so while the status is Draft.
+- ✅ **The homepage and the Cart/Checkout/My Account pages are marked, not blocked** — the first
+  because the theme builds it from the Homepage screens and nothing typed there is ever printed, the
+  others because their body is one WooCommerce shortcode, so they open in the HTML view with a
+  warning.
+- ✅ **An empty slug is omitted, never sent blank.** On update, blank asks WordPress to regenerate,
+  which silently changes the address of a page that was only being renamed.
+- ✅ **Deleting trashes rather than erases.** A page is usually the only copy of writing nobody wants
+  to do twice.
+
+**The half of it that was missing.** The screen, the editor, the REST registration, the theme query,
+the footer rendering, the ability and the sidebar entry were all complete — but `resolve()` in
+`app.js` had no pattern for `/content/:id`, so `PageEdit` sat imported and unreachable and both "Add
+page" and "Edit" landed on "Not found". Thirteen lines. Nothing warns about an imported-but-unused
+component, which is why the suite now asserts the route and not only the screen.
+
+Verified with 60 assertions in Playground against real WordPress + WooCommerce: the meta registered
+with its auth callback once `rest_api_init` has fired (it is genuinely absent before that, by
+design), a page created through `wp/v2/pages` with the tick echoed true *and* stored as `'1'`, the
+list returning drafts with `title.raw` and `content.raw` — then the storefront, with the theme's own
+footer template rendering the link and both the unticked page and the ticked draft absent from the
+markup. Then a subscriber refused with 403 and the stored tick untouched, a rename leaving the slug
+alone, unticking restoring the menu, a delete landing in the trash, and the route, sidebar entry and
+import map all covering the two new modules. 60/60.
+
+Two false failures in the suite before it was right, both worth remembering: **`register_post_meta`
+on `rest_api_init` is absent until a REST request has been dispatched**, so checking on a plain page
+load reports a working feature as broken; and **`wp_json_encode` escapes forward slashes**, so
+`screens/content.js` is not a substring of the import map it is plainly in.
+
 ## Round two, corrected by a real order (2026-08-09, same day)
 
 The owner placed a test order and it appeared under **Courier-এ আছে** instead of **New Orders**.
@@ -535,6 +619,13 @@ The theme works with placeholders in place; these are Customizer fields, not cod
   page as a draft, `get_page_by_path()` found it, and the theme skipped creating one — leaving
   the footer link dead. `inc/setup.php` now publishes that specific page (matched by
   `wp_page_for_privacy_policy`, so a page the owner deliberately drafted is never touched).
+- ✅ **The browser tab showed the WordPress logo** (2026-08-09). With `site_icon` unset,
+  WordPress 6.1 and later serve a default favicon of their own, so the shop wore somebody else's
+  mark in every tab and bookmark. `simple-bangla/inc/site-icon.php` filters `get_site_icon_url()`
+  to fall back to the site logo, which turns on the whole of core's icon handling — the 32/192px
+  icons, the apple-touch-icon and the Windows tile — with nothing printed twice. A proper square
+  icon can now be chosen in the CMS under Settings → Logo and tab icon, and takes precedence.
+  Verified with 23 assertions in Playground.
 
 ---
 

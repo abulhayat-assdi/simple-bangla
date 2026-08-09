@@ -101,7 +101,7 @@ function simple_bangla_cms_settings_get( $request ) {
 			continue;
 		}
 
-		$value = simple_bangla_cms_cast( get_theme_mod( $key, $spec['default'] ), $spec['type'] );
+		$value = simple_bangla_cms_read_setting( $key, $spec );
 
 		// The sanitiser is a server-side concern; sending it would only invite the client to
 		// think it can choose one.
@@ -208,13 +208,13 @@ function simple_bangla_cms_settings_save( $request ) {
 	}
 
 	foreach ( $clean as $key => $value ) {
-		set_theme_mod( $key, $value );
+		simple_bangla_cms_write_setting( $key, $value, $schema[ $key ] );
 	}
 
 	/**
 	 * Fires after the CMS writes theme settings.
 	 *
-	 * @param array<string,mixed> $clean The values written, keyed by theme mod name.
+	 * @param array<string,mixed> $clean The values written, keyed by storage name.
 	 */
 	do_action( 'simple_bangla_cms_settings_saved', $clean );
 

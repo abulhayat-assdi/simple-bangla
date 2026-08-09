@@ -16,6 +16,12 @@ node_modules/
 vendor/
 *.log
 
+# …except the CMS's vendored Preact bundle, which is not a dependency to be installed.
+# There is no build step and no package manager: that 13 KB file IS the source, every screen
+# imports it, and with it ignored a fresh clone produced a plugin whose interface never booted.
+!simple-bangla-cms/assets/vendor/
+!simple-bangla-cms/assets/vendor/**
+
 # Packaged theme/plugin zips — rebuilt from source, never the source of truth
 dist/
 

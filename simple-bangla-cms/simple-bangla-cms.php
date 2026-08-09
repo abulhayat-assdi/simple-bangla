@@ -3,7 +3,7 @@
  * Plugin Name:       Simple Bangla CMS
  * Plugin URI:        https://simplebangla.com/
  * Description:       A custom store-management interface for Simple Bangla, so day-to-day work happens outside wp-admin. This plugin is the API half: authentication, the settings bridge and the dashboard endpoints.
- * Version:           1.3.0
+ * Version:           1.4.0
  * Requires at least: 6.4
  * Requires PHP:      7.4
  * Author:            Simple Bangla
@@ -21,7 +21,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SIMPLE_BANGLA_CMS_VERSION', '1.3.0' );
+define( 'SIMPLE_BANGLA_CMS_VERSION', '1.4.0' );
 define( 'SIMPLE_BANGLA_CMS_FILE', __FILE__ );
 define( 'SIMPLE_BANGLA_CMS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLE_BANGLA_CMS_URL', plugin_dir_url( __FILE__ ) );

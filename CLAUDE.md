@@ -71,6 +71,7 @@ simple-bangla/
 │   ├── template-tags.php         reusable render helpers, icon set, product loops
 │   ├── ajax-search.php           live product search endpoint
 │   ├── ajax-filter.php           shop filtering + the sb_ajax fragment
+│   ├── site-icon.php             browser-tab icon, falling back to the logo
 │   ├── recently-viewed.php       cookie-backed recently viewed strip
 │   ├── woocommerce.php           currency, Buy Now, WhatsApp, cart fragments
 │   └── demo-content.php          one-click demo importer + GD image generator
@@ -108,18 +109,19 @@ simple-bangla-cms/
 │   ├── rest-settings.php         /settings — GET schema+values, POST batch write
 │   ├── rest-dashboard.php        /dashboard — one request, every figure
 │   ├── menu-icon.php             menu-item icon meta for REST + /menu-locations
+│   ├── rest-pages.php            the theme's footer-link tick, registered for REST
 │   ├── rest-blocklist.php        /blocklist — editor for the theme's list
 │   ├── rest-staff.php            /staff — staff accounts, with the lockout guards
 │   └── courier.php               /courier + /orders/{id}/courier + /record; dispatch and the
 │                                 delivery-record lookup for Steadfast, Pathao and RedX
 └── assets/
     ├── css/cms.css               ~46 KB
-    ├── js/    api · ui · nav · router · media · editor · order-utils · settings-form · app
+    ├── js/    api · ui · text · nav · router · media · editor · order-utils · settings-form · app
     │           screens/  overview · products · product-edit · categories
     │                     orders · order-detail · invoice
     │                     hero · hot-deals · circles · rows · banners
     │                     menu · footer · reviews · settings · coupons · courier
-    │                     customers · blocked · admins
+    │                     content · content-edit · blocked · admins
     └── vendor/preact-htm.module.js   13 KB, vendored
 ```
 
@@ -127,7 +129,10 @@ The theme gained one file for the CMS's sake — and only because the CMS could 
 it: `simple-bangla/inc/blocklist.php`, which stores the order block list and enforces it at the
 checkout. See phase 7 below. A second followed on 2026-08-09 for the same reason —
 `simple-bangla/inc/order-status.php`, which registers the two order stages WooCommerce lacks; a
-status is customer-visible, so it cannot belong to a plugin that might be switched off.
+status is customer-visible, so it cannot belong to a plugin that might be switched off. A third the
+same day — `simple-bangla/inc/pages.php`, which owns the "show this page in the footer" tick and the
+query that turns it into links; the footer is the theme's, so its links cannot come from a plugin.
+See phase 9.
 
 ---
 
@@ -643,12 +648,13 @@ silently drop the theme back to its compiled default — which reads as "the sav
   exists to avoid.
 - **Light theme in the site's own palette** (black + `#FBF4E2` cream), not the reference's dark
   gold dashboard.
-- **`/manage` sidebar** (16 items in four groups): **Store** — Overview · Orders ·
+- **`/manage` sidebar** (17 items in four groups): **Store** — Overview · Orders ·
   Products · Categories · Coupons. **Homepage** — Hero Slider · Hot Deals · Category Circles ·
-  Product Rows · Banners. **Site** — Menu · Footer · Reviews · Settings. **People** —
-  Blocked List · Manage Admins. (Customers was removed 2026-08-09; see round two.) Every item is visible from day one, filtered only by ability and
-  marked "soon" until its phase lands; a sidebar that grew week by week would hide what is still
-  owed.
+  Product Rows · Banners. **Site** — Content Pages · Menu · Footer · Reviews · Settings.
+  **People** — Blocked List · Manage Admins. (Customers was removed 2026-08-09; Content Pages was
+  added the same day — see round two and phase 9.) Every item is visible from day one, filtered
+  only by ability and marked "soon" until its phase lands; a sidebar that grew week by week would
+  hide what is still owed.
 
 ### Phase 2 — the interface (2026-08-08)
 
@@ -1171,6 +1177,175 @@ Not verified against a live courier account — nobody has real credentials here
 record lookup are written to their documented and observed request shapes and exercised only for
 their failure paths. Send the first real parcel with the courier's own panel open beside the screen.
 
+### The browser-tab icon (2026-08-09, plugin 1.3.1)
+
+The owner reported the WordPress mark showing in the tab. With `site_icon` unset, WordPress 6.1+
+serves a default favicon of its own, so a shop that never opened Settings wears somebody else's
+logo everywhere a favicon appears.
+
+- **Fixed by filtering `get_site_icon_url()`, not by printing link tags.** `has_site_icon()` is
+  only a call to that function, so answering the one filter turns on the whole of core's icon
+  handling — the 32px and 192px icons, the apple-touch-icon, the Windows tile, the
+  `/favicon.ico` redirect — consistently and without a second `<link rel="icon">` to go stale the
+  moment a real icon is set. A real site icon always wins; the filter only speaks when core had
+  nothing to say. On multisite it declines an explicit `$blog_id`, because core fires the filter
+  *after* restoring the current blog and this site's logo is not that site's answer.
+- **In the theme** (`inc/site-icon.php`), for the block list's reason: a shop with the plugin
+  switched off must not go back to wearing the WordPress mark.
+- **The fallback is the site logo** — the picture the shop has already uploaded, the same
+  `custom_logo` mod the header, the footer and the CMS sign-in page read. A wide wordmark at 16px
+  is legible only as a smudge of the right colour, which still beats someone else's logo; the
+  real answer is a square icon, which is what the new field is for.
+- **`site_icon` is an option, not a `theme_mod`** — the first field in the schema that is. Rather
+  than special-case it, a spec may now say `store => 'option'`, and `simple_bangla_cms_read_setting()`
+  / `_write_setting()` route every read and write. Hard-coding `get_theme_mod()` at the call sites
+  would not have failed loudly: it would have read a mod nobody ever wrote and returned the
+  default, which on screen is indistinguishable from "never set".
+- **It is WordPress's own `site_icon`**, the same setting Customizer → Site Identity writes, for
+  the same reason `custom_logo` was: two "shop icon" settings would mean two answers to one
+  question.
+
+Verified with 23 assertions in Playground: no icon links at all when neither is set, core's four
+tags printed once the logo is set, the 32px request served a scaled size rather than the 800px
+original, a real site icon overriding the fallback, the endpoint writing the **option** and
+leaving no stray theme mod, a missing attachment refused, and clearing the field returning to the
+logo.
+
+### The tidy-up pass (2026-08-09, plugin 1.4.0)
+
+The owner opened the CMS on a laptop and reported it as "এলোমেলো" — everything slightly out of
+line, empty space around the edges, the profile chip wrong. Read against a real install rather than
+from the screenshot, most of it turned out to be four faults repeating themselves across twenty
+screens, plus one number that was quietly lying.
+
+- **`text.js` is the one place an API's HTML becomes text.** `wp/v2/menu-items` returns a title
+  entity-encoded, so half the shop's own menu read `Airpod&#8217;s` on screen; `wc/v3/settings`
+  labels the currency `Bangladeshi taka (&#2547;&nbsp;)` and the select printed exactly that.
+  Nothing in this interface assigns `innerHTML`, which is the right rule and the reason these
+  arrived raw. There were already three private half-copies of the fix — `decodeEntities` in the
+  Content Pages screen and a `stripTags` in each of Products and Settings, two of them building a
+  detached `<div>` — so they became one module using `DOMParser` throughout: a parsed document is
+  inert, a detached div still starts `<img src>` loads. Menu titles were the worst case, because the
+  edit dialog loaded the encoded string as the value to save and would have re-encoded it on every
+  pass.
+- **Revenue is summed from the orders, not from WooCommerce Analytics** — and this is the one that
+  mattered most. `wc_order_stats` is filled by a *scheduled* action, so on a shop whose cron is late
+  or throttled the dashboard reported ৳0 beside an Orders screen listing paid orders. This reverses
+  the phase-1 decision. The warning that decision carried was about `wc_get_orders()`, which
+  instantiates every order; an indexed `SUM()` over the same table the order counts already group
+  is not that, and using one source means the two figures on the same screen cannot disagree — the
+  rule the order stages were rebuilt around. HPOS reads `wc_orders.total_amount`; legacy storage
+  joins `_order_total`.
+- **Sign out moved under the avatar.** The chip only displayed, while Sign out and a sentence about
+  wp-admin sat in 12px grey at the foot of the rail, the last of them wrapping. Both are about the
+  person rather than the shop, so both are in the profile menu now — with the account's email in
+  full, because a shop's account is usually set up under its own address and that is the line the
+  owner recognises. The rail's foot keeps "View the store" alone.
+- **Four layout faults, each fixed where it was caused, not where it showed:**
+  `.sb-row` wrapping inside a `width: 1%` actions cell made every Categories and Content Pages row
+  two buttons tall; the Category Circles list was ragged because its picker column was as wide as
+  whichever buttons a category happened to need (two with an image, one without), so a grid replaced
+  the flex row; a settings field was a full 1,100px wide with nothing beside it, so `Fields` lays
+  them two abreast at `minmax(min(100%, 420px), 1fr)` with pickers and switches spanning; and a card
+  `lead` that was the first `.sb-hint` in the body sat directly above the first field's label in the
+  same grey, reading as help for the wrong thing — it is part of `Card`'s header now.
+- **The three couriers fold.** Eleven fields between them made that one card longer than the rest of
+  Settings put together, on a screen where a shop uses one courier. `<details>` bound to the active
+  choice, so changing the select opens the fields that choice just made relevant.
+- **A grid column sized `auto` is never narrower than its widest item's min-content**, which is how
+  one long product name in the Hot Deals preview pushed a 390px phone 17px sideways. `.sb-form` and
+  `.sb-grid-cards` now say `minmax(0, 1fr)` and `minmax(min(100%, 280px), 1fr)`. The ellipsis that
+  should have prevented it never had the chance — a row can only truncate once something upstream
+  says the column stops at the container.
+- **The rail fits a laptop.** Sixteen items at the old row height overflowed a 900px window and the
+  owner's screenshot showed it cut off mid-list, which reads as broken rather than as long.
+- **`:has()` earns its place once.** The phone's fixed action bar had clearance only on `.sb-editor`
+  and `.sb-form`, so on the dashboard it covered "Figures updated at…" and on a list it covered the
+  pager — precisely the screens that are not forms. `.sb-page:has(> .sb-page__header
+  .sb-page__actions)` asks the only question that matters.
+
+Verified with **31 browser assertions** against real WordPress + WooCommerce with the demo catalogue
+and five seeded orders: the revenue tile matching a total summed independently from `wc/v3/orders`,
+the whole sidebar visible without scrolling at 900px, the profile menu opening with its email and
+Sign out and closing on Escape, no `&#…;` left anywhere in the menu tree or on Settings, the menu
+edit dialog holding decoded text, address fields sitting two abreast with the lead in the card head,
+three couriers folded shut, row actions on one line in both tables, every circle name and order box
+on the same vertical line, no horizontal overflow at 1440/1024/390 across all seventeen screens, the
+phone action bar clearing the last line of the page, and zero console errors.
+
+Three lessons about the checks, each of which produced a false failure first: **wait for the loading
+state the screen actually uses** — the dashboard shows skeleton figures, not a spinner, so a suite
+waiting on `.sb-spinner` read "0000" and reported a working revenue figure as a false zero;
+**scope a selector to the markup, not to a guess at it** — a menu row's edit trigger is a
+`.sb-menurow__title` button, and a query for anchors silently skipped the assertion rather than
+failing it; and **run the browser with its cache off**. The import map versions every module by the
+plugin version, which does not move while a file is being edited during a run, so the browser paired
+a freshly-fetched module with a cached copy of one it imports and reported an export that plainly
+exists as missing. `page.setCacheEnabled( false )`. Between releases the version bump is the whole
+point of the map; within one editing session it cannot help, and the failure it produces reads
+exactly like a real broken import.
+
+### Phase 9 — Content Pages (2026-08-09)
+
+The owner asked where About Us, Privacy Policy and Delivery & Return are written, and the honest
+answer was "wp-admin" — the one answer this project exists to stop giving. One screen and one
+editor close it: pick an existing page, write it in the rich-text editor, or add a new one with a
+name, an address and a tick that puts it in the footer.
+
+- **Built on core's `wp/v2/pages`, which has covered pages since WordPress 4.7.** Listing, search,
+  statuses, slugs, revisions and the trash all already work and are all already capability-checked.
+  Re-implementing them would have meant re-implementing `kses` on the way in and getting it wrong.
+  The plugin adds exactly one thing: `inc/rest-pages.php`, which registers the theme's footer tick
+  for REST. Same split as the menu-item icon, for the same reason.
+- **The tick's data and its enforcement live in the theme** — `simple-bangla/inc/pages.php`. This is
+  the block list's rule and the order statuses' rule applied a third time: the footer is rendered by
+  the theme, so deactivating the management interface must not empty it. The plugin only exposes the
+  key so the CMS can write it.
+- **A tick beats the menu assigned to `footer-1`.** That ordering is the only surprising thing in
+  the file and it is deliberate. The demo importer assigns a menu there, so if the menu won, the
+  tick box would silently do nothing on exactly the installs that had been set up properly. Tick
+  nothing and the column behaves exactly as it always has; tick anything and the ticks are the
+  column. Columns two and three stay menu-driven and are untouched.
+- **Registered on `rest_api_init`, not `init`.** Plugins load before themes, so
+  `SIMPLE_BANGLA_FOOTER_LINK_META` does not exist when this plugin is included, and the meta is
+  genuinely absent on a plain page load. That is correct, and it is worth knowing before reading a
+  test that checks for it too early — the first version of this suite did exactly that and reported
+  a working feature as broken.
+- **`auth_callback` gates the tick on `edit_pages`, not `edit_theme_options`.** Linking a page in
+  the footer is arguably a navigation decision, but the person who writes the Delivery & Return page
+  is the person who needs it linked — and splitting the two would have produced a form that saved
+  everything on it except the tick.
+- **An empty slug is omitted from the request, never sent blank.** On create, WordPress makes one
+  from the title; on update, blank asks it to *regenerate*, which silently changes the address of a
+  page that was only being renamed and breaks every link to it. Same rule already learned on
+  categories.
+- **Titles are decoded on the way in and stored decoded.** The theme's own default page is stored as
+  `Delivery &amp; Return Policy`, and an editor that showed that to the owner would be asking them
+  to understand HTML entities to fix a typo. Decoded via `DOMParser` — inert — not `innerHTML`.
+- **The homepage and the store pages are marked, not blocked.** The front page's body is never
+  printed (the theme builds it from the Homepage screens) so the row says so; Cart, Checkout and My
+  Account are one WooCommerce shortcode each, so they open in the HTML view with a warning. Sniffed
+  from the body rather than asked of WooCommerce, which would cost a second request per visit
+  needing `manage_woocommerce` — a capability this screen otherwise does not want.
+- **Deleting trashes rather than erases**, unlike a coupon or an order. A page is often the only
+  copy of writing nobody wants to do twice.
+- **Only published pages reach the footer**, and the tick's hint says so while the status is Draft —
+  otherwise ticking a draft is a control that appears to work and does not.
+
+**The gap that made this a two-session job:** `PageEdit` was imported into `app.js` and `resolve()`
+had no pattern for `/content/:id`, so both "Add page" and "Edit" fell through to "Not found" — a
+complete, correct editor that nothing could reach. Nothing warns about an imported-but-unused
+component, which is the argument for a route check in the suite rather than only a screen check.
+
+Verified with 60 assertions in Playground against real WordPress + WooCommerce: the meta registered
+with its auth callback once `rest_api_init` has fired, a page created through `wp/v2/pages` with the
+tick coming back true *and* reaching the database as `'1'`, the list request returning drafts and
+`title.raw`/`content.raw`, then the storefront — **the theme's own footer template rendering the
+link**, with the unticked page and the ticked *draft* both absent from the markup and column two
+still menu-driven. Then a subscriber refused the tick with 403 and the stored value untouched, a
+rename leaving the slug alone, unticking putting the column back to its menu, a delete landing in
+the trash, and the route, the sidebar entry and the import map all covering the two new modules.
+
 ### Build order
 
 | Phase | Scope | State |
@@ -1184,6 +1359,8 @@ their failure paths. Send the first real parcel with the courier's own panel ope
 | 6 | Menu, Footer, Settings, Reviews, Coupons | ✅ done 2026-08-09 |
 | 7 | Customers, Blocked List, staff accounts | ✅ done 2026-08-09 |
 | 8 | Round two: back button, socials, staff passwords, slugs, rich text, order stages, couriers, IP blocking | ✅ done 2026-08-09 |
+| 9 | Content Pages, the browser-tab icon | ✅ done 2026-08-09 |
+| 10 | The tidy-up pass: entities, revenue, profile menu, form and table layout | ✅ done 2026-08-09 |
 
 All seventeen screens are built. The audit log listed against phase 7 in the original plan was
 never specified and is not built; it is the obvious next thing if the owner wants one.

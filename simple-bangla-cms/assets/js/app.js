@@ -8,7 +8,7 @@
  * "open in new tab" then behave the way the owner expects, which an onClick-only button breaks.
  */
 
-import { html, render, useState, useEffect, Icon, Placeholder, Toaster } from './ui.js';
+import { html, render, useState, useEffect, useRef, Icon, Placeholder, Toaster } from './ui.js';
 import { SB, canAny } from './api.js';
 import { NAV, BUILT_THROUGH, findRoute, findGroup } from './nav.js';
 import { useRoute, href, onLinkClick, canGoBack, goBack, parentPath } from './router.js';
@@ -95,6 +95,19 @@ function resolve( path ) {
 		return { navKey: '/orders', title: 'Order', view: html`<${ OrderDetail } id=${ order[ 1 ] } />` };
 	}
 
+	// Same shape as the product route, and "new" is matched by the same pattern as an id rather
+	// than by a route of its own — the editor is one component either way, and a second entry
+	// would be a second place to forget when it changes.
+	const page = path.match( /^\/content\/([A-Za-z0-9-]+)$/ );
+
+	if ( page ) {
+		return {
+			navKey: '/content',
+			title: page[ 1 ] === 'new' ? 'New page' : 'Edit page',
+			view: html`<${ PageEdit } id=${ page[ 1 ] } />`,
+		};
+	}
+
 	const item = findRoute( path );
 
 	if ( item ) {
@@ -156,7 +169,7 @@ function App() {
 						<${ BackButton } path=${ path } />
 						<${ Crumbs } navKey=${ route.navKey } title=${ route.title } />
 						<span class="sb-topbar__spacer"></span>
-						<${ UserChip } />
+						<${ UserMenu } />
 					</div>
 				</header>
 
@@ -280,39 +293,125 @@ function Rail( { navKey } ) {
 			</div>
 
 			<div class="sb-rail__foot">
-				<p><a href=${ SB.store ? SB.store.url : '/' }>View store</a></p>
-				<p><a href=${ SB.logoutUrl }>Sign out</a></p>
-				<p>
-					<a href=${ SB.environment ? SB.environment.wp_admin_url : '#' }>WordPress admin</a>
-					— updates and payment settings only
-				</p>
+				<a class="sb-rail__link" href=${ SB.store ? SB.store.url : '/' } target="_blank" rel="noreferrer">
+					<${ Icon } name="cart" size=${ 15 } />
+					<span>View the store</span>
+				</a>
 			</div>
 		</nav>
 	`;
 }
 
 /**
- * Who is signed in.
+ * Who is signed in, and everything that is about them rather than about the shop.
  *
- * The two lines were separated by a `<br>` inside an unstyled inline span, which left their spacing
- * to the browser's default line box — the name and the role sat at whatever distance the font
- * happened to produce and neither lined up with the avatar beside them. They are a flex column now,
- * and the avatar leads rather than trails: on a phone the meta block is hidden and an avatar on the
- * left of nothing is a hole in the bar.
+ * It was a chip that only displayed, while Sign out sat in small grey type at the bottom of the
+ * rail beside a sentence about wp-admin — three links crammed into a corner nobody looks at, the
+ * last of them wrapping onto two lines. Signing out is the one action every interface puts under
+ * the avatar, so that is where it is now, and the rail's foot keeps only "View the store", which
+ * is about the shop and not about the person.
+ *
+ * The name is the account's display name, which on a shop set up in a hurry is usually the email
+ * address; the menu shows the address in full underneath rather than letting a truncated
+ * "simplebangl…" stand in for a name. `title` is dropped with it — a tooltip that repeats what the
+ * menu says is a worse version of the menu.
+ *
+ * A real `<button aria-expanded>` rather than a hover panel: this has to work under a thumb.
  */
-function UserChip() {
+function UserMenu() {
 	const user = SB.user || {};
-	const initial = ( user.display_name || '?' ).trim().charAt( 0 ).toUpperCase();
+	const [ open, setOpen ] = useState( false );
+	const wrap = useRef( null );
+
+	// Close on anything that means "I am done here": a click elsewhere, Escape, or a tap on the
+	// scrim behind it. Without the outside click the panel survives navigation on a phone, where
+	// there is no hover to make it obvious it is still there.
+	useEffect( () => {
+		if ( ! open ) {
+			return undefined;
+		}
+
+		const onDown = ( event ) => {
+			if ( wrap.current && ! wrap.current.contains( event.target ) ) {
+				setOpen( false );
+			}
+		};
+
+		const onKey = ( event ) => {
+			if ( event.key === 'Escape' ) {
+				setOpen( false );
+			}
+		};
+
+		document.addEventListener( 'pointerdown', onDown );
+		document.addEventListener( 'keydown', onKey );
+
+		return () => {
+			document.removeEventListener( 'pointerdown', onDown );
+			document.removeEventListener( 'keydown', onKey );
+		};
+	}, [ open ] );
+
+	const name = user.display_name || 'Signed in';
+	const initial = name.trim().charAt( 0 ).toUpperCase();
 
 	return html`
-		<div class="sb-user" title=${ user.display_name + ' — ' + user.role_label }>
-			${ user.avatar
-				? html`<img class="sb-user__avatar" src=${ user.avatar } alt="" />`
-				: html`<span class="sb-user__avatar sb-user__avatar--letter">${ initial }</span>` }
-			<span class="sb-user__meta">
-				<span class="sb-user__name">${ user.display_name }</span>
-				<span class="sb-user__role">${ user.role_label }</span>
-			</span>
+		<div class="sb-user" ref=${ wrap }>
+			<button
+				class="sb-user__button"
+				aria-expanded=${ open }
+				aria-haspopup="menu"
+				onClick=${ () => setOpen( ! open ) }
+			>
+				${ user.avatar
+					? html`<img class="sb-user__avatar" src=${ user.avatar } alt="" />`
+					: html`<span class="sb-user__avatar sb-user__avatar--letter">${ initial }</span>` }
+				<span class="sb-user__meta">
+					<span class="sb-user__name">${ name }</span>
+					<span class="sb-user__role">${ user.role_label }</span>
+				</span>
+				<span class="sb-user__caret" aria-hidden="true"><${ Icon } name="chevron" size=${ 14 } /></span>
+			</button>
+
+			${ open
+				? html`
+						<div class="sb-usermenu" role="menu">
+							<div class="sb-usermenu__head">
+								<p class="sb-usermenu__name">${ name }</p>
+								${ user.email ? html`<p class="sb-usermenu__email">${ user.email }</p>` : null }
+								<p class="sb-usermenu__role">${ user.role_label }</p>
+							</div>
+
+							<a
+								class="sb-usermenu__item"
+								role="menuitem"
+								href=${ SB.store ? SB.store.url : '/' }
+								target="_blank"
+								rel="noreferrer"
+							>
+								<${ Icon } name="cart" size=${ 16 } />
+								<span>View the store</span>
+							</a>
+
+							<a
+								class="sb-usermenu__item"
+								role="menuitem"
+								href=${ SB.environment ? SB.environment.wp_admin_url : '#' }
+							>
+								<${ Icon } name="gear" size=${ 16 } />
+								<span>
+									WordPress admin
+									<small>Updates and payment settings only</small>
+								</span>
+							</a>
+
+							<a class="sb-usermenu__item sb-usermenu__item--out" role="menuitem" href=${ SB.logoutUrl }>
+								<${ Icon } name="back" size=${ 16 } />
+								<span>Sign out</span>
+							</a>
+						</div>
+				  `
+				: null }
 		</div>
 	`;
 }

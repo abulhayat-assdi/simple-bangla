@@ -220,8 +220,10 @@ export function MediaField( { label, value, onChange, hint } ) {
 		};
 	}, [ value ] );
 
+	// `--wide` so that inside a two-column field grid the thumbnail and its buttons take the whole
+	// row rather than being squeezed into half of one beside an unrelated text box.
 	return html`
-		<div class="sb-field">
+		<div class="sb-field sb-field--wide">
 			${ label ? html`<span class="sb-field__label">${ label }</span>` : null }
 			<div class="sb-mediafield">
 				<div class="sb-thumb">

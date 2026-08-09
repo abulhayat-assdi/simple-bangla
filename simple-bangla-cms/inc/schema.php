@@ -19,10 +19,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Every theme setting the CMS may read or write.
  *
- * The key is the literal `theme_mod` name, so a write is a plain set_theme_mod() with no
- * translation step that could drift.
+ * The key is the literal storage name, so a write is a plain set_theme_mod() — or, for the
+ * handful of fields WordPress keeps as options rather than theme mods, a plain update_option()
+ * — with no translation step that could drift. A field says which of the two it is with
+ * `store => 'option'`; theme mods are the default and say nothing.
  *
- * @return array<string,array{type:string,default:mixed,sanitize:callable,group:string,label:string}>
+ * @return array<string,array{type:string,default:mixed,sanitize:callable,group:string,label:string,store?:string}>
  */
 function simple_bangla_cms_settings_schema() {
 
@@ -51,6 +53,26 @@ function simple_bangla_cms_settings_schema() {
 		'group'       => 'brand',
 		'label'       => __( 'Site logo', 'simple-bangla-cms' ),
 		'description' => __( 'Shown in the header and the footer. Leave it empty to print the site name as text instead. A wide PNG or SVG on a transparent background works best — the header shows it up to 44px tall, the footer up to 72px.', 'simple-bangla-cms' ),
+	);
+
+	/*
+	 * WordPress's own `site_icon` — an option, not a theme mod, which is why the schema had to
+	 * learn about storage at all. It is the same setting Customizer → Site Identity writes, so
+	 * the two interfaces cannot disagree, and core prints every icon tag from it: the tab icon,
+	 * the iOS home-screen icon and the Windows tile.
+	 *
+	 * Leaving it empty is a supported answer, not a missing one. The theme falls back to the
+	 * site logo (simple-bangla/inc/site-icon.php), so the WordPress mark never shows either way;
+	 * this field exists because a square icon reads far better at 16px than a wide wordmark does.
+	 */
+	$schema['site_icon'] = array(
+		'type'        => 'media',
+		'default'     => 0,
+		'sanitize'    => 'absint',
+		'store'       => 'option',
+		'group'       => 'brand',
+		'label'       => __( 'Browser tab icon', 'simple-bangla-cms' ),
+		'description' => __( 'The small picture shown in the browser tab, in bookmarks and on a phone home screen. Use a square image, at least 512×512 — anything wide gets squeezed into a 16px square and turns into a smudge. Leave it empty and the site logo is used instead.', 'simple-bangla-cms' ),
 	);
 
 	/* -- Colours -- */
@@ -271,9 +293,47 @@ function simple_bangla_cms_cast( $value, $type ) {
 }
 
 /**
+ * Read one field from wherever the schema says it lives, typed.
+ *
+ * Every caller goes through here rather than reaching for get_theme_mod() itself, because a
+ * caller that guessed wrong would not fail — it would quietly read a theme mod that has never
+ * been written and hand back the default, which on screen is indistinguishable from a setting
+ * that has genuinely never been set.
+ *
+ * @param string $key  Storage name.
+ * @param array  $spec Schema entry.
+ * @return mixed
+ */
+function simple_bangla_cms_read_setting( $key, $spec ) {
+
+	$raw = isset( $spec['store'] ) && 'option' === $spec['store']
+		? get_option( $key, $spec['default'] )
+		: get_theme_mod( $key, $spec['default'] );
+
+	return simple_bangla_cms_cast( $raw, $spec['type'] );
+}
+
+/**
+ * Write one field to wherever the schema says it lives.
+ *
+ * @param string $key   Storage name.
+ * @param mixed  $value Already sanitised and cast.
+ * @param array  $spec  Schema entry.
+ */
+function simple_bangla_cms_write_setting( $key, $value, $spec ) {
+
+	if ( isset( $spec['store'] ) && 'option' === $spec['store'] ) {
+		update_option( $key, $value );
+		return;
+	}
+
+	set_theme_mod( $key, $value );
+}
+
+/**
  * Read one setting, typed.
  *
- * @param string $key Theme mod name.
+ * @param string $key Storage name.
  * @return mixed Null when the key is not in the schema.
  */
 function simple_bangla_cms_get_setting( $key ) {
@@ -284,13 +344,11 @@ function simple_bangla_cms_get_setting( $key ) {
 		return null;
 	}
 
-	$spec = $schema[ $key ];
-
-	return simple_bangla_cms_cast( get_theme_mod( $key, $spec['default'] ), $spec['type'] );
+	return simple_bangla_cms_read_setting( $key, $schema[ $key ] );
 }
 
 /**
- * Every setting, typed, keyed by theme mod name.
+ * Every setting, typed, keyed by storage name.
  *
  * @return array<string,mixed>
  */
@@ -299,7 +357,7 @@ function simple_bangla_cms_get_settings() {
 	$values = array();
 
 	foreach ( simple_bangla_cms_settings_schema() as $key => $spec ) {
-		$values[ $key ] = simple_bangla_cms_cast( get_theme_mod( $key, $spec['default'] ), $spec['type'] );
+		$values[ $key ] = simple_bangla_cms_read_setting( $key, $spec );
 	}
 
 	return $values;

@@ -217,7 +217,17 @@ export function Circles() {
 														: html` <${ Badge }>Not shown<//>` }
 												</p>
 												<p class="sb-hint">${ category.count } products</p>
+											</div>
 
+											${ /*
+											 * Order is its own column rather than the third thing in the body.
+											 * The picker on the left is one button wide when a category has no
+											 * picture and two when it has one, so with everything in a single
+											 * flex row every category's name started at a different x and the
+											 * list read as ragged — which it was. Three fixed grid columns line
+											 * up the names, the counts and the number boxes down the page.
+											 */ null }
+											<div class="sb-circlerow__order">
 												<${ Field } label="Order" id=${ 'circ-order-' + category.id }>
 													<${ NumberInput }
 														id=${ 'circ-order-' + category.id }

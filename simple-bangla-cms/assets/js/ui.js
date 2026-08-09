@@ -156,18 +156,45 @@ export function ErrorBox( { error, onRetry } ) {
 
 /* ------------------------------------------------------------------ layout */
 
-export function Card( { title, action, children, wide } ) {
+/**
+ * A titled panel.
+ *
+ * `lead` is the card's own sentence — what this group of settings is for. It belongs in the header
+ * under the title, not as the first thing in the body: as a `.sb-hint` at the top of the body it sat
+ * directly above the first field's label in the same muted grey, so it read as that field's help
+ * text rather than as the card's, and every settings screen opened with a line answering a question
+ * about something else.
+ */
+export function Card( { title, lead, action, children, wide } ) {
 	return html`
 		<section class=${ 'sb-card' + ( wide ? ' sb-card--wide' : '' ) }>
 			${ title
 				? html`<header class="sb-card__head">
-						<h2 class="sb-card__title">${ title }</h2>
+						<div class="sb-card__heading">
+							<h2 class="sb-card__title">${ title }</h2>
+							${ lead ? html`<p class="sb-card__lead">${ lead }</p>` : null }
+						</div>
 						${ action || null }
 					</header>`
 				: null }
 			<div class="sb-card__body">${ children }</div>
 		</section>
 	`;
+}
+
+/**
+ * A card's fields, two abreast once there is room for them.
+ *
+ * A phone number in a box 1,100px wide is the single thing that made these screens look unfinished:
+ * the value occupies a tenth of the field and the eye has to travel the width of the monitor from
+ * the label to the next label down. Two columns halve that and fill the space that was empty.
+ *
+ * Controls that genuinely need the width — an image picker, a switch and its explanation, a rich
+ * text editor — span both columns from CSS rather than by being listed here, so a screen never has
+ * to know which of its fields is which.
+ */
+export function Fields( { children, single } ) {
+	return html`<div class=${ 'sb-fields' + ( single ? ' sb-fields--single' : '' ) }>${ children }</div>`;
 }
 
 export function EmptyState( { title, body, action } ) {

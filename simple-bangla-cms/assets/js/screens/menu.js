@@ -31,6 +31,7 @@ import {
 	toast,
 } from '../ui.js';
 import { api, apiList } from '../api.js';
+import { titleText } from '../text.js';
 import { MediaField } from '../media.js';
 
 /** Mirrors SIMPLE_BANGLA_MENU_ICON_KEY in the theme's inc/nav-walker.php. */
@@ -412,8 +413,17 @@ function describeRemoval( items, item ) {
 		: 'It is removed from the menu. Nothing else changes.';
 }
 
+/*
+ * A menu item's title, as text.
+ *
+ * `wp/v2/menu-items` returns it entity-encoded — the shop's own "Airpod's" comes back as
+ * `Airpod&#8217;s` because WordPress curls the apostrophe on the way out — and every title in this
+ * tree is printed into a text node. Half the menu therefore read as raw entities until this went
+ * through the shared decoder, and the edit form loaded the encoded string as the value to save,
+ * which would have double-encoded it on every pass through the dialog.
+ */
 function titleOf( item ) {
-	return item.title && typeof item.title === 'object' ? item.title.rendered || item.title.raw : item.title;
+	return titleText( item.title );
 }
 
 function iconOf( item ) {

@@ -27,7 +27,8 @@ import {
 import { api, SB } from '../api.js';
 import { navigate, href, onLinkClick } from '../router.js';
 import { RichText } from '../editor.js';
-import { FOOTER_META, decodeEntities, isFrontPage, isStorePage } from './content.js';
+import { FOOTER_META, isFrontPage, isStorePage } from './content.js';
+import { decodeEntities } from '../text.js';
 
 /** What a brand-new page starts as. Published, because a page nobody can read is rarely the goal. */
 const BLANK = {

@@ -13,7 +13,7 @@
  * `inc/courier.php` puts it on this screen with no change here.
  */
 
-import { html, useState, useEffect, Card, Field, Select, Badge, ErrorBox, toast } from '../ui.js';
+import { html, useState, useEffect, Card, Field, Fields, Select, Badge, ErrorBox, toast } from '../ui.js';
 import { api } from '../api.js';
 
 export function CourierCard() {
@@ -101,14 +101,8 @@ export function CourierCard() {
 					${ saving ? 'Saving…' : dirty ? 'Save courier' : 'Saved' }
 				</button>
 			` }
+			lead="Which courier the Send to Courier button on an order books with. Each one needs two different things: the API key it publishes for creating parcels, and — separately — the email and password you sign in to its own merchant panel with, which is the only way to read what a customer has ordered elsewhere. You can fill in one without the other."
 		>
-			<p class="sb-hint">
-				Which courier the Send to Courier button on an order books with. Each one needs two
-				different things: the API key it publishes for creating parcels, and — separately — the
-				email and password you sign in to its own merchant panel with, which is the only way to
-				read what a customer has ordered elsewhere. You can fill in one without the other.
-			</p>
-
 			<${ Field } label="Courier to send parcels with" id="cr-active">
 				<${ Select }
 					id="cr-active"
@@ -121,45 +115,57 @@ export function CourierCard() {
 				/>
 			<//>
 
-			${ providers.map(
+			${ /*
+			 * Folded, with the chosen courier open.
+			 *
+			 * Three couriers at eleven fields between them made this card longer than the rest of the
+			 * Settings screen put together, and a shop uses one of them. `<details>` rather than state
+			 * of our own: it opens on the browser's own find-in-page, it is one element, and binding
+			 * `open` to the active courier means changing the select opens the fields that choice just
+			 * made relevant instead of leaving the owner to hunt for them.
+			 */
+			providers.map(
 				( [ key, provider ] ) => html`
-					<div key=${ key } class="sb-courier-block">
-						<p class="sb-courier-block__head">
+					<details key=${ key } class="sb-courier-block" open=${ key === active }>
+						<summary class="sb-courier-block__head">
 							<span class="sb-courier-block__name">${ provider.label }</span>
 							${ provider.ready
 								? html`<${ Badge } tone="ok">Can send parcels<//>`
 								: html`<${ Badge }>Not set up<//>` }
 							${ provider.can_check ? html`<${ Badge } tone="ok">Can check a number<//>` : null }
-						</p>
+							<span class="sb-courier-block__toggle" aria-hidden="true"></span>
+						</summary>
 
-						${ Object.entries( provider.fields ).map( ( [ field, spec ] ) => {
-							const id = 'cr-' + key + '-' + field;
-							const stored = data.providers[ key ].has_secret[ field ];
+						<${ Fields }>
+							${ Object.entries( provider.fields ).map( ( [ field, spec ] ) => {
+								const id = 'cr-' + key + '-' + field;
+								const stored = data.providers[ key ].has_secret[ field ];
 
-							return html`
-								<${ Field }
-									key=${ field }
-									label=${ spec.label }
-									id=${ id }
-									hint=${ spec.secret && stored
-										? ( spec.description ? spec.description + ' ' : '' ) +
-										  'Already saved. Leave blank to keep it, or type a new one to replace it.'
-										: spec.description }
-								>
-									<input
-										class="sb-input"
+								return html`
+									<${ Field }
+										key=${ field }
+										label=${ spec.label }
 										id=${ id }
-										type="text"
-										autocomplete="off"
-										spellcheck="false"
-										placeholder=${ spec.secret && stored ? '••••••••' : '' }
-										value=${ valueOf( key, field ) }
-										onInput=${ ( e ) => setField( key, field, e.target.value ) }
-									/>
-								<//>
-							`;
-						} ) }
-					</div>
+										hint=${ spec.secret && stored
+											? ( spec.description ? spec.description + ' ' : '' ) +
+											  'Already saved. Leave blank to keep it, or type a new one to replace it.'
+											: spec.description }
+									>
+										<input
+											class="sb-input"
+											id=${ id }
+											type="text"
+											autocomplete="off"
+											spellcheck="false"
+											placeholder=${ spec.secret && stored ? '••••••••' : '' }
+											value=${ valueOf( key, field ) }
+											onInput=${ ( e ) => setField( key, field, e.target.value ) }
+										/>
+									<//>
+								`;
+							} ) }
+						<//>
+					</details>
 				`
 			) }
 
