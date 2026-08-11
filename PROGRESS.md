@@ -2,6 +2,28 @@
 
 Last updated: 2026-08-09
 
+## The order card, and Content Pages narrowed (2026-08-10, theme 1.3.0 / plugin 1.5.0)
+
+Three things the owner asked for after working on the live shop.
+
+- ✅ **Content Pages listed every page WordPress had** — fourteen rows, of which four were writing
+  and the rest were Cart, Checkout, My account, Sample Page and the homepage. It now lists exactly
+  the pages the footer links to, derived by the **theme** (`simple_bangla_footer_pages()`) so the
+  list and the footer cannot disagree, and exposed through one thin `/footer-pages` endpoint. Add
+  page, delete and the footer tick went with it: each became a trap once the list was derived — a
+  new page could not appear in it, a deleted page takes a footer link with it, and unticking a page
+  would remove it from the only screen that could tick it back. Which pages appear is the Menu
+  screen's question now; this screen answers what they say.
+- ✅ **Reviews opened on Pending and usually showed "Nothing waiting"**, which read as "this shop has
+  no reviews". It opens on All; the filter is one tap away.
+- ✅ **Clicking an order did nothing unless you hit the order number**, and the detail replaced the
+  whole list. An order now opens as a card over the list — items, delivery details, money, and the
+  one action it is waiting for, plus Edit info and a permanent delete — built to the owner's
+  reference but in the shop's own black and cream. Notes, refunds and the invoice stay on the full
+  page, one click away in the card's footer.
+- ✅ **`order-parts.js`**: items, totals, delivery, payment and the stage buttons are now one
+  component each, drawn by both the card and the full page rather than existing twice.
+
 ## The tidy-up pass (2026-08-09, plugin 1.4.0)
 
 The owner opened the CMS and reported it as messy: alignment off, empty space around everything, the

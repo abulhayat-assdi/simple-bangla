@@ -1,18 +1,23 @@
 <?php
 /**
- * The one thing `wp/v2/pages` cannot already do.
+ * The two things `wp/v2/pages` cannot already do.
  *
  * Pages have been in core's REST API since WordPress 4.7 — list, create, update, trash, slugs,
  * statuses and content all included — so the Content Pages screen is built on that rather than on
  * anything invented here. Re-implementing it would have meant re-implementing revisions, autosave
  * locking, `kses` on the way in and capability mapping, all of which core already gets right.
  *
- * What core does not know about is the theme's "show this page in the footer" tick. It is stored in
- * a protected post meta key that the theme defines and reads (see simple-bangla/inc/pages.php);
- * without the registration below, the CMS could not see it and — worse — a page saved from the CMS
- * would keep a tick the owner could neither see nor clear.
+ * What core does not know is:
  *
- * The meta belongs to the theme. Only its REST exposure lives here, which is the same split as the
+ * 1. The theme's "show this page in the footer" tick, a protected post meta key the theme defines
+ *    and reads (see simple-bangla/inc/pages.php). Without the registration below the CMS could not
+ *    see it and — worse — a page saved from the CMS would keep a tick nobody could clear.
+ * 2. **Which pages the footer actually links to**, which is the whole of what the Content Pages
+ *    screen now lists (owner's decision, 2026-08-10). Core cannot answer it because the answer
+ *    depends on the theme: a tick, or the menu assigned to a footer location, or the theme's own
+ *    defaults, in that order.
+ *
+ * Both belong to the theme; only their REST exposure lives here. That is the same split as the
  * menu-item icon in inc/menu-icon.php and for the same reason: deactivate this plugin and the
  * footer goes on printing exactly the same links.
  *
@@ -60,3 +65,61 @@ function simple_bangla_cms_register_page_meta() {
 	);
 }
 add_action( 'rest_api_init', 'simple_bangla_cms_register_page_meta' );
+
+/**
+ * Register `/footer-pages`.
+ */
+function simple_bangla_cms_register_footer_pages_route() {
+
+	register_rest_route(
+		SIMPLE_BANGLA_CMS_REST_NS,
+		'/footer-pages',
+		array(
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => 'simple_bangla_cms_footer_pages_response',
+			'permission_callback' => simple_bangla_cms_permission( 'content.manage' ),
+		)
+	);
+}
+add_action( 'rest_api_init', 'simple_bangla_cms_register_footer_pages_route' );
+
+/**
+ * Which pages the footer links to, and where that list comes from.
+ *
+ * Only IDs come back. The screen then asks `wp/v2/pages` for them by `include`, which costs one
+ * extra request and buys the whole of core's page controller — edit context, the raw body the
+ * editor needs, and the capability checks that go with it. Answering with the page objects here
+ * would have meant this endpoint quietly becoming a second, worse page API.
+ *
+ * `source` is per column, and the screen uses it to say where to go to change *which* pages are
+ * listed — the Menu screen when a menu is assigned, the theme's defaults when one is not. Without
+ * it the screen could only show a list with no explanation of how to alter it.
+ *
+ * @return WP_REST_Response|WP_Error
+ */
+function simple_bangla_cms_footer_pages_response() {
+
+	// The functions below are the theme's. With another theme active there is no footer of ours to
+	// describe, and inventing one would be worse than saying so.
+	if ( ! simple_bangla_cms_theme_is_active() || ! function_exists( 'simple_bangla_footer_pages' ) ) {
+		return simple_bangla_cms_wrong_theme_error();
+	}
+
+	$sources = array();
+
+	foreach ( array_keys( simple_bangla_footer_columns() ) as $location ) {
+		$sources[ $location ] = simple_bangla_footer_column_source( $location );
+	}
+
+	return rest_ensure_response(
+		array(
+			'pages'   => array_map(
+				static function ( $page ) {
+					return (int) $page->ID;
+				},
+				simple_bangla_footer_pages()
+			),
+			'sources' => $sources,
+		)
+	);
+}

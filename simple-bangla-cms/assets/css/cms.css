@@ -3293,3 +3293,189 @@ a.sb-table__name:hover {
 		margin-left: var(--sb-space-5);
 	}
 }
+
+/* ---------------------------------------------------------------- order card */
+
+/*
+ * One order, opened over the list.
+ *
+ * Built to the owner's reference (2026-08-10), which is a dark blue panel; this is the shop's own
+ * black-and-cream because the CMS is one product and a screen that looked like a different one would
+ * be the most visible inconsistency in it. What is borrowed is the shape: a header carrying the
+ * order number and its stage, two columns — what is in the parcel and where it is going on the left,
+ * the money and the one decision on the right — and a footer holding the way out.
+ *
+ * A wider panel than the shared Modal's 520px, because two columns of order detail need it; it
+ * becomes one column below 900px and fills the screen on a phone.
+ */
+.sb-ordermodal {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	display: grid;
+	place-items: center;
+	padding: var(--sb-space-5);
+}
+
+.sb-ordermodal__panel {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	max-width: 1040px;
+	max-height: calc(100vh - var(--sb-space-6));
+	background: var(--sb-cream);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius);
+	box-shadow: 0 24px 64px rgba(17, 18, 20, 0.28);
+	overflow: hidden;
+}
+
+.sb-ordermodal__head {
+	display: flex;
+	align-items: center;
+	gap: var(--sb-space-3);
+	flex: 0 0 auto;
+	padding: var(--sb-space-4) var(--sb-space-5);
+	background: var(--sb-rail);
+	color: var(--sb-rail-ink);
+}
+
+.sb-ordermodal__title {
+	min-width: 0;
+	margin-right: auto;
+}
+
+.sb-ordermodal__number {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 800;
+	overflow-wrap: anywhere;
+}
+
+.sb-ordermodal__date {
+	margin: 2px 0 0;
+	color: var(--sb-rail-muted);
+	font-size: 12px;
+}
+
+/* The close control has to read against the black bar, not against a white card. */
+.sb-ordermodal__close {
+	flex: 0 0 auto;
+	background: rgba(255, 255, 255, 0.12);
+	color: var(--sb-rail-ink);
+	font-size: 18px;
+}
+
+.sb-ordermodal__close:hover {
+	background: rgba(255, 255, 255, 0.22);
+}
+
+.sb-ordermodal__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: var(--sb-space-5);
+}
+
+.sb-ordermodal__grid {
+	display: grid;
+	/* The decision column is fixed: it holds buttons, and a button that changes width with the
+	   length of a product name beside it is the kind of movement that makes a screen feel unsteady. */
+	grid-template-columns: minmax(0, 1fr) 320px;
+	gap: var(--sb-space-4);
+	align-items: start;
+}
+
+.sb-ordermodal__col {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--sb-space-4);
+}
+
+/* A titled block inside the card. Lighter than a Card: the card itself is already the frame. */
+.sb-panel {
+	padding: var(--sb-space-4);
+	background: var(--sb-surface);
+	border: 1px solid var(--sb-line);
+	border-radius: var(--sb-radius-sm);
+}
+
+.sb-panel__title {
+	margin: 0 0 var(--sb-space-3);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--sb-muted);
+}
+
+.sb-panel > :last-child {
+	margin-bottom: 0;
+}
+
+.sb-panel .sb-btn--block + .sb-btn--block {
+	margin-top: var(--sb-space-2);
+}
+
+.sb-ordermodal__foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--sb-space-3);
+	flex: 0 0 auto;
+	flex-wrap: wrap;
+	padding: var(--sb-space-3) var(--sb-space-5);
+	background: var(--sb-surface-2);
+	border-top: 1px solid var(--sb-line);
+}
+
+/* The delivery block, with its edit control on the same line as the name it edits. */
+.sb-detail {
+	position: relative;
+}
+
+.sb-detail__edit {
+	position: absolute;
+	top: 0;
+	right: 0;
+	font-size: 13px;
+}
+
+.sb-detail p {
+	margin: 0 0 var(--sb-space-1);
+}
+
+.sb-payment__method {
+	margin: 0;
+	font-weight: 700;
+}
+
+/* A row that opens something says so on hover, and only where there is a pointer to hover with. */
+@media (hover: hover) {
+	.sb-table__row--open:hover {
+		cursor: pointer;
+	}
+}
+
+@media (max-width: 900px) {
+	.sb-ordermodal {
+		padding: 0;
+		place-items: end stretch;
+	}
+
+	.sb-ordermodal__panel {
+		max-width: none;
+		max-height: 94vh;
+		border-radius: var(--sb-radius) var(--sb-radius) 0 0;
+	}
+
+	.sb-ordermodal__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.sb-ordermodal__body {
+		padding: var(--sb-space-4);
+	}
+}

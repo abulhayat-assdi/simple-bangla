@@ -1,91 +1,76 @@
 /*
- * Site pages — About Us, Privacy Policy, Delivery & Return, and anything else the owner writes.
+ * The pages the shop's footer links to — About Us, Privacy Policy, Refund and Returns, and whatever
+ * else is in those two columns.
  *
- * Built on core's own `wp/v2/pages`, which has covered pages since WordPress 4.7: listing, search,
- * statuses, slugs, revisions and the trash. The plugin adds one thing to it — the theme's
- * "show in the footer" tick, registered for REST in inc/rest-pages.php — and nothing else.
+ * **This screen used to list every page WordPress contained** and the owner asked for it not to
+ * (2026-08-10). That list was fourteen rows on their shop, of which four were writing and the rest
+ * were Cart, Checkout, My account, Sample Page and the homepage — things whose bodies are a
+ * WooCommerce shortcode or are never printed at all. Offering them for editing was an invitation to
+ * break the checkout while looking for the About Us page.
  *
- * Two kinds of page turn up in this list and neither is prose:
+ * So the list is now derived from the footer rather than from the page table, and the theme is what
+ * derives it: `/footer-pages` asks `simple_bangla_footer_pages()`, which follows the same tick →
+ * assigned menu → theme defaults order the footer itself renders with. Change the footer menu and
+ * this screen changes with it.
  *
- * - The **homepage**, which the theme builds from the Homepage screens. Whatever is typed into its
- *   body is never printed, so the row says so rather than letting the owner write a page nobody
- *   will ever see.
- * - **Store pages** — Cart, Checkout, My Account — whose entire body is one WooCommerce shortcode.
- *   Rewriting one of those in a rich-text box is how a shop loses its checkout, so they are marked
- *   here and open in the HTML view with a warning.
+ * There is deliberately no "Add page" here, and no delete. This screen answers one question — what
+ * do these pages say — and *which* pages appear is the Menu screen's question. A new page created
+ * here could not have shown up in this list anyway, and a page deleted here would have taken a
+ * footer link with it.
  */
 
-import {
-	html,
-	useState,
-	useEffect,
-	useCallback,
-	Badge,
-	Pagination,
-	EmptyState,
-	ErrorBox,
-	Select,
-} from '../ui.js';
-import { apiList, SB } from '../api.js';
+import { html, useState, useEffect, useCallback, Badge, EmptyState, ErrorBox } from '../ui.js';
+import { api, apiList, SB } from '../api.js';
 import { titleText } from '../text.js';
-import { navigate, href, onLinkClick } from '../router.js';
+import { href, onLinkClick } from '../router.js';
 
-const PER_PAGE = 20;
-
-/** The meta key the theme reads for footer links. Defined in simple-bangla/inc/pages.php. */
-export const FOOTER_META = '_simple_bangla_footer_link';
-
-/** Only these fields are asked for; a page body is not needed twenty at a time except to sniff it. */
+/** Enough to draw a row and to sniff a store page; `content` is why the request is in edit context. */
 const FIELDS = 'id,title,slug,status,link,meta,content';
 
 export function Pages() {
-	const [ rows, setRows ] = useState( [] );
-	const [ page, setPage ] = useState( 1 );
-	const [ total, setTotal ] = useState( 0 );
-	const [ pages, setPages ] = useState( 1 );
-	const [ busy, setBusy ] = useState( true );
+	const [ rows, setRows ] = useState( null );
+	const [ sources, setSources ] = useState( {} );
 	const [ error, setError ] = useState( null );
 
-	const [ search, setSearch ] = useState( '' );
-	const [ status, setStatus ] = useState( '' );
-
 	const load = useCallback( async () => {
-		setBusy( true );
 		setError( null );
 
 		try {
+			const footer = await api( '/footer-pages' );
+
+			if ( ! footer.pages.length ) {
+				setSources( footer.sources || {} );
+				setRows( [] );
+				return;
+			}
+
 			const result = await apiList( 'wp/v2/pages', {
 				params: {
-					page,
-					per_page: PER_PAGE,
-					search,
-					// Drafts are the point of the filter, and core only returns them when they are
-					// asked for by name — the default is published pages only.
-					status: status || 'publish,draft,pending,private',
+					include: footer.pages.join( ',' ),
+					// The footer's own order, not WordPress's. `include` alone sorts by date, which
+					// would list the pages in the order they were created rather than the order the
+					// customer sees them in.
+					orderby: 'include',
+					per_page: 100,
+					// A page linked from the footer while it is a draft is exactly the case worth
+					// seeing on this screen, and core returns drafts only when asked for by name.
+					status: 'publish,draft,pending,private',
 					context: 'edit',
-					orderby: 'title',
-					order: 'asc',
 					_fields: FIELDS,
 				},
 			} );
 
+			setSources( footer.sources || {} );
 			setRows( result.items );
-			setTotal( result.total );
-			setPages( result.pages );
 		} catch ( e ) {
 			setError( e );
-		} finally {
-			setBusy( false );
+			setRows( [] );
 		}
-	}, [ page, search, status ] );
+	}, [] );
 
-	// Debounced, or every keystroke in the search box is a request.
 	useEffect( () => {
-		const timer = setTimeout( load, search ? 300 : 0 );
-		return () => clearTimeout( timer );
-	}, [ load, search ] );
-
-	const inFooter = rows.filter( isInFooter ).length;
+		load();
+	}, [ load ] );
 
 	return html`
 		<div class="sb-page">
@@ -93,61 +78,25 @@ export function Pages() {
 				<div>
 					<h1 class="sb-page__title">Content Pages</h1>
 					<p class="sb-page__lead">
-						${ total } pages. This is where About Us, Privacy Policy and Delivery & Return are written.
+						The pages your footer links to. This is where the words on them are written.
 					</p>
 				</div>
-				<button class="sb-btn sb-btn--primary" onClick=${ () => navigate( '/content/new' ) }>
-					Add page
-				</button>
 			</div>
 
-			<p class="sb-hint">
-				Tick <strong>Show in the footer</strong> on a page to list it in the first footer column,
-				under the shop name.
-				${ inFooter
-					? ' Ticked pages are the whole of that column — untick them all to go back to the menu assigned there.'
-					: ' While no page is ticked, the footer keeps showing exactly what it shows now.' }
-			</p>
-
-			<div class="sb-toolbar">
-				<input
-					class="sb-input sb-toolbar__search"
-					type="search"
-					placeholder="Search pages"
-					value=${ search }
-					onInput=${ ( e ) => {
-						setSearch( e.target.value );
-						setPage( 1 );
-					} }
-				/>
-				<${ Select }
-					value=${ status }
-					onChange=${ ( value ) => {
-						setStatus( value );
-						setPage( 1 );
-					} }
-					options=${ [
-						{ value: '', label: 'Any status' },
-						{ value: 'publish', label: 'Published' },
-						{ value: 'draft', label: 'Draft' },
-						{ value: 'private', label: 'Private' },
-					] }
-				/>
-			</div>
+			<p class="sb-hint">${ whereFrom( sources ) }</p>
 
 			${ error ? html`<${ ErrorBox } error=${ error } onRetry=${ load } />` : null }
 
-			${ busy && ! rows.length
+			${ null === rows
 				? html`<div class="sb-media-loading"><span class="sb-spinner"></span></div>`
 				: rows.length
 				? html`
-						<div class=${ 'sb-table-wrap' + ( busy ? ' is-busy' : '' ) }>
+						<div class="sb-table-wrap">
 							<table class="sb-table">
 								<thead>
 									<tr>
 										<th>Page</th>
 										<th>Address</th>
-										<th>Footer</th>
 										<th>Status</th>
 										<th class="sb-table__actions-col"><span class="sb-sr">Actions</span></th>
 									</tr>
@@ -162,20 +111,13 @@ export function Pages() {
 													<a class="sb-table__name" href=${ href( to ) } onClick=${ ( e ) => onLinkClick( e, to ) }>
 														${ pageTitle( row ) }
 													</a>
-													${ isFrontPage( row )
-														? html` <${ Badge } tone="warn">Homepage<//>`
-														: isStorePage( row )
-														? html` <${ Badge } tone="warn">Store page<//>`
-														: null }
+													${ isStorePage( row ) ? html` <${ Badge } tone="warn">Store page<//>` : null }
 												</td>
 												<td class="sb-table__sub">/${ row.slug }/</td>
 												<td>
-													${ isInFooter( row ) ? html`<${ Badge } tone="ok">In footer<//>` : '—' }
-												</td>
-												<td>
 													${ row.status === 'publish'
 														? html`<${ Badge } tone="ok">Published<//>`
-														: html`<${ Badge }>${ row.status }<//>` }
+														: html`<${ Badge } tone="warn">${ row.status }<//>` }
 												</td>
 												<td>
 													<div class="sb-row">
@@ -193,15 +135,48 @@ export function Pages() {
 								</tbody>
 							</table>
 						</div>
-
-						<${ Pagination } page=${ page } pages=${ pages } total=${ total } noun="pages" onPage=${ setPage } />
 				  `
 				: html`<${ EmptyState }
-						title="No pages found"
-						body=${ search ? 'Nothing matches that search.' : 'Add one to start writing.' }
+						title="The footer has no page links"
+						body="Both footer columns are empty, or everything in them points somewhere other than a page. Add page links to the footer menus on the Menu screen and they will appear here."
 				  />` }
 		</div>
 	`;
+}
+
+/**
+ * One sentence saying where this list comes from, so the owner knows where to change it.
+ *
+ * Both columns are usually the same kind of source, and saying it twice would be noise; they are
+ * only distinguished when they genuinely differ.
+ *
+ * @param {object} sources Location to `ticked` | `menu` | `fallback`.
+ * @return {string}
+ */
+function whereFrom( sources ) {
+	const kinds = [ ...new Set( Object.values( sources ) ) ];
+
+	if ( ! kinds.length ) {
+		return '';
+	}
+
+	const said = {
+		menu: 'come from the menus assigned to the footer — change which pages appear on the Menu screen',
+		fallback: 'are the theme\'s defaults, because no menu is assigned to that footer column yet',
+		ticked: 'are the ones ticked for the footer',
+	};
+
+	if ( 1 === kinds.length ) {
+		return 'These ' + said[ kinds[ 0 ] ] + '.';
+	}
+
+	return (
+		'The two footer columns are filled differently: one ' +
+		said[ kinds[ 0 ] ] +
+		', the other ' +
+		said[ kinds[ 1 ] ] +
+		'.'
+	);
 }
 
 /* ------------------------------------------------------------------ shared with the editor */
@@ -219,17 +194,16 @@ export function pageTitle( page ) {
 	return titleText( page.title ) || '(no title)';
 }
 
-/** Whether a page is ticked for the footer. */
-export function isInFooter( page ) {
-	return !! ( page.meta && page.meta[ FOOTER_META ] );
-}
-
 /**
  * Whether this page is the site's front page.
  *
  * Compared by address rather than by an id from the boot payload: the front page is the one whose
  * permalink *is* the site, which is true however it was configured and needs nothing added to
  * /session to find out.
+ *
+ * It is unlikely to appear in this list now — a shop does not usually link its homepage from its own
+ * footer — but if it is linked there, the editor still has to say that nothing typed into it is
+ * ever printed.
  *
  * @param {object} page Page record.
  * @return {boolean}

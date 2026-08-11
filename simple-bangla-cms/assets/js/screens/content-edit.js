@@ -1,65 +1,39 @@
 /*
  * Writing a page.
  *
- * Title, body, address, whether it is published and whether it is linked in the footer — the five
- * things a shop owner actually decides about an About Us page. Everything else core's page editor
- * offers (templates, featured images, parents, comment settings) is left out: this theme renders
- * every page the same way, so those controls would be five more questions with one answer each.
+ * Title, body, address and whether it is published — the four things a shop owner actually decides
+ * about an About Us page. Everything else core's page editor offers (templates, featured images,
+ * parents, comment settings) is left out: this theme renders every page the same way, so those
+ * controls would be more questions with one answer each.
+ *
+ * **Creating and deleting are gone** (owner's decision, 2026-08-10), along with the "show in the
+ * footer" tick. The list this editor opens from is now derived from the footer rather than from the
+ * page table, so a page created here could never have appeared in it, a page deleted here would
+ * have taken a footer link with it, and unticking a page would have removed it from the only screen
+ * that could tick it back. Which pages are in the footer is the Menu screen's question; this screen
+ * answers what they say. The theme still honours a tick set before this change.
  *
  * The body is the plugin's own rich-text control, the same one product descriptions use, and what
  * is stored is plain HTML in `post_content` — so a page written here opens correctly in wp-admin
  * and vice versa, and nothing about the storefront's rendering changes.
  */
 
-import {
-	html,
-	useState,
-	useEffect,
-	useCallback,
-	Card,
-	Field,
-	Select,
-	Switch,
-	Confirm,
-	ErrorBox,
-	toast,
-} from '../ui.js';
+import { html, useState, useEffect, useCallback, Card, Field, Select, ErrorBox, toast } from '../ui.js';
 import { api, SB } from '../api.js';
-import { navigate, href, onLinkClick } from '../router.js';
+import { href, onLinkClick } from '../router.js';
 import { RichText } from '../editor.js';
-import { FOOTER_META, isFrontPage, isStorePage } from './content.js';
+import { isFrontPage, isStorePage } from './content.js';
 import { decodeEntities } from '../text.js';
 
-/** What a brand-new page starts as. Published, because a page nobody can read is rarely the goal. */
-const BLANK = {
-	title: '',
-	slug: '',
-	status: 'publish',
-	content: '',
-	footer: false,
-	link: '',
-	frontPage: false,
-	storePage: false,
-};
-
 export function PageEdit( { id } ) {
-	const isNew = id === 'new';
-
-	const [ form, setForm ] = useState( isNew ? { ...BLANK } : null );
+	const [ form, setForm ] = useState( null );
 	const [ dirty, setDirty ] = useState( false );
 	const [ saving, setSaving ] = useState( false );
 	const [ error, setError ] = useState( null );
-	const [ confirming, setConfirming ] = useState( false );
 
 	/* -- load -- */
 
 	useEffect( () => {
-		if ( isNew ) {
-			setForm( { ...BLANK } );
-			setDirty( false );
-			return;
-		}
-
 		setError( null );
 
 		api( 'wp/v2/pages/' + id, { params: { context: 'edit' } } )
@@ -68,7 +42,7 @@ export function PageEdit( { id } ) {
 				setDirty( false );
 			} )
 			.catch( setError );
-	}, [ id, isNew ] );
+	}, [ id ] );
 
 	// A page is a lot of typing to lose to a mistaken back gesture.
 	useEffect( () => {
@@ -105,54 +79,30 @@ export function PageEdit( { id } ) {
 				title: form.title,
 				status: form.status,
 				content: form.content,
-				meta: { [ FOOTER_META ]: !! form.footer },
 			};
 
 			/*
-			 * Omitted rather than sent empty when it was never typed. WordPress makes one from the
-			 * title on create; on an update an empty string asks it to regenerate — which silently
-			 * changes the address of a page that was only being renamed, and breaks every link and
-			 * every search result pointing at it.
+			 * Omitted rather than sent empty when it was never typed. On an update an empty string
+			 * asks WordPress to regenerate the slug — which silently changes the address of a page
+			 * that was only being renamed, and breaks every link and every search result pointing at
+			 * it, the footer's own link included.
 			 */
 			if ( form.slug.trim() ) {
 				payload.slug = form.slug.trim();
 			}
 
-			const saved = isNew
-				? await api( 'wp/v2/pages', { method: 'POST', body: payload } )
-				: await api( 'wp/v2/pages/' + id, { method: 'POST', body: payload } );
+			const saved = await api( 'wp/v2/pages/' + id, { method: 'POST', body: payload } );
 
 			// The server's echo, not the local values: WordPress resolves the slug (deduplicating it
 			// against every other page) and may sanitise the body, and the form should show what was
 			// actually stored rather than what was asked for.
 			setForm( toForm( saved ) );
 			setDirty( false );
-			toast( isNew ? 'Page created' : 'Page saved' );
-
-			if ( isNew ) {
-				navigate( '/content/' + saved.id, true );
-			}
+			toast( 'Page saved' );
 		} catch ( e ) {
 			toast( e.message, 'bad' );
 		} finally {
 			setSaving( false );
-		}
-	};
-
-	const remove = async () => {
-		setSaving( true );
-
-		try {
-			// No `force`, so it goes to the trash and can be restored from WordPress. Unlike a
-			// coupon, a page is often the only copy of writing nobody wants to do twice.
-			await api( 'wp/v2/pages/' + id, { method: 'DELETE' } );
-			setDirty( false );
-			toast( 'Page moved to trash' );
-			navigate( '/content', true );
-		} catch ( e ) {
-			toast( e.message, 'bad' );
-			setSaving( false );
-			setConfirming( false );
 		}
 	};
 
@@ -175,19 +125,14 @@ export function PageEdit( { id } ) {
 					<p class="sb-crumb">
 						<a href=${ href( '/content' ) } onClick=${ ( e ) => onLinkClick( e, '/content' ) }>Content Pages</a>
 					</p>
-					<h1 class="sb-page__title">${ isNew ? 'New page' : form.title || 'Untitled' }</h1>
+					<h1 class="sb-page__title">${ form.title || 'Untitled' }</h1>
 					<p class="sb-page__lead">
-						${ isNew
-							? 'It will be reachable at its own address as soon as it is published.'
-							: html`<a href=${ form.link } target="_blank" rel="noopener">View on site</a>` }
+						<a href=${ form.link } target="_blank" rel="noopener">View on site</a>
 					</p>
 				</div>
 				<div class="sb-row sb-page__actions">
-					${ ! isNew && ! form.frontPage
-						? html`<button class="sb-btn sb-btn--ghost" onClick=${ () => setConfirming( true ) }>Delete</button>`
-						: null }
 					<button class="sb-btn sb-btn--primary" onClick=${ save } disabled=${ saving }>
-						${ saving ? 'Saving…' : dirty || isNew ? 'Save' : 'Saved' }
+						${ saving ? 'Saving…' : dirty ? 'Save' : 'Saved' }
 					</button>
 				</div>
 			</div>
@@ -248,23 +193,17 @@ export function PageEdit( { id } ) {
 							/>
 						<//>
 
-						<${ Switch }
-							label="Show in the footer"
-							hint=${ form.status === 'publish'
-								? 'Lists this page in the first footer column, under the shop name. Ticked pages are the whole of that column.'
-								: 'Only published pages appear in the footer, so this will do nothing until the status above is Published.' }
-							checked=${ form.footer }
-							onChange=${ ( footer ) => set( { footer } ) }
-						/>
+						<p class="sb-hint">
+							This page is linked from your footer. Only published pages appear there, so
+							Draft or Private takes the link away until it is published again.
+						</p>
 					<//>
 
 					<${ Card } title="Address">
 						<${ Field }
 							label="Slug"
 							id="pg-slug"
-							hint=${ isNew && ! form.slug.trim()
-								? 'Leave it empty and one is made from the title.'
-								: address + ' — changing it breaks existing links to this page.' }
+							hint=${ address + ' — changing it breaks existing links to this page.' }
 						>
 							<input
 								class="sb-input"
@@ -279,19 +218,6 @@ export function PageEdit( { id } ) {
 				</div>
 			</div>
 
-			${ confirming
-				? html`<${ Confirm }
-						title=${ 'Delete "' + ( form.title || 'this page' ) + '"?' }
-						body=${ ( form.storePage
-							? 'This is a store page. Deleting it breaks the part of the shop it renders until WooCommerce is pointed at a new one. '
-							: '' ) +
-						'It moves to the trash and can be restored from WordPress. Any menu or footer link to it will stop working.' }
-						confirmLabel="Move to trash"
-						busy=${ saving }
-						onConfirm=${ remove }
-						onClose=${ () => setConfirming( false ) }
-				  />`
-				: null }
 		</div>
 	`;
 }
@@ -312,7 +238,6 @@ function toForm( page ) {
 		slug: page.slug || '',
 		status: page.status || 'publish',
 		content: ( page.content && page.content.raw ) || '',
-		footer: !! ( page.meta && page.meta[ FOOTER_META ] ),
 		link: page.link || '',
 		frontPage: isFrontPage( page ),
 		storePage: isStorePage( page ),

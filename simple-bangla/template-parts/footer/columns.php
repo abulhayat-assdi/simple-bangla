@@ -16,25 +16,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$simple_bangla_columns = array(
-	'footer-1' => array(
-		'heading'  => get_bloginfo( 'name' ),
-		'fallback' => array( 'about-us', 'privacy-policy', 'refund_returns' ),
-	),
-	'footer-2' => array(
-		'heading'  => __( 'Helps', 'simple-bangla' ),
-		'fallback' => array( 'tutorials', 'warranty-policy', 'special-deals' ),
-	),
-	/*
-	 * There is no third column. It held Customer Service, and every route it offered — phone,
-	 * email, WhatsApp, the address — is already in the brand cell beside it, where a customer
-	 * looks first. A column repeating them as page links was a longer way round to the same
-	 * number.
-	 */
-);
-
-/** Pages the owner ticked for the footer. Empty on any site that has never used the screen. */
-$simple_bangla_ticked = simple_bangla_footer_link_pages();
+/*
+ * The columns themselves live in inc/pages.php, because the CMS has to be able to ask which pages
+ * this footer links to and answering that from a second copy of the list would drift. There is no
+ * third column: it held Customer Service, and every route it offered — phone, email, WhatsApp, the
+ * address — is already in the brand cell beside it, where a customer looks first.
+ */
+$simple_bangla_columns = simple_bangla_footer_columns();
 ?>
 
 <?php foreach ( $simple_bangla_columns as $simple_bangla_location => $simple_bangla_column ) : ?>
@@ -42,22 +30,12 @@ $simple_bangla_ticked = simple_bangla_footer_link_pages();
 		<h2 class="sb-footer__heading"><?php echo esc_html( $simple_bangla_column['heading'] ); ?></h2>
 
 		<?php
-		if ( 'footer-1' === $simple_bangla_location && $simple_bangla_ticked ) {
+		// Which source wins is decided in one place, so this template and the CMS's list of editable
+		// pages can never disagree about what the footer is showing.
+		if ( 'menu' === simple_bangla_footer_column_source( $simple_bangla_location ) ) {
 
-			echo '<ul class="sb-footer__menu">';
-
-			foreach ( $simple_bangla_ticked as $simple_bangla_ticked_page ) {
-				printf(
-					'<li><a href="%s">%s</a></li>',
-					esc_url( (string) get_permalink( $simple_bangla_ticked_page ) ),
-					esc_html( get_the_title( $simple_bangla_ticked_page ) )
-				);
-			}
-
-			echo '</ul>';
-
-		} elseif ( has_nav_menu( $simple_bangla_location ) ) {
-
+			// Rendered by WordPress rather than from the page list, because a menu may legitimately
+			// hold category links and custom URLs, and those have to print too.
 			wp_nav_menu(
 				array(
 					'theme_location' => $simple_bangla_location,
@@ -71,14 +49,7 @@ $simple_bangla_ticked = simple_bangla_footer_link_pages();
 
 			echo '<ul class="sb-footer__menu">';
 
-			foreach ( $simple_bangla_column['fallback'] as $simple_bangla_slug ) {
-
-				$simple_bangla_page = get_page_by_path( $simple_bangla_slug );
-
-				if ( ! $simple_bangla_page || 'publish' !== $simple_bangla_page->post_status ) {
-					continue;
-				}
-
+			foreach ( simple_bangla_footer_column_pages( $simple_bangla_location, $simple_bangla_column ) as $simple_bangla_page ) {
 				printf(
 					'<li><a href="%s">%s</a></li>',
 					esc_url( (string) get_permalink( $simple_bangla_page ) ),

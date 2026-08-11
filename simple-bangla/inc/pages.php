@@ -86,3 +86,140 @@ function simple_bangla_footer_link_pages() {
 function simple_bangla_page_in_footer( $page_id ) {
 	return '1' === (string) get_post_meta( (int) $page_id, SIMPLE_BANGLA_FOOTER_LINK_META, true );
 }
+
+/**
+ * The footer's link columns.
+ *
+ * Defined here rather than in the template because two things now need to agree about them: the
+ * template that prints the columns, and `simple_bangla_footer_pages()` below, which answers the
+ * CMS's question "which pages does the footer link to?". Two copies of this list would drift the
+ * first time a column changed, and the CMS would quietly offer the wrong pages to edit.
+ *
+ * The headings are read at call time because one of them is the site's own name.
+ *
+ * @return array<string,array{heading:string,fallback:string[]}> Keyed by nav-menu location.
+ */
+function simple_bangla_footer_columns() {
+
+	return array(
+		'footer-1' => array(
+			'heading'  => get_bloginfo( 'name' ),
+			'fallback' => array( 'about-us', 'privacy-policy', 'refund_returns' ),
+		),
+		'footer-2' => array(
+			'heading'  => __( 'Helps', 'simple-bangla' ),
+			'fallback' => array( 'tutorials', 'warranty-policy', 'special-deals' ),
+		),
+	);
+}
+
+/**
+ * Which of a column's three possible sources is actually in charge.
+ *
+ * The order is the interesting part and it is stated once, here: a tick beats an assigned menu,
+ * an assigned menu beats the theme's own defaults. See the file header for why a tick wins.
+ *
+ * @param string $location Nav-menu location.
+ * @return string `ticked`, `menu` or `fallback`.
+ */
+function simple_bangla_footer_column_source( $location ) {
+
+	if ( 'footer-1' === $location && simple_bangla_footer_link_pages() ) {
+		return 'ticked';
+	}
+
+	if ( has_nav_menu( $location ) ) {
+		return 'menu';
+	}
+
+	return 'fallback';
+}
+
+/**
+ * The published pages one footer column links to.
+ *
+ * A menu can hold category links and custom URLs as well as pages; only the pages come back, because
+ * the only caller is a screen for editing page *content* and there is nothing to edit about a link
+ * to a category archive. Top-level items only, matching the `depth => 1` the template renders with.
+ *
+ * @param string $location Nav-menu location.
+ * @param array  $column   Entry from simple_bangla_footer_columns().
+ * @return WP_Post[]
+ */
+function simple_bangla_footer_column_pages( $location, $column ) {
+
+	$source = simple_bangla_footer_column_source( $location );
+
+	if ( 'ticked' === $source ) {
+		return simple_bangla_footer_link_pages();
+	}
+
+	$pages = array();
+
+	if ( 'menu' === $source ) {
+
+		$locations = get_nav_menu_locations();
+		$items     = isset( $locations[ $location ] ) ? wp_get_nav_menu_items( $locations[ $location ] ) : array();
+
+		foreach ( (array) $items as $item ) {
+
+			if ( 'post_type' !== $item->type || 'page' !== $item->object || (int) $item->menu_item_parent ) {
+				continue;
+			}
+
+			$page = get_post( (int) $item->object_id );
+
+			/*
+			 * Any status, unlike the two branches below.
+			 *
+			 * A menu prints its item whether or not the page behind it is published, so the footer
+			 * genuinely does link to a draft page that has been added to a footer menu — the theme's
+			 * own Refund and Returns Policy is exactly that on a fresh install. Filtering drafts out
+			 * here would hide the one page most in need of writing from the screen for writing pages.
+			 * The CMS shows the status beside each row, so a draft is visible as a draft.
+			 */
+			if ( $page ) {
+				$pages[] = $page;
+			}
+		}
+
+		return $pages;
+	}
+
+	foreach ( $column['fallback'] as $slug ) {
+
+		$page = get_page_by_path( $slug );
+
+		if ( $page && 'publish' === $page->post_status ) {
+			$pages[] = $page;
+		}
+	}
+
+	return $pages;
+}
+
+/**
+ * Every page the footer links to, in the order it prints them.
+ *
+ * This is what the CMS's Content Pages screen lists. The owner asked for that screen to hold the
+ * pages they actually maintain rather than every page WordPress happens to contain — Cart, Checkout,
+ * My Account and Sample Page are not writing, and offering them for editing was an invitation to
+ * break the shop.
+ *
+ * Deduplicated by ID: the same page can legitimately be linked from both columns, and it should be
+ * one row on that screen rather than two.
+ *
+ * @return WP_Post[]
+ */
+function simple_bangla_footer_pages() {
+
+	$pages = array();
+
+	foreach ( simple_bangla_footer_columns() as $location => $column ) {
+		foreach ( simple_bangla_footer_column_pages( $location, $column ) as $page ) {
+			$pages[ $page->ID ] = $page;
+		}
+	}
+
+	return array_values( $pages );
+}

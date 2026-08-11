@@ -1346,6 +1346,66 @@ still menu-driven. Then a subscriber refused the tick with 403 and the stored va
 rename leaving the slug alone, unticking putting the column back to its menu, a delete landing in
 the trash, and the route, the sidebar entry and the import map all covering the two new modules.
 
+### The order card, and Content Pages narrowed (2026-08-10, theme 1.3.0 / plugin 1.5.0)
+
+Three requests from the owner after using the CMS on the live shop.
+
+**Content Pages lists the footer's pages and nothing else.** It listed all fourteen pages WordPress
+contained, of which four were writing and the rest were Cart, Checkout, My account, Sample Page and
+the homepage — bodies that are a WooCommerce shortcode or are never printed. Offering those for
+editing was an invitation to break the checkout while looking for About Us.
+
+- **The theme derives the list, not the plugin.** `simple_bangla_footer_pages()` in
+  `simple-bangla/inc/pages.php` walks the same tick → assigned menu → theme defaults order the
+  footer renders with, and `template-parts/footer/columns.php` now reads its column definitions and
+  its source-priority from the same two functions. A second copy of "which pages are in the footer"
+  living in the plugin would have drifted the first time a column changed, and the CMS would then
+  have offered the wrong pages to edit. `/footer-pages` is a thin exposure of it, returning IDs only
+  — the screen still asks `wp/v2/pages` for the records, so core keeps owning the page controller.
+- **Add page, delete and the footer tick are gone from the screen.** All three were traps once the
+  list became derived: a new page could not appear in it, a deleted page would take a footer link
+  with it, and unticking a page would remove it from the only screen that could tick it back. Which
+  pages are in the footer is now unambiguously the Menu screen's question; this screen answers what
+  they say. The theme still honours a tick set before the change, and the meta stays registered.
+- Menu items that are not pages — category links, custom URLs — are skipped, and only top-level
+  items are read, matching the `depth => 1` the footer renders with.
+- **A page reached through a menu is listed whatever its status.** The first version filtered to
+  published pages, which is right for the tick and the theme-defaults branches — both build their
+  list from a page query, and the footer prints only published pages there — but wrong for a menu,
+  because `wp_nav_menu()` prints an item whether or not the page behind it is published. The
+  theme's own Refund and Returns Policy ships as a draft in a footer menu, so the filter hid the one
+  page most obviously in need of writing from the screen for writing pages. Caught by asserting the
+  CMS list against the links actually rendered in the storefront's footer rather than against an
+  expectation written by hand.
+
+**Reviews opens on All** (owner's decision, reversing phase 6). Opening on Pending was reasoned
+from "the only reason to visit is that something is waiting"; in practice this shop approves reviews
+as they arrive, so the screen opened on an empty box reading "Nothing waiting" and gave no sign the
+store had any reviews at all.
+
+**An order opens as a card over the list**, to a reference the owner supplied — the shape borrowed,
+the palette not: it is the shop's black and cream, because the CMS is one product and this would
+otherwise be the one screen that looked like a different one.
+
+- **The whole row opens it**, not just the order number. Clicking a row and having nothing happen
+  was the single most confusing thing about that screen; the row plainly *is* one order. The
+  checkbox is the exception, and the number stays a real link so middle-click still reaches the full
+  page.
+- **The card is not a second order screen.** It carries what the morning's work needs — the items,
+  the delivery details, the money, the one action the order is waiting for — plus Edit info and a
+  permanent delete. Notes, refunds and the printable invoice stay on `/orders/123`, one click away
+  in the card's footer and still what a deep link opens.
+- **`order-parts.js` is why there are not two of everything.** Items, totals, delivery details,
+  payment and the stage buttons are one component each, drawn by both the card and the full page.
+  The alternative was two copies of "what is in the parcel" that would disagree the first time
+  either changed — and it is the card the owner works from all day.
+- **Editing an address writes billing *and* shipping.** The checkout asks for one address on a
+  single-country cash-on-delivery shop, so writing only billing would put the corrected number on
+  the invoice and the old one on the courier's label.
+- **The card's open state is component state, not a route.** Closing it must not cost a navigation,
+  and the list keeps its scroll position, its tab and its selection while an order is worked on.
+  Anything the card changes refetches the rows and the tab counts behind it.
+
 ### Build order
 
 | Phase | Scope | State |
@@ -1418,3 +1478,36 @@ npx @wp-playground/cli@latest server --port=8882 \
   crashes with `D:\C:\Users\…`.
 - WooCommerce 11 ships with **Coming soon mode on**. Turn it off under
   WooCommerce → Settings → Site visibility or the storefront renders as a placeholder page.
+
+## Packaging for handover (2026-08-10)
+
+**Never build the zips with PowerShell's `Compress-Archive` on this machine.** Windows PowerShell
+5.1 writes Windows path separators *inside* the archive — `simple-bangla\style.css` — and the ZIP
+specification requires `/`. WordPress's `unzip_file()` then extracts one file whose entire name is
+`simple-bangla\style.css`, at the archive root, with no directory at all, and the installer answers:
+
+> The package could not be installed. The theme is missing the style.css stylesheet.
+
+Which is a true statement about a package that in fact contains everything. .NET Framework's
+`ZipFile::CreateFromDirectory` has the same fault, so the packaging script builds the archive entry
+by entry with `CreateEntryFromFile` and an explicit `.Replace( '\', '/' )`. Any other tool that
+writes proper separators is fine — `tar -a -c -f out.zip simple-bangla`, PowerShell 7's
+`Compress-Archive`, or 7-Zip.
+
+Two things the packages must contain that are easy to lose:
+
+- **`simple-bangla-cms/assets/vendor/preact-htm.module.js`.** `.gitignore` had a blanket `vendor/`
+  rule, so it was untracked — a fresh clone produced a plugin whose interface never booted. There
+  is an explicit exception for it now, and the package check asserts it.
+- **One top-level folder per archive, named exactly as the theme/plugin slug.** WordPress installs
+  to the folder name inside the zip; get it wrong and a "replace" silently becomes a second copy.
+
+`scratchpad/check-zip.php` reads both packages with PHP's own `ZipArchive` and asserts what
+WordPress's installers assert — no backslash in any entry name, one top-level folder, the
+`Theme Name:` and `Plugin Name:` headers, every file `functions.php` and the plugin bootstrap
+`require` present, and **every relative ES-module import resolving inside the package**, since one
+missing module is a blank `/manage` rather than an error. Then `install-test.php` runs the real
+thing in a clean Playground with no mounts: `Theme_Upgrader::install()` and
+`Plugin_Upgrader::install()` twice each — once fresh, once with `overwrite_package` set, which is
+what wp-admin's "Replace current with uploaded" does — activating both and checking a file left
+behind by the older copy is actually gone.

@@ -31,7 +31,10 @@ import {
 	toast,
 } from '../ui.js';
 import { api, apiList, money } from '../api.js';
-import { href, onLinkClick } from '../router.js';
+// `href` only: an order opens in the card over this list rather than by navigating, so the links
+// that remain are there to carry a real address for middle-click, not to be followed on a plain one.
+import { href } from '../router.js';
+import { OrderCard } from './order-card.js';
 import {
 	statusLabel,
 	statusTone,
@@ -85,6 +88,9 @@ export function Orders() {
 
 	// The id of the order whose card action is in flight, so only that card's buttons go quiet.
 	const [ acting, setActing ] = useState( 0 );
+
+	/** The order whose card is open, or 0. Not a route: closing it must not cost a navigation. */
+	const [ openOrder, setOpenOrder ] = useState( 0 );
 
 	const load = useCallback( async () => {
 		setBusy( true );
@@ -303,12 +309,14 @@ export function Orders() {
 								acting=${ acting }
 								onDispatch=${ dispatch }
 								onStatus=${ setStatus }
+								onOpen=${ setOpenOrder }
 							/>
 							<${ OrderTable }
 								rows=${ rows }
 								selected=${ selected }
 								onToggle=${ toggle }
 								onToggleAll=${ toggleAll }
+								onOpen=${ setOpenOrder }
 							/>
 						</div>
 				  `
@@ -320,6 +328,24 @@ export function Orders() {
 				  />` }
 
 			<${ Pagination } page=${ page } pages=${ pages } total=${ total } noun="orders" onPage=${ setPage } />
+
+			${ /*
+			 * The order opens over the list rather than replacing it. Anything done in the card that
+			 * changes the order — a status, a dispatch, a corrected address — refetches these rows and
+			 * the tab counts, so the row behind the card is never left describing the order as it was
+			 * before it was worked on.
+			 */
+			openOrder
+				? html`<${ OrderCard }
+						id=${ openOrder }
+						onClose=${ () => setOpenOrder( 0 ) }
+						onChange=${ load }
+						onDelete=${ () => {
+							setOpenOrder( 0 );
+							load();
+						} }
+				  />`
+				: null }
 		</div>
 	`;
 }
@@ -347,7 +373,7 @@ function Tab( { label, count, active, onClick } ) {
  * depends on a column header that scrolled off the side. The whole card is a link; the checkbox is
  * the one thing inside it that is not, because tapping it must select rather than navigate.
  */
-function OrderCards( { rows, selected, onToggle, acting, onDispatch, onStatus } ) {
+function OrderCards( { rows, selected, onToggle, acting, onDispatch, onStatus, onOpen } ) {
 	return html`
 		<div class="sb-ordercards">
 			${ rows.map( ( order ) => {
@@ -372,7 +398,14 @@ function OrderCards( { rows, selected, onToggle, acting, onDispatch, onStatus } 
 							<a
 								class="sb-ordercard__no"
 								href=${ href( path ) }
-								onClick=${ ( e ) => onLinkClick( e, path ) }
+								onClick=${ ( e ) => {
+									if ( e.metaKey || e.ctrlKey || e.shiftKey || 0 !== e.button ) {
+										return;
+									}
+
+									e.preventDefault();
+									onOpen( order.id );
+								} }
 							>
 								#${ order.number }
 							</a>
@@ -455,13 +488,9 @@ function OrderCards( { rows, selected, onToggle, acting, onDispatch, onStatus } 
 										${ acting === order.id ? 'Sending…' : 'Send to courier' }
 								  </button>` }
 
-							<a
-								class="sb-btn sb-btn--ghost sb-btn--block"
-								href=${ href( path ) }
-								onClick=${ ( e ) => onLinkClick( e, path ) }
-							>
+							<button class="sb-btn sb-btn--ghost sb-btn--block" onClick=${ () => onOpen( order.id ) }>
 								Open order
-							</a>
+							</button>
 						</footer>
 					</article>
 				`;
@@ -491,7 +520,18 @@ function shortAddress( order ) {
 	);
 }
 
-function OrderTable( { rows, selected, onToggle, onToggleAll } ) {
+/**
+ * The desktop layout.
+ *
+ * **The whole row opens the order**, not only the number in the first column. Clicking a row and
+ * having nothing happen was the single most confusing thing about this screen: the row is plainly a
+ * record of one order, and everything on it — the customer, the total, the status — reads as part of
+ * the same clickable thing. The checkbox column is the exception, because tapping it must select.
+ *
+ * The order number stays a real link inside the row, so middle-click and "open in new tab" still
+ * reach the full page.
+ */
+function OrderTable( { rows, selected, onToggle, onToggleAll, onOpen } ) {
 	return html`
 		<div class="sb-table-wrap sb-orders__table">
 			<table class="sb-table">
@@ -519,7 +559,19 @@ function OrderTable( { rows, selected, onToggle, onToggleAll } ) {
 						const shipment = order.sb_courier;
 
 						return html`
-							<tr key=${ order.id } class=${ selected.includes( order.id ) ? 'is-selected' : '' }>
+							<tr
+								key=${ order.id }
+								class=${ 'sb-table__row--open' + ( selected.includes( order.id ) ? ' is-selected' : '' ) }
+								onClick=${ ( e ) => {
+									// A click on the checkbox, or a modified click on the number, is not a
+									// request to open the card.
+									if ( e.target.closest( 'input, a, button' ) ) {
+										return;
+									}
+
+									onOpen( order.id );
+								} }
+							>
 								<td>
 									<input
 										type="checkbox"
@@ -532,7 +584,14 @@ function OrderTable( { rows, selected, onToggle, onToggleAll } ) {
 									<a
 										class="sb-table__name"
 										href=${ href( '/orders/' + order.id ) }
-										onClick=${ ( e ) => onLinkClick( e, '/orders/' + order.id ) }
+										onClick=${ ( e ) => {
+											if ( e.metaKey || e.ctrlKey || e.shiftKey || 0 !== e.button ) {
+												return;
+											}
+
+											e.preventDefault();
+											onOpen( order.id );
+										} }
 									>
 										#${ order.number }
 									</a>

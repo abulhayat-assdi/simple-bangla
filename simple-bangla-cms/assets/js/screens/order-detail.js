@@ -21,25 +21,14 @@ import {
 	Select,
 	Switch,
 	Badge,
-	Icon,
 	Confirm,
 	ErrorBox,
 	toast,
 } from '../ui.js';
 import { api, apiList, money } from '../api.js';
+import { OrderItems, OrderTotals, DeliveryDetails, StageActions, FraudReport } from '../order-parts.js';
 import { href, onLinkClick, navigate } from '../router.js';
-import {
-	statusLabel,
-	statusTone,
-	statusOptions,
-	customerName,
-	addressLines,
-	dateTime,
-	refundedTotal,
-	itemAttributes,
-	STATUS_WITH_COURIER,
-	COURIER_OUTCOMES,
-} from '../order-utils.js';
+import { statusLabel, statusTone, statusOptions, dateTime, refundedTotal } from '../order-utils.js';
 
 export function OrderDetail( { id } ) {
 	const [ order, setOrder ] = useState( null );
@@ -209,11 +198,11 @@ export function OrderDetail( { id } ) {
 	}
 
 	const items = order.line_items || [];
-	const subtotal = items.reduce( ( sum, item ) => sum + Number( item.subtotal || 0 ), 0 );
-	const shipping = ( order.shipping_lines || [] ).reduce( ( sum, line ) => sum + Number( line.total || 0 ), 0 );
+
+	// Still needed here, unlike the subtotal and the delivery charge, because the refund dialog
+	// offers the outstanding amount as its default and refuses to open once it reaches zero.
 	const refunded = refundedTotal( order );
 	const outstanding = Number( order.total || 0 ) - refunded;
-	const shipment = order.sb_courier;
 
 	return html`
 		<div class="sb-page">
@@ -242,103 +231,18 @@ export function OrderDetail( { id } ) {
 			<div class="sb-editor">
 				<div class="sb-editor__main">
 					<${ Card } title=${ 'Items ordered (' + items.length + ')' }>
-						<div class="sb-items">
-							${ items.map(
-								( item ) => html`
-									<div key=${ item.id } class="sb-item">
-										<div class="sb-item__thumb">
-											${ item.image && item.image.src
-												? html`<img src=${ item.image.src } alt="" loading="lazy" />`
-												: html`<span class="sb-thumb__empty"><${ Icon } name="image" size=${ 18 } /></span>` }
-										</div>
-										<div class="sb-item__body">
-											<p class="sb-item__name">${ item.name }</p>
-											<p class="sb-item__meta">
-												${ money( item.price ) } × ${ item.quantity }
-												${ item.sku ? ' · SKU ' + item.sku : '' }
-											</p>
-											${ itemAttributes( item ).length
-												? html`<div class="sb-chips">
-														${ itemAttributes( item ).map(
-															( attr ) => html`
-																<span key=${ attr.label } class="sb-chip">
-																	<span class="sb-chip__key">${ attr.label }</span>
-																	${ attr.value }
-																</span>
-															`
-														) }
-												  </div>`
-												: null }
-										</div>
-										<div class="sb-item__total">${ money( item.total ) }</div>
-									</div>
-								`
-							) }
-						</div>
+						<${ OrderItems } items=${ items } />
 
-						<div class="sb-totals">
-							<${ TotalRow } label="Subtotal" value=${ money( subtotal ) } />
-							${ Number( order.discount_total ) > 0
-								? html`<${ TotalRow } label="Discount" value=${ '− ' + money( order.discount_total ) } />`
-								: null }
-							${ shipping > 0 ? html`<${ TotalRow } label="Delivery" value=${ money( shipping ) } />` : null }
-							${ Number( order.total_tax ) > 0
-								? html`<${ TotalRow } label="Tax" value=${ money( order.total_tax ) } />`
-								: null }
-							<${ TotalRow } label="Total" value=${ money( order.total ) } strong />
-							${ refunded > 0
-								? html`
-										<${ TotalRow } label="Refunded" value=${ '− ' + money( refunded ) } tone="bad" />
-										<${ TotalRow } label="Net" value=${ money( outstanding ) } strong />
-								  `
-								: null }
-						</div>
+						<${ OrderTotals } order=${ order } />
 
 						${ order.customer_note
 							? html`<p class="sb-note-customer"><strong>Customer note:</strong> ${ order.customer_note }</p>`
 							: null }
 					<//>
 
-					<${ Card } title="Delivery information">
-						<p class="sb-detail__name">${ customerName( order ) }</p>
-						${ order.billing && order.billing.phone
-							? html`<p><a href=${ 'tel:' + order.billing.phone }>${ order.billing.phone }</a></p>`
-							: null }
-						${ order.billing && order.billing.email
-							? html`<p><a href=${ 'mailto:' + order.billing.email }>${ order.billing.email }</a></p>`
-							: null }
-
-						<address class="sb-address">
-							${ addressLines( order.billing, true ).map( ( line, i ) => html`<span key=${ i }>${ line }</span>` ) }
-						</address>
-
-						${ addressLines( order.shipping, true ).length
-							? html`
-									<span class="sb-field__label">Shipping address</span>
-									<address class="sb-address">
-										${ addressLines( order.shipping, true ).map(
-											( line, i ) => html`<span key=${ i }>${ line }</span>`
-										) }
-									</address>
-							  `
-							: null }
-
-						${ order.customer_ip_address
-							? html`
-									<span class="sb-field__label">Client IP</span>
-									<p class="sb-mono">
-										${ order.customer_ip_address }
-										<a
-											class="sb-inline-link"
-											href=${ href( '/blocked' ) }
-											onClick=${ ( e ) => onLinkClick( e, '/blocked' ) }
-										>
-											Block this address
-										</a>
-									</p>
-							  `
-							: null }
-					<//>
+						<${ Card } title="Delivery information">
+							<${ DeliveryDetails } order=${ order } />
+						<//>
 
 					<${ FraudReport } id=${ id } phone=${ ( order.billing && order.billing.phone ) || '' } />
 
@@ -386,66 +290,14 @@ export function OrderDetail( { id } ) {
 
 				<div class="sb-editor__side">
 					<${ Card } title="Actions">
-						${ shipment
-							? html`
-									<div class="sb-shipment">
-										<p class="sb-shipment__label">
-											<${ Icon } name="truck" size=${ 16 } /> ${ shipment.provider_label }
-										</p>
-										<p class="sb-mono">${ shipment.consignment_id || '—' }</p>
-										<p class="sb-hint">Sent ${ dateTime( new Date( shipment.sent_at * 1000 ) ) }</p>
-									</div>
-							  `
-							: null }
-
-						${ /*
-						 * With the courier, the only two questions left are whether it arrived. They are
-						 * one tap each rather than a trip through the status list, which is the whole
-						 * point of this screen for a shop working through yesterday's dispatches.
-						 */
-						status === STATUS_WITH_COURIER
-							? html`
-									${ COURIER_OUTCOMES.map(
-										( outcome ) => html`
-											<button
-												key=${ outcome.status }
-												class=${ 'sb-btn sb-btn--block sb-btn--' + outcome.tone +
-													( outcome.tone === 'danger' ? ' sb-btn--outline' : '' ) }
-												disabled=${ busy }
-												onClick=${ () => saveStatus( outcome.status ) }
-											>
-												${ outcome.label }
-											</button>
-										`
-									) }
-									<p class="sb-hint">
-										Returned puts the items back into stock; completed does not.
-									</p>
-							  `
-							: html`
-									<button
-										class="sb-btn sb-btn--primary sb-btn--block"
-										disabled=${ sending }
-										onClick=${ () => send( false ) }
-									>
-										<${ Icon } name="truck" size=${ 16 } />
-										${ sending ? 'Sending…' : shipment ? 'Send to courier again' : 'Send to courier' }
-									</button>
-									<p class="sb-hint">
-										Books the parcel with the courier set up under Settings and moves the order to
-										Courier-এ আছে.
-									</p>
-							  ` }
-
-						${ status === STATUS_WITH_COURIER
-							? html`<button
-									class="sb-btn sb-btn--ghost sb-btn--block"
-									disabled=${ sending }
-									onClick=${ () => send( false ) }
-							  >
-									<${ Icon } name="truck" size=${ 16 } /> Send to courier again
-							  </button>`
-							: null }
+							<${ StageActions }
+								order=${ order }
+								status=${ status }
+								busy=${ busy }
+								sending=${ sending }
+								onStatus=${ saveStatus }
+								onSend=${ send }
+							/>
 
 						<button
 							class="sb-btn sb-btn--danger sb-btn--block sb-btn--outline"
@@ -541,119 +393,6 @@ export function OrderDetail( { id } ) {
 						` }
 				  />`
 				: null }
-		</div>
-	`;
-}
-
-/**
- * How this customer's parcels have gone before.
- *
- * Two halves, and they are not equally reliable, so the card says which is which. The **local**
- * figures are this shop's own orders — always available, never wrong. The **courier** figures come
- * from each courier's merchant portal, which has no documented API for them; a courier that cannot
- * be reached says so on its own line rather than being reported as zero, because "no record" and
- * "never delivered successfully" point in opposite directions.
- *
- * Loaded on demand rather than with the order. It is three sign-ins to three outside services and
- * it must not sit between the owner and an order they only wanted to read.
- */
-function FraudReport( { id, phone } ) {
-	const [ report, setReport ] = useState( null );
-	const [ loading, setLoading ] = useState( false );
-	const [ failed, setFailed ] = useState( null );
-
-	const fetchReport = ( refresh = false ) => {
-		setLoading( true );
-		setFailed( null );
-
-		api( '/orders/' + id + '/record', { params: refresh ? { refresh: 1 } : {} } )
-			.then( setReport )
-			.catch( setFailed )
-			.finally( () => setLoading( false ) );
-	};
-
-	if ( ! phone ) {
-		return null;
-	}
-
-	return html`
-		<${ Card }
-			title="Courier and fraud report"
-			action=${ html`
-				<button class="sb-btn sb-btn--ghost sb-btn--sm" disabled=${ loading } onClick=${ () => fetchReport( !! report ) }>
-					${ loading ? 'Checking…' : report ? 'Check again' : 'Check this number' }
-				</button>
-			` }
-		>
-			${ ! report && ! loading && ! failed
-				? html`<p class="sb-hint">
-						Nothing is requested until you ask. Checking signs in to each courier's merchant panel
-						to read what ${ phone } has ordered elsewhere.
-				  </p>`
-				: null }
-
-			${ failed ? html`<${ ErrorBox } error=${ failed } onRetry=${ () => fetchReport( true ) } />` : null }
-
-			${ report
-				? html`
-						<p class="sb-field__label">This shop's own history</p>
-						<div class="sb-scoreboard">
-							<${ Score } label="Orders" value=${ report.local.total } />
-							<${ Score } label="Delivered" value=${ report.local.delivered } tone="ok" />
-							<${ Score } label="Returned / cancelled" value=${ report.local.returned } tone="bad" />
-							<${ Score } label="In progress" value=${ report.local.open } />
-						</div>
-
-						<p class="sb-field__label">Courier records</p>
-						${ report.couriers.length
-							? html`
-									<div class="sb-courier-records">
-										${ report.couriers.map(
-											( record ) => html`
-												<div key=${ record.provider } class="sb-courier-record">
-													<span class="sb-courier-record__name">${ record.label }</span>
-													${ record.error
-														? html`<span class="sb-courier-record__error">${ record.error }</span>`
-														: record.rate === null
-														? html`<span class="sb-hint">No parcels on record.</span>`
-														: html`
-																<span class=${ 'sb-courier-record__rate' + ( record.rate < 60 ? ' is-bad' : '' ) }>
-																	${ record.rate }%
-																</span>
-																<span class="sb-hint">
-																	${ record.delivered } delivered · ${ record.returned } returned
-																	${ record.cached ? ' · cached' : '' }
-																</span>
-														  ` }
-												</div>
-											`
-										) }
-									</div>
-							  `
-							: html`<p class="sb-hint">
-									No courier is set up with a merchant panel login, so only this shop's own history
-									is available. Add one under Settings → Courier.
-							  </p>` }
-				  `
-				: null }
-		<//>
-	`;
-}
-
-function Score( { label, value, tone } ) {
-	return html`
-		<div class=${ 'sb-score' + ( tone ? ' sb-score--' + tone : '' ) }>
-			<span class="sb-score__value">${ value }</span>
-			<span class="sb-score__label">${ label }</span>
-		</div>
-	`;
-}
-
-function TotalRow( { label, value, strong, tone } ) {
-	return html`
-		<div class=${ 'sb-totals__row' + ( strong ? ' sb-totals__row--strong' : '' ) }>
-			<span>${ label }</span>
-			<span class=${ tone ? 'sb-totals__' + tone : '' }>${ value }</span>
 		</div>
 	`;
 }

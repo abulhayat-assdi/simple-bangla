@@ -29,19 +29,31 @@ import { href, onLinkClick } from '../router.js';
 
 const PER_PAGE = 20;
 
+/*
+ * "All" leads, and it is what the screen opens on (owner's decision, 2026-08-10).
+ *
+ * It used to open on Pending, on the reasoning that the only reason to visit was that something was
+ * waiting. On this shop that turned out to be wrong in practice: reviews are approved as they come,
+ * so the screen opened on an empty box reading "Nothing waiting" and gave no sign that the store had
+ * any reviews at all. Opening on everything shows the shop's actual reviews; the filter is one tap
+ * away when something does need a decision.
+ */
 const STATUSES = [
+	{ value: 'all', label: 'All' },
 	{ value: 'hold', label: 'Pending' },
 	{ value: 'approved', label: 'Approved' },
 	{ value: 'spam', label: 'Spam' },
-	{ value: 'all', label: 'All' },
 ];
+
+/** What the screen opens on. */
+const DEFAULT_STATUS = 'all';
 
 export function Reviews() {
 	const [ rows, setRows ] = useState( [] );
 	const [ page, setPage ] = useState( 1 );
 	const [ total, setTotal ] = useState( 0 );
 	const [ pages, setPages ] = useState( 1 );
-	const [ status, setStatus ] = useState( 'hold' );
+	const [ status, setStatus ] = useState( DEFAULT_STATUS );
 	const [ busy, setBusy ] = useState( true );
 	const [ error, setError ] = useState( null );
 
@@ -138,7 +150,12 @@ export function Reviews() {
 				<div>
 					<h1 class="sb-page__title">Reviews</h1>
 					<p class="sb-page__lead">
-						${ total } ${ status === 'hold' ? 'waiting for a decision' : 'in this view' }.
+						${ total }
+						${ 'hold' === status
+							? 'waiting for a decision'
+							: 'all' === status
+							? 'in total. Filter above to find the ones still waiting'
+							: 'in this view' }.
 					</p>
 				</div>
 			</div>
@@ -176,9 +193,11 @@ export function Reviews() {
 						</div>
 				  `
 				: html`<${ EmptyState }
-						title=${ status === 'hold' ? 'Nothing waiting' : 'No reviews here' }
-						body=${ status === 'hold'
+						title=${ 'hold' === status ? 'Nothing waiting' : 'all' === status ? 'No reviews yet' : 'No reviews here' }
+						body=${ 'hold' === status
 							? 'Every review has been dealt with.'
+							: 'all' === status
+							? 'Customers have not left a review on any product yet.'
 							: 'Try a different filter.' }
 				  />` }
 
