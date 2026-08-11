@@ -66,7 +66,7 @@ if ( count( $simple_bangla_items ) < 2 ) {
 			href="<?php echo esc_url( $simple_bangla_item['url'] ); ?>"
 			<?php echo empty( $simple_bangla_item['external'] ) ? '' : 'target="_blank" rel="noopener"'; ?>
 		>
-			<?php simple_bangla_icon( $simple_bangla_item['icon'], 22 ); ?>
+			<?php simple_bangla_icon( $simple_bangla_item['icon'], 24 ); ?>
 			<?php if ( empty( $simple_bangla_item['icon_only'] ) ) : ?>
 				<span class="sb-bottom-bar__label"><?php echo esc_html( $simple_bangla_item['label'] ); ?></span>
 			<?php else : ?>

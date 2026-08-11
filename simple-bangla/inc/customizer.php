@@ -73,14 +73,26 @@ function simple_bangla_color_tokens() {
 		'bg_alt'     => array(
 			'var'         => '--sb-bg-alt',
 			'label'       => __( 'Card background', 'simple-bangla' ),
-			'description' => __( 'Product cards and alternating sections.', 'simple-bangla' ),
-			'default'     => '#fffcf7',
+			'description' => __( 'Product cards and alternating sections. White by default, so a card reads as a clean panel on the warm page behind it.', 'simple-bangla' ),
+			'default'     => '#ffffff',
 		),
 		'footer_bg'  => array(
 			'var'         => '--sb-footer-bg',
 			'label'       => __( 'Footer background', 'simple-bangla' ),
 			'description' => __( 'Background of the site footer. The copyright bar below it stays black.', 'simple-bangla' ),
 			'default'     => '#fbf4e2',
+		),
+		/*
+		 * The one colour in the palette that is not black, cream or a shade of grey. It is a
+		 * token rather than a fixed value in footer.css because it is the single loudest thing
+		 * on a phone screen, so it is exactly the colour an owner is most likely to want to
+		 * change — and the palette rule is that no colour is hard-coded.
+		 */
+		'home_button' => array(
+			'var'         => '--sb-home-button',
+			'label'       => __( 'Home button', 'simple-bangla' ),
+			'description' => __( 'The raised circle in the middle of the bottom bar on phones.', 'simple-bangla' ),
+			'default'     => '#e8262d',
 		),
 	);
 }

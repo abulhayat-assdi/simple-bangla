@@ -229,42 +229,72 @@
 	box-shadow: 0 -2px 12px rgb(0 0 0 / 6%);
 }
 
+/*
+ * Ink, not grey, and large enough to read at arm's length. This bar is the shop's main
+ * navigation on a phone, so it is the last place to economise on contrast or size.
+ */
 .sb-bottom-bar__item {
 	display: grid;
 	justify-items: center;
-	gap: 2px;
+	gap: 3px;
 	flex: 1 1 0;
 	padding-block: var(--sb-space-1);
-	color: var(--sb-muted);
+	color: var(--sb-ink);
 	text-decoration: none;
 }
 
 .sb-bottom-bar__label {
-	font-size: 11px;
+	font-size: 13px;
+	font-weight: 500;
 	line-height: 1.2;
 }
 
 /* Home is the anchor of the row: icon only, lifted into a filled circle. */
 .sb-bottom-bar__item--home {
 	flex: 0 0 auto;
-	width: 52px;
-	height: 52px;
-	margin-top: -22px;
+	width: 58px;
+	height: 58px;
+	margin-top: -26px;
 	place-content: center;
 	border-radius: var(--sb-radius-pill);
 	border: 4px solid var(--sb-bg);
-	background: var(--sb-brand);
+	background: var(--sb-home-button);
 	color: var(--sb-on-brand);
 }
 
+/*
+ * The row's icons are the theme's usual outlines, thickened a little: at 24px on a phone a
+ * 1.8px stroke reads as grey however black it is.
+ */
+.sb-bottom-bar .sb-icon {
+	stroke-width: 2;
+}
+
+/*
+ * Home is drawn larger and solid. The icon's path is already a closed house silhouette with
+ * the doorway cut out of it, so filling it needs no second icon — and a hairline outline
+ * inside a strong circle is the one place an outline icon does not hold up.
+ */
+.sb-bottom-bar__item--home .sb-icon {
+	width: 28px;
+	height: 28px;
+	fill: currentColor;
+	stroke: none;
+}
+
 @media (max-width: 767px) {
-	body {
-		/* Reserve room so the bar never covers the last line of the footer. */
-		padding-bottom: 68px;
+	/*
+	 * One number, read twice: the page reserves this much room so the bar never covers the
+	 * last line of the footer, and the floating buttons stack on top of it. It is declared
+	 * only inside this query, so the floats' var(…, 0px) fallback still applies on desktop
+	 * where there is no bar.
+	 */
+	:root {
+		--sb-bottom-bar-height: 74px;
 	}
 
-	.sb-floats {
-		--sb-bottom-bar-height: 68px;
+	body {
+		padding-bottom: var(--sb-bottom-bar-height);
 	}
 }
 

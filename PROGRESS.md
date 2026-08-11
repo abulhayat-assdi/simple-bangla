@@ -2,6 +2,90 @@
 
 Last updated: 2026-08-11
 
+## The bottom bar the owner could not see (2026-08-11, theme 1.4.1)
+
+The owner reported the new bar missing on a phone: visible only when zoomed far out, tiny, across
+the foot of a page whose content sat in the left eighth of the screen — and, scrolled to the very
+bottom, a lone "Shop" icon below the footer. One cause behind all three, and it was the horizontal
+overflow written up in the previous round as found-but-not-fixed.
+
+- ✅ **The page's own sideways scroll was making the viewport four times too wide** — 1560px on a
+  390px screen. A `position: fixed` bar is sized against the viewport, so the bar really was
+  1560px wide with its five items spread across it; only Shop landed on the glass.
+- ✅ **Fixed with one rule**: `.sb-slider { overflow-x: clip; overflow-clip-margin: 16px }`. On the
+  slider rather than the page shell, so a product page's related-products row is covered too;
+  `clip` rather than `hidden`, which would have made every slider a vertical scroll container;
+  and the clip margin so the desktop arrows, which overhang by 8px, are not sliced in half.
+- ✅ **The carousels still scroll** — product rows, category circles and the hero track each
+  driven and re-checked after the change.
+
+**A correction worth recording.** In the previous round I measured `innerWidth` 1560 against
+`clientWidth` 390 and wrote it off as an artifact of Chrome's mobile emulation. It was not an
+artifact — it was this bug, reproduced exactly, sitting in the output before the owner ever saw
+it on a real phone. When a measurement disagrees with the tool, the tool is not automatically
+the one that is wrong.
+
+Verified with **64 assertions** across home, shop, cart, checkout and a real product page at 360,
+390, 768 and 1280 — nothing pans sideways, `innerWidth` equals the device width everywhere, and
+below 768 the bar is exactly the viewport's width with all five items inside it — plus the
+30-assertion bar suite re-run as a regression, and no console errors.
+
+## Packages rebuilt for theme 1.4.0 (2026-08-11)
+
+`dist/simple-bangla-1.4.0.zip` (70 files) and `dist/simple-bangla-cms-1.5.0.zip` (53 files — the
+plugin version is unchanged, it only gained its new `.pot`). The superseded 1.3.0 zip is gone.
+
+- ✅ **The packaging scripts are in `tools/` now**, not in a session scratchpad. They had already
+  been lost once and rebuilt from the description in `CLAUDE.md`; that is not a thing to do twice.
+- ✅ **23 package assertions** — no backslash in any entry name, one top-level folder named for
+  the slug, the `Theme Name:` and `Plugin Name:` headers, all 16 and 13 required files present,
+  all 112 relative ES-module imports resolving inside the plugin, the vendored Preact bundle
+  present, no editor or VCS cruft.
+- ✅ **26 install assertions** in a clean Playground with the source *not* mounted: both packages
+  installed with WordPress's own `Theme_Upgrader` / `Plugin_Upgrader`, fresh and again with
+  `overwrite_package` — the "Replace current with uploaded" path — with a sentinel file planted
+  between the two runs and confirmed gone, so the replace is proved to remove the old copy rather
+  than merge into it. Then the theme activated, the plugin activated, and the storefront served
+  200 with the phone bar in its markup.
+
+One more test bug of the usual kind: the backslash check asked `file_exists()` about
+`simple-bangla\style.css`, which answered **yes** on Playground's filesystem for a file that does
+not exist, and reported a correct package as broken. It reads the themes directory now and looks
+at the names it actually holds — with a control assertion beside it, which is what was missing.
+
+## White cards and the phone bottom bar (2026-08-11, theme 1.4.0)
+
+The owner sent the reference site's bottom bar with the buttons circled, and asked for white and
+for a bar like that one. Both are storefront-only; the CMS is untouched.
+
+- ✅ **Product cards are white**, the page stays warm cream. Confirmed with the owner first — the
+  literal reading would have whitened the page too, and cards have no border or shadow, so the
+  page colour is the only thing that separates them from it.
+- ✅ **`--sb-hover`, and it is why that was safe to do.** The live-search results and the mega
+  menu's sub-links were tinting their hover with `--sb-bg-alt` on top of white panels, so white
+  cards would have made both hovers invisible — silently, with nothing to fail. It is a 5% black
+  tint now, which cannot disappear whatever colour sits under it.
+- ✅ **A red Home circle**, `#e8262d`, as a tenth Customizer token rather than a value buried in
+  `footer.css` — it is the loudest thing on the screen and so the most likely to be changed. It
+  appears in CMS → Settings on its own, because that schema is generated from the theme.
+- ✅ **The bar reads at arm's length**: ink instead of grey, 24px icons, 13px labels, a heavier
+  stroke, and a solid white house in the circle instead of a hairline outline.
+- ✅ **The Chat icon was a reload symbol.** An arc with a gap and a loose dash — passable at 22px
+  grey, plainly wrong at 24px black. It is a speech bubble now.
+- ✅ **The space reserved under the bar is one number instead of two copies of `68px`.**
+
+Verified with **30 browser assertions** against real WordPress + WooCommerce with the demo
+catalogue, plus a close-up screenshot of the bar checked against the owner's reference.
+
+**Three false failures, all one mistake.** Chrome's mobile emulation reports
+`getBoundingClientRect()` in a space four times the layout viewport — 1560 and 3376 for a 390×844
+window — so the overflow check passed a page that scrolls sideways, failed one that does not, and
+called a visible copyright line off-screen. Compare rects to rects; for overflow, ask the page to
+scroll and read `scrollLeft` rather than doing arithmetic on widths.
+
+**One real bug found here and fixed in 1.4.1** (next section): the homepage scrolled sideways.
+It turned out to be why the owner could not see the bar at all.
+
 ## Translation templates regenerated (2026-08-11)
 
 The theme's `.pot` had not been rebuilt for several rounds and had drifted far enough to mislead

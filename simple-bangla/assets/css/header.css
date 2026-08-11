@@ -201,7 +201,7 @@
 .sb-search__result:hover,
 .sb-search__result:focus-visible,
 .sb-search__result.is-active {
-	background: var(--sb-bg-alt);
+	background: var(--sb-hover);
 	color: inherit;
 }
 
@@ -408,7 +408,7 @@
 
 	.sb-nav .sb-nav__sub .sb-nav__link:hover,
 	.sb-nav .sb-nav__sub .sb-nav__link:focus-visible {
-		background: var(--sb-bg-alt);
+		background: var(--sb-hover);
 	}
 
 	.sb-nav .sb-nav__sub .sb-nav__icon {

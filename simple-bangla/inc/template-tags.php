@@ -125,7 +125,12 @@ function simple_bangla_icons() {
 		'phone'  => '<path d="M6 3h3l2 5-2.5 1.5a12 12 0 0 0 5 5L15 12l5 2v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4 5.2 2 2 0 0 1 6 3Z"/>',
 		'home'   => '<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1Z"/>',
 		'shop'   => '<path d="M4 8h16l-1 12H5Zm4 0V6a4 4 0 0 1 8 0v2"/>',
-		'chat'   => '<path d="M21 12a8 8 0 1 1-3.2-6.4M21 12v0M4 20l1.6-3.2"/>',
+		/*
+		 * A speech bubble, not the broken ring this used to be — an arc with a gap and a
+		 * detached dash, which at the bottom bar's 24px reads as a reload symbol rather than
+		 * as Chat. It is the one icon on that bar a customer has to recognise instantly.
+		 */
+		'chat'   => '<path d="M21 14.5a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
 		'filter' => '<path d="M4 6h16M7 12h10M10 18h4"/>',
 		'mail'   => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
 		'pin'    => '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',

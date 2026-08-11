@@ -28,8 +28,9 @@
 	--sb-sale-badge: #f85606; /* the "Hot Deals" ribbon on a discounted card */
 	--sb-line: #e5e7eb;       /* borders and dividers */
 	--sb-bg: #ffffff;         /* surfaces that sit on the page: dropdowns, inputs, the nav row */
-	--sb-bg-alt: #fffcf7;     /* product cards, alternating sections */
+	--sb-bg-alt: #ffffff;     /* product cards, alternating sections */
 	--sb-footer-bg: #fbf4e2;  /* footer — same warm cream as the page */
+	--sb-home-button: #e8262d;/* the raised Home circle in the phone bottom bar */
 
 	/*
 	 * Page background. The reference sets body to rgba(222,166,11,0.12) over white, which
@@ -46,6 +47,12 @@
 	/* Derived colours. Kept out of the Customizer so the palette stays small. */
 	--sb-on-brand: #ffffff;
 	--sb-focus: #0067ff;
+	/*
+	 * Hover tint for rows inside a white panel — search results, mega-menu links. A translucent
+	 * black rather than a colour, because it has to stay visible whatever the surface under it
+	 * is: these used to borrow --sb-bg-alt, which vanished the moment cards were made white.
+	 */
+	--sb-hover: rgb(0 0 0 / 5%);
 
 	/* Type. The system stack is the fallback when web fonts are disabled or still loading. */
 	--sb-font-body: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

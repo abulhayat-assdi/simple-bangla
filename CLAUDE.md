@@ -1480,6 +1480,106 @@ npx @wp-playground/cli@latest server --port=8882 \
 - WooCommerce 11 ships with **Coming soon mode on**. Turn it off under
   WooCommerce → Settings → Site visibility or the storefront renders as a placeholder page.
 
+## White cards and the phone bottom bar (2026-08-11, theme 1.4.0)
+
+The owner sent a screenshot of the reference site's bottom bar and asked for two things: cards
+white, and the bar like the marked buttons.
+
+- **Cards are white; the page stays cream** (owner's choice, asked before building — the first
+  reading of "the whole background white" would have flattened `--sb-page` too). `--sb-bg-alt`
+  goes `#fffcf7` → `#ffffff`, which is also what the reference does: a white product panel on a
+  warm page. Cards carry no border or shadow, so the page colour is the only thing separating
+  them from the background — which is why the page must **not** follow them to white.
+- **`--sb-hover` is new, and it is the reason the change is safe.** Two hover states borrowed
+  `--sb-bg-alt` — the live-search results and the mega-menu's sub-links, both sitting on white
+  panels — so making cards white would have made both hovers invisible with nothing failing
+  loudly. It is `rgb(0 0 0 / 5%)`, a translucent tint rather than a colour, so it stays visible
+  whatever surface ends up under it. Deliberately *not* a Customizer token: it is a derived
+  effect, not a palette entry.
+- **`--sb-home-button` is a Customizer token** (`#e8262d`), the tenth, and the only colour in
+  the palette that is not black, cream or grey. A token rather than a value in `footer.css`
+  because it is the loudest thing on a phone screen and therefore the most likely to be
+  argued about — and the palette rule is that no colour is hard-coded. It appears in the CMS
+  Settings screen automatically, since the schema is generated from this registry.
+- **The bar's icons and labels are `--sb-ink` at 24px/13px**, up from `--sb-muted` at 22px/11px,
+  with `stroke-width: 2` — at 24px on a phone a 1.8px stroke reads as grey however black it is.
+- **The Home circle is filled, not outlined.** The `home` icon's path is already a closed house
+  silhouette with the doorway cut out, so `fill: currentColor; stroke: none` gives the
+  reference's solid mark with no second icon added.
+- **The `chat` icon was replaced.** It had been an arc with a gap plus a detached dash, which at
+  the bar's new size reads as a reload symbol rather than as Chat — the one icon there a
+  customer has to recognise instantly. It is a speech bubble now, and the thank-you page's
+  delivery-note row gets it too.
+- **The reserved space under the bar is one number, read twice.** `--sb-bottom-bar-height` is
+  declared on `:root` inside the phone query and used both for `body`'s padding and by the
+  floating buttons; it used to be `68px` written out in two places. Declaring it only inside
+  the query preserves the floats' `var( …, 0px )` fallback on desktop, where there is no bar.
+
+**A live site will not pick the card colour up if it was ever saved.** `simple_bangla_palette_css()`
+emits only the deltas from each token's default, so a shop where someone opened the colour picker
+and saved `#fffcf7` keeps writing it. Clearing the field under CMS → Settings → Colours (or
+Customizer → Colours) returns it to the new default.
+
+**Verified with 30 browser assertions** against real WordPress + WooCommerce with the demo
+catalogue: the card computing to white while the body stays `rgb(251, 244, 226)`, the bar's
+colour, item ink, label size, stroke weight, the circle's red, size, lift, and its solid white
+icon, the reserved height covering the measured bar, the copyright clearing it at the foot of
+the page, the bar gone at 1280px, and the rescued hover tint not resolving to white.
+
+**Three test bugs on the way, all the same family — never compare a rect to `clientWidth`.**
+Under Chrome's mobile emulation (`isMobile: true`) `getBoundingClientRect()` reports in a space
+**four times** the layout viewport: 1560 and 3376 for a 390×844 window. So an overflow check
+written as `scrollWidth <= window.innerWidth` passed a page that scrolls sideways and failed one
+that does not, and a visible copyright line was reported as off-screen. Compare rects to rects,
+compare `scrollWidth` to `documentElement.clientWidth`, and for overflow prefer asking the page
+to scroll (`window.scrollTo( 99999, 0 )`, then read `scrollLeft`) over any width arithmetic. For
+screenshots, drop `isMobile` entirely — the CSS breakpoints only read the width, and the flag
+frames the shot on the wrong part of the document.
+
+**Found here, fixed in 1.4.1** — see the next section. The homepage scrolled sideways, and that
+turned out to be the cause of the bottom bar the owner could not see.
+
+## The bottom bar the owner could not see (2026-08-11, theme 1.4.1)
+
+The owner reported that on a phone the new bar was not there — except zoomed far out, where it
+appeared tiny across the foot of a page whose content sat in the left eighth of the screen; and
+that scrolling to the very bottom showed a single "Shop" icon under the footer. Three symptoms,
+one cause, and it was the horizontal overflow recorded above as found-but-not-fixed.
+
+**The mechanism, because it is not obvious.** The homepage's scrollable width exceeded the
+viewport, so the browser widened the viewport to fit the content — to **1560px on a 390px
+screen**, four times over. Everything measured against the viewport widened with it, and a
+`position: fixed` bar is measured against the viewport: the bar really was 1560px wide, laying
+its five items across a box four times the width of the glass. Only the first of them, Shop, fell
+on screen. Zooming out revealed the whole widened viewport, which is why the bar "appeared" there.
+
+**A correction to the previous section.** That `innerWidth` of 1560 against a `clientWidth` of 390
+was written up as an artifact of Chrome's mobile emulation. It was not an artifact. It was this
+bug, reproduced exactly, and it was on screen in the measurements before the owner ever saw it.
+The emulation was right; the reading of it was wrong.
+
+**Fixed in one rule** — `.sb-slider { overflow-x: clip; overflow-clip-margin: 16px; }`:
+
+- **On `.sb-slider`, not on the page shell.** The leak is a scroll track's overflow escaping its
+  wrapper, so it is closed at the wrapper. Clipping `.sb-home-section` and `.sb-hero` instead
+  also worked, but only for the homepage — the related-products row on a product page uses the
+  same slider and would leak the day a shop has enough related items.
+- **`clip`, never `hidden`.** `overflow-x: hidden` with `overflow-y: visible` computes the y axis
+  to `auto`, which would turn every slider into a vertical scroll container. `clip` clips one
+  axis and creates no scroll container.
+- **The clip margin is for the arrows**, which sit at `left: -8px` / `right: -8px` with a shadow
+  and would otherwise be sliced in half on desktop. Measured: 16px shows them whole at 1280 and
+  does not let the overflow back out at 390. Where `overflow-clip-margin` is unsupported the
+  arrows lose 8px and the fix still holds; where `overflow: clip` itself is unsupported the rule
+  is dropped and behaviour is what it was, so there is no new failure mode.
+- **The tracks still scroll.** Product rows, category circles and the hero track were each driven
+  and checked after the change; clipping an ancestor does not disturb a descendant's own scroller.
+
+**Verified with 64 assertions** across home, shop, cart, checkout and a real product page at 360,
+390, 768 and 1280: none of them pans sideways, `window.innerWidth` equals the device width on
+every one, and below 768 the bar is exactly the viewport's width with all five items inside it.
+Plus the 30-assertion bar suite re-run as a regression, and no console errors anywhere.
+
 ## Translation templates (2026-08-11)
 
 `tools/makepot.php` regenerates both `.pot` files. There is no wp-cli on this machine and no
@@ -1550,7 +1650,14 @@ Two things the packages must contain that are easy to lose:
 - **One top-level folder per archive, named exactly as the theme/plugin slug.** WordPress installs
   to the folder name inside the zip; get it wrong and a "replace" silently becomes a second copy.
 
-`scratchpad/check-zip.php` reads both packages with PHP's own `ZipArchive` and asserts what
+**The packaging scripts live in `tools/` now** (2026-08-11), not in a session scratchpad — they
+had already been lost once and rewritten from the description in this file. `tools/package.ps1`
+builds both zips, naming each from the version in its own header so a package can never be named
+for a version it does not carry; `tools/check-zip.php` verifies them; `tools/install-test.php`
+plus `tools/install-blueprint.json` install them for real. None of the three is inside either
+package.
+
+`tools/check-zip.php` reads both packages with PHP's own `ZipArchive` and asserts what
 WordPress's installers assert — no backslash in any entry name, one top-level folder, the
 `Theme Name:` and `Plugin Name:` headers, every file `functions.php` and the plugin bootstrap
 `require` present, and **every relative ES-module import resolving inside the package**, since one

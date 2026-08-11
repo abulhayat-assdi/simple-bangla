@@ -258,8 +258,22 @@
  * Slider chrome — added by assets/js/slider.js
  * ------------------------------------------------------------------ */
 
+/*
+ * The track inside is a scroll container, but its overflow still reached the document's own
+ * scroll range: the homepage could be panned ~800px sideways, and because the page overflowed,
+ * the browser widened the viewport to fit it — to four times the screen on a phone. Everything
+ * sized against the viewport went with it, so the fixed bottom bar became 1560px wide on a
+ * 390px screen and only its first item, Shop, was on screen at all.
+ *
+ * `clip` rather than `hidden`: hidden on one axis forces the other to `auto`, which would make
+ * every slider a vertical scroll container. The clip margin is for the nav arrows, which
+ * deliberately overhang the track by 8px and carry a shadow — clipping tight to the box cuts
+ * them in half. It does not let the overflow back out; measured at 390 and 1280.
+ */
 .sb-slider {
 	position: relative;
+	overflow-x: clip;
+	overflow-clip-margin: 16px;
 }
 
 .sb-slider__nav {
