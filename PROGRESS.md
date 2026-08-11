@@ -1,6 +1,40 @@
 # Simple Bangla — Progress
 
-Last updated: 2026-08-09
+Last updated: 2026-08-11
+
+## Translation templates regenerated (2026-08-11)
+
+The theme's `.pot` had not been rebuilt for several rounds and had drifted far enough to mislead
+anyone using it: it still listed the three checkout step-bar strings from a template deleted rounds
+ago, plus the assurances row and the third footer column, and it was missing everything added
+since — the two order stages, the social show/hide switches, the block-list refusal, the cart
+quantity messages.
+
+- ✅ **`tools/makepot.php`** — the project's own extractor, because there is no wp-cli and no
+  gettext toolchain on this machine. It tokenises with `token_get_all()` rather than matching a
+  regex, which is what lets it keep strings containing commas, parentheses and apostrophes whole.
+  It reports any call it could not extract instead of dropping it.
+- ✅ **Theme: 275 strings** (was 274, and wrong about which). **Plugin: 131 strings, its first
+  `.pot` ever.** The plugin declared `Domain Path: /languages` and called
+  `load_plugin_textdomain()` against a folder that did not exist, so none of its strings had ever
+  been extractable. The interface stays English by decision — that is a choice about the default,
+  not a reason to make translating it impossible.
+- ✅ **Checked by translating, not by counting.** Both files parse with WordPress's own `PO`
+  reader; three theme strings and four plugin strings were then compiled into a `bn_BD.mo` from
+  the `.pot` itself and read back off live pages — the 404 view and `/manage` both rendered the
+  Bangla with no English left. A msgid that does not match what the code passes to gettext looks
+  perfect in the file and translates nothing, so nothing short of this proves it.
+
+Two false failures before it was right, both worth remembering. **A `translators:` comment must be
+claimed by a line test, not by a whitelist of tokens allowed between it and the call** — the
+whitelist version missed `'label' => sprintf( __( … ) )` and `'plural' => _n_noop( … )`, and
+widening it enough to reach those would have started stealing the previous statement's comment.
+And **Playground sets the `$locale` global during boot**, so writing the `WPLANG` option changes
+nothing and `get_locale()` never reads it; the first run reported a perfectly good `.pot` as broken
+with the page still English at `<html lang="en-US">`. Use the `locale` filter.
+
+`dist/` now lags the source by these two files. Nothing at runtime depends on them, so no version
+was bumped; rebuild the zips at the next release.
 
 ## The order card, and Content Pages narrowed (2026-08-10, theme 1.3.0 / plugin 1.5.0)
 

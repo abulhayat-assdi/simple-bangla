@@ -1,0 +1,569 @@
+# Copyright (C) 2026 Simple Bangla CMS
+# This file is distributed under the GNU General Public License v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Simple Bangla CMS 1.5.0\n"
+"Report-Msgid-Bugs-To: https://simplebangla.com/\n"
+"POT-Creation-Date: 2026-08-11 03:51+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: simple-bangla-cms\n"
+
+#. translators: %s: store name.
+#: inc/app.php:157
+msgid "Sign in — %s"
+msgstr ""
+
+#: inc/app.php:166
+msgid "Sign in to manage your store."
+msgstr ""
+
+#: inc/app.php:173
+msgid "Username or email"
+msgstr ""
+
+#: inc/app.php:178
+msgid "Password"
+msgstr ""
+
+#: inc/app.php:184
+msgid "Keep me signed in"
+msgstr ""
+
+#: inc/app.php:188
+msgid "Sign in"
+msgstr ""
+
+#: inc/app.php:196
+msgid "Forgot password?"
+msgstr ""
+
+#: inc/app.php:198
+#: inc/app.php:239
+msgid "Back to store"
+msgstr ""
+
+#: inc/app.php:229
+msgid "No access"
+msgstr ""
+
+#: inc/app.php:235
+msgid "Your account does not have access to store management."
+msgstr ""
+
+#: inc/app.php:237
+msgid "Sign out"
+msgstr ""
+
+#. translators: %s: store name.
+#: inc/app.php:286
+msgid "Manage — %s"
+msgstr ""
+
+#: inc/app.php:296
+msgid "Store management needs JavaScript enabled."
+msgstr ""
+
+#: inc/auth.php:35
+msgid "See the dashboard"
+msgstr ""
+
+#: inc/auth.php:39
+msgid "View orders"
+msgstr ""
+
+#: inc/auth.php:43
+msgid "Change order status and refund"
+msgstr ""
+
+#: inc/auth.php:47
+msgid "View products"
+msgstr ""
+
+#: inc/auth.php:51
+msgid "Create and edit products"
+msgstr ""
+
+#: inc/auth.php:58
+msgid "Edit the homepage, footer and colours"
+msgstr ""
+
+#: inc/auth.php:68
+msgid "Write and edit site pages"
+msgstr ""
+
+#: inc/auth.php:72
+msgid "Change store settings"
+msgstr ""
+
+#: inc/auth.php:76
+msgid "Add and remove staff accounts"
+msgstr ""
+
+#: inc/auth.php:85
+msgid "Approve and remove product reviews"
+msgstr ""
+
+#: inc/auth.php:159
+msgid "You are signed out. Sign in again to continue."
+msgstr ""
+
+#: inc/auth.php:167
+msgid "Your account does not have permission to do this."
+msgstr ""
+
+#: inc/auth.php:184
+msgid "The Simple Bangla theme is not active, so its settings cannot be read or changed."
+msgstr ""
+
+#: inc/courier.php:55
+#: inc/courier.php:543
+#: inc/courier.php:978
+msgid "Steadfast"
+msgstr ""
+
+#: inc/courier.php:58
+msgid "API key"
+msgstr ""
+
+#: inc/courier.php:60
+msgid "From the Steadfast merchant panel, under API."
+msgstr ""
+
+#: inc/courier.php:63
+msgid "Secret key"
+msgstr ""
+
+#: inc/courier.php:67
+msgid "Portal email"
+msgstr ""
+
+#: inc/courier.php:70
+msgid "The email you sign in to steadfast.com.bd with. Only used to read a customer’s delivery record — the API key cannot do that."
+msgstr ""
+
+#: inc/courier.php:73
+#: inc/courier.php:134
+msgid "Portal password"
+msgstr ""
+
+#: inc/courier.php:80
+msgid "Pathao Courier"
+msgstr ""
+
+#: inc/courier.php:83
+msgid "Client ID"
+msgstr ""
+
+#: inc/courier.php:87
+msgid "Client secret"
+msgstr ""
+
+#: inc/courier.php:91
+msgid "Merchant email"
+msgstr ""
+
+#: inc/courier.php:93
+msgid "The same email you sign in to the Pathao merchant panel with. Used for both dispatch and the delivery record."
+msgstr ""
+
+#: inc/courier.php:96
+msgid "Merchant password"
+msgstr ""
+
+#: inc/courier.php:100
+msgid "Store ID"
+msgstr ""
+
+#: inc/courier.php:104
+msgid "Default city ID"
+msgstr ""
+
+#: inc/courier.php:106
+msgid "Pathao takes numeric city and zone IDs, not the address text a customer types, so a default is needed. Dhaka is 1."
+msgstr ""
+
+#: inc/courier.php:109
+msgid "Default zone ID"
+msgstr ""
+
+#: inc/courier.php:115
+#: inc/courier.php:721
+#: inc/courier.php:1082
+#: inc/courier.php:1109
+msgid "RedX"
+msgstr ""
+
+#: inc/courier.php:118
+msgid "API access token"
+msgstr ""
+
+#: inc/courier.php:120
+msgid "From the RedX merchant panel, under Developer / API."
+msgstr ""
+
+#: inc/courier.php:123
+msgid "Default delivery area ID"
+msgstr ""
+
+#: inc/courier.php:125
+msgid "RedX takes a numeric area ID rather than the address text, so a default is needed."
+msgstr ""
+
+#: inc/courier.php:128
+msgid "Portal phone number"
+msgstr ""
+
+#: inc/courier.php:131
+msgid "The number you sign in to the RedX merchant panel with. Only used to read a customer’s delivery record."
+msgstr ""
+
+#: inc/courier.php:304
+#: inc/courier.php:479
+msgid "That courier is not one this shop can use."
+msgstr ""
+
+#. translators: 1: courier name, 2: comma-separated field names.
+#: inc/courier.php:329
+msgid "%1$s is missing: %2$s. Add it under Settings → Courier."
+msgstr ""
+
+#. translators: 1: courier name, 2: the transport's own message.
+#: inc/courier.php:359
+msgid "Could not reach %1$s: %2$s"
+msgstr ""
+
+#. translators: 1: courier name, 2: HTTP status code.
+#: inc/courier.php:374
+msgid "%1$s answered with something this could not read (HTTP %2$d). The credentials are the usual cause."
+msgstr ""
+
+#: inc/courier.php:445
+msgid "No courier is set up yet. Add one under Settings → Courier."
+msgstr ""
+
+#: inc/courier.php:461
+msgid "This order has no phone number or no address, so no courier will accept it."
+msgstr ""
+
+#. translators: 1: courier name, 2: consignment id, 3: tracking code.
+#: inc/courier.php:501
+msgid "Sent to %1$s. Consignment %2$s, tracking %3$s."
+msgstr ""
+
+#: inc/courier.php:552
+msgid "Steadfast refused the parcel."
+msgstr ""
+
+#: inc/courier.php:609
+#: inc/courier.php:668
+#: inc/courier.php:1016
+#: inc/courier.php:1039
+msgid "Pathao"
+msgstr ""
+
+#: inc/courier.php:618
+msgid "Pathao refused the parcel."
+msgstr ""
+
+#: inc/courier.php:677
+msgid "Pathao would not issue a token. Check the client ID, secret and merchant login."
+msgstr ""
+
+#: inc/courier.php:730
+msgid "RedX refused the parcel."
+msgstr ""
+
+#: inc/courier.php:943
+msgid "Steadfast’s sign-in page has changed, so its delivery record cannot be read."
+msgstr ""
+
+#: inc/courier.php:1023
+msgid "Pathao would not accept that merchant login."
+msgstr ""
+
+#: inc/courier.php:1091
+msgid "RedX would not accept that portal login."
+msgstr ""
+
+#: inc/courier.php:1227
+msgid "What this order was sent to a courier as, if it has been."
+msgstr ""
+
+#: inc/courier.php:1273
+msgid "WooCommerce is not active."
+msgstr ""
+
+#: inc/courier.php:1279
+msgid "That order no longer exists."
+msgstr ""
+
+#. translators: 1: courier name, 2: consignment id.
+#: inc/courier.php:1308
+msgid "This order was already sent to %1$s as consignment %2$s."
+msgstr ""
+
+#: inc/courier.php:1309
+msgid "a courier"
+msgstr ""
+
+#: inc/courier.php:1342
+msgid "Handed to the courier."
+msgstr ""
+
+#: inc/menu-icon.php:38
+msgid "Attachment ID of the icon shown beside this menu item."
+msgstr ""
+
+#: inc/rest-blocklist.php:41
+msgid "The whole list. Sent complete, not appended to."
+msgstr ""
+
+#: inc/rest-blocklist.php:64
+msgid "The theme is active but its block list is unavailable, so nothing would enforce the list."
+msgstr ""
+
+#: inc/rest-dashboard.php:35
+msgid "Recompute instead of returning the cached figures."
+msgstr ""
+
+#: inc/rest-dashboard.php:46
+msgid "all, 30d, 90d, 12m, or a single month as YYYY-MM."
+msgstr ""
+
+#: inc/rest-pages.php:46
+msgid "Show a link to this page in the first footer column."
+msgstr ""
+
+#: inc/rest-settings.php:36
+msgid "Limit to these groups, comma separated: brand, colors, store, hero, hotdeals, circles, rows, banners."
+msgstr ""
+
+#: inc/rest-settings.php:48
+msgid "Theme mod name to new value."
+msgstr ""
+
+#: inc/rest-settings.php:159
+msgid "No settings were sent."
+msgstr ""
+
+#: inc/rest-settings.php:171
+msgid "Unknown setting."
+msgstr ""
+
+#: inc/rest-settings.php:182
+msgid "Not a valid colour."
+msgstr ""
+
+#: inc/rest-settings.php:187
+msgid "Not a valid email address."
+msgstr ""
+
+#: inc/rest-settings.php:192
+msgid "That image no longer exists in the media library."
+msgstr ""
+
+#: inc/rest-settings.php:202
+msgid "Some settings could not be saved, so none were changed."
+msgstr ""
+
+#: inc/rest-staff.php:34
+msgid "Administrator — full access, including WordPress itself"
+msgstr ""
+
+#: inc/rest-staff.php:35
+msgid "Shop manager — orders, products and store settings"
+msgstr ""
+
+#: inc/rest-staff.php:36
+msgid "Customer — can order, no management access"
+msgstr ""
+
+#: inc/rest-staff.php:175
+msgid "That is not a role this screen manages."
+msgstr ""
+
+#: inc/rest-staff.php:183
+msgid "Only an administrator can make someone else an administrator."
+msgstr ""
+
+#: inc/rest-staff.php:203
+msgid "That account no longer exists."
+msgstr ""
+
+#: inc/rest-staff.php:214
+msgid "You cannot remove your own account."
+msgstr ""
+
+#: inc/rest-staff.php:215
+msgid "You cannot change your own role. Ask another administrator to do it."
+msgstr ""
+
+#: inc/rest-staff.php:248
+msgid "This is the only administrator. Make someone else an administrator first."
+msgstr ""
+
+#: inc/rest-staff.php:308
+msgid "That is not a valid email address."
+msgstr ""
+
+#: inc/rest-staff.php:312
+msgid "An account already uses that email address."
+msgstr ""
+
+#: inc/rest-staff.php:320
+msgid "The password needs to be at least 8 characters."
+msgstr ""
+
+#: inc/rest-staff.php:330
+msgid "That username is already taken."
+msgstr ""
+
+#: inc/rest-staff.php:334
+msgid "No usable sign-in name could be made from that email address."
+msgstr ""
+
+#: inc/rest-staff.php:418
+msgid "Your account cannot remove users."
+msgstr ""
+
+#: inc/rest-staff.php:429
+msgid "That account could not be removed."
+msgstr ""
+
+#: inc/router.php:163
+msgid "That form had been open too long. Please try again."
+msgstr ""
+
+#. translators: %d: number of minutes.
+#: inc/router.php:171
+msgid "Too many failed attempts. Try again in %d minutes."
+msgstr ""
+
+#: inc/router.php:199
+msgid "That email, username or password is not right."
+msgstr ""
+
+#: inc/schema.php:54
+msgid "Site logo"
+msgstr ""
+
+#: inc/schema.php:55
+msgid "Shown in the header and the footer. Leave it empty to print the site name as text instead. A wide PNG or SVG on a transparent background works best — the header shows it up to 44px tall, the footer up to 72px."
+msgstr ""
+
+#: inc/schema.php:74
+msgid "Browser tab icon"
+msgstr ""
+
+#: inc/schema.php:75
+msgid "The small picture shown in the browser tab, in bookmarks and on a phone home screen. Use a square image, at least 512×512 — anything wide gets squeezed into a 16px square and turns into a smudge. Leave it empty and the site logo is used instead."
+msgstr ""
+
+#: inc/schema.php:115
+msgid "Payment methods image"
+msgstr ""
+
+#. translators: %d: slide number.
+#: inc/schema.php:130
+msgid "Hero slide %d — image"
+msgstr ""
+
+#. translators: %d: slide number.
+#: inc/schema.php:139
+msgid "Hero slide %d — link"
+msgstr ""
+
+#: inc/schema.php:150
+msgid "Hot Deals"
+msgstr ""
+
+#: inc/schema.php:153
+msgid "Hot Deals — heading"
+msgstr ""
+
+#: inc/schema.php:161
+msgid "Hot Deals — how many products"
+msgstr ""
+
+#: inc/schema.php:169
+msgid "Category circles — how many"
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/schema.php:187
+msgid "Row %d — show this row"
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/schema.php:196
+msgid "Row %d — heading"
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/schema.php:206
+msgid "Row %d — category"
+msgstr ""
+
+#. translators: %d: row number.
+#: inc/schema.php:215
+msgid "Row %d — how many products"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/schema.php:236
+msgid "Banner pair %d — narrow image"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/schema.php:238
+msgid "Banner pair %d — wide image"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/schema.php:248
+msgid "Banner pair %d — narrow link"
+msgstr ""
+
+#. translators: %d: banner pair number.
+#: inc/schema.php:250
+msgid "Banner pair %d — wide link"
+msgstr ""
+
+#: inc/stats.php:57
+msgid "All time"
+msgstr ""
+
+#: inc/stats.php:87
+msgid "Last 30 days"
+msgstr ""
+
+#: inc/stats.php:88
+msgid "Last 90 days"
+msgstr ""
+
+#: inc/stats.php:89
+msgid "Last 12 months"
+msgstr ""
+
+#: simple-bangla-cms.php:129
+msgid "Simple Bangla CMS needs WooCommerce to be installed and active."
+msgstr ""
+
+#: simple-bangla-cms.php:137
+msgid "Simple Bangla CMS is active but the Simple Bangla theme is not. Content and appearance settings are disabled until it is, because theme settings are stored per theme."
+msgstr ""
+
+#. translators: %s: URL of the permalink settings screen.
+#: simple-bangla-cms.php:146
+msgid "Permalinks are set to Plain, so <code>%1$s</code> will not open. Choose <strong>Post name</strong> under <a href=\"%2$s\">Settings → Permalinks</a>."
+msgstr ""
+
+#: simple-bangla-cms.php:156
+msgid "High-Performance Order Storage is off. Turn it on under WooCommerce → Settings → Advanced → Features. Order screens in the CMS get dramatically slower without it once the store passes a few thousand orders."
+msgstr ""

@@ -87,7 +87,7 @@ simple-bangla/
 │   ├── product/                  assurances.php
 │   ├── footer/                   brand · columns · mobile-bar · floats
 │   └── content.php  content-none.php
-├── languages/simple-bangla.pot   204 strings
+├── languages/simple-bangla.pot   275 strings
 └── assets/
     ├── css/   base · header · footer · card · home · shop · product   (53.8 KB)
     └── js/    header · slider · shop · product · ui   (20.6 KB) + admin-menu-icon
@@ -114,6 +114,7 @@ simple-bangla-cms/
 │   ├── rest-staff.php            /staff — staff accounts, with the lockout guards
 │   └── courier.php               /courier + /orders/{id}/courier + /record; dispatch and the
 │                                 delivery-record lookup for Steadfast, Pathao and RedX
+├── languages/simple-bangla-cms.pot   131 strings
 └── assets/
     ├── css/cms.css               ~46 KB
     ├── js/    api · ui · text · nav · router · media · editor · order-utils · settings-form · app
@@ -1478,6 +1479,53 @@ npx @wp-playground/cli@latest server --port=8882 \
   crashes with `D:\C:\Users\…`.
 - WooCommerce 11 ships with **Coming soon mode on**. Turn it off under
   WooCommerce → Settings → Site visibility or the storefront renders as a placeholder page.
+
+## Translation templates (2026-08-11)
+
+`tools/makepot.php` regenerates both `.pot` files. There is no wp-cli on this machine and no
+gettext toolchain either, so it is the project's own extractor — run it after any change that
+adds, removes or edits a user-facing string:
+
+```
+php tools/makepot.php simple-bangla     simple-bangla     simple-bangla/languages/simple-bangla.pot         "Simple Bangla"     1.3.0
+php tools/makepot.php simple-bangla-cms simple-bangla-cms simple-bangla-cms/languages/simple-bangla-cms.pot "Simple Bangla CMS" 1.5.0
+```
+
+- **It tokenises with `token_get_all()`, never a regular expression.** Half this codebase's
+  strings contain a comma, a parenthesis or an apostrophe — `__( '%1$s of %2$s' )`,
+  `Delivery &amp; Return` — and a regex would truncate those or skip them. A `.pot` that is
+  quietly short is worse than one that is obviously stale, because nothing reports it.
+- **A `translators:` comment is claimed only when it ends on the call's own line or the line
+  above**, which is makepot's rule. The first attempt used a whitelist of token types allowed
+  between the comment and the call; it missed `'label' => sprintf( __( … ) )` and
+  `'plural' => _n_noop( … )`, and widening the whitelist far enough to catch those would have
+  started attaching comments belonging to the *previous* statement.
+- **It reports what it could not extract** — a text argument that is a variable, a call carrying
+  another text domain — rather than dropping it silently.
+- **It lives at the repository root, outside both packages.** The zips must contain nothing a
+  store does not run.
+- **The plugin now ships a `.pot` too.** It declared `Domain Path: /languages` and called
+  `load_plugin_textdomain()` against a directory that did not exist, so its 131 strings had never
+  been extractable. The CMS interface is English by decision, but that is a choice about the
+  default, not a reason to make translating it impossible.
+
+The theme's template had gone stale enough to be misleading: it still carried the three step-bar
+strings from `template-parts/checkout/steps.php`, deleted some rounds earlier, along with the
+assurances row and the dropped third footer column — and it was missing the order stages, the
+social show/hide switches, the block-list refusal and the cart quantity messages.
+
+**Verified by translating, not by counting.** Both files parse with WordPress's own `PO` reader
+inside Playground (275 and 131 entries, 295 and 142 references, every entry carrying a source
+reference). Then three theme strings and four plugin strings were compiled into a `bn_BD.mo`
+straight from the `.pot` and read back off real pages: the 404 view rendered the Bangla and none
+of the English, and so did `/manage`. That is the check that matters, because it is the one an
+extractor can fail silently — a msgid that does not match what the code passes to gettext looks
+perfect in the file and translates nothing.
+
+**Forcing a locale in Playground takes the `locale` filter, not the `WPLANG` option.** Playground
+sets the `$locale` global during boot, so `get_locale()` returns early and never reads the option;
+the first run of this check reported a working `.pot` as broken, with the page still in English and
+`<html lang="en-US">`. The filter is applied on that early return too.
 
 ## Packaging for handover (2026-08-10)
 
