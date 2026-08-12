@@ -36,6 +36,26 @@ function simple_bangla_viewed_products() {
 }
 
 /**
+ * What the list becomes once this product has been seen.
+ *
+ * Separate from the tracker below so the "has anything actually changed?" question can be asked —
+ * and tested — without a request, a query and a cookie header in the way.
+ *
+ * @param int $product_id Product being viewed.
+ * @return int[]
+ */
+function simple_bangla_viewed_after( $product_id ) {
+
+	$viewed = simple_bangla_viewed_products();
+
+	// Re-visiting a product moves it to the front rather than duplicating it.
+	$viewed = array_values( array_diff( $viewed, array( (int) $product_id ) ) );
+	array_unshift( $viewed, (int) $product_id );
+
+	return array_slice( $viewed, 0, SIMPLE_BANGLA_VIEWED_LIMIT );
+}
+
+/**
  * Record the product currently being viewed.
  *
  * Hooked to template_redirect so it runs before any output — setcookie() after the first byte
@@ -47,18 +67,41 @@ function simple_bangla_track_viewed_product() {
 		return;
 	}
 
+	/**
+	 * Whether to record recently-viewed products at all.
+	 *
+	 * **This exists because of page caching, and the trade-off is worth stating plainly.** Writing a
+	 * cookie on the product template means every product page answers with a `Set-Cookie` header,
+	 * and most host and CDN page caches refuse to store a response that carries one. On the shop's
+	 * single most-visited template that is the difference between a cached page and a full
+	 * WordPress boot per visitor.
+	 *
+	 * The write below is now skipped when the list has not actually changed, which covers repeat
+	 * views of the same product, but a shopper moving between products still writes on each one —
+	 * that is inherent to a server-rendered strip. A shop that puts a page cache in front of the
+	 * storefront and wants the product template cacheable should return false here; the strip then
+	 * stops updating and, once the cookie expires, disappears. Nothing else changes.
+	 *
+	 * @param bool $track Whether to record the view.
+	 */
+	if ( ! apply_filters( 'simple_bangla_track_recently_viewed', true ) ) {
+		return;
+	}
+
 	$product_id = get_queried_object_id();
 
 	if ( ! $product_id ) {
 		return;
 	}
 
-	$viewed = simple_bangla_viewed_products();
+	$viewed = simple_bangla_viewed_after( $product_id );
 
-	// Re-visiting a product moves it to the front rather than duplicating it.
-	$viewed = array_values( array_diff( $viewed, array( $product_id ) ) );
-	array_unshift( $viewed, $product_id );
-	$viewed = array_slice( $viewed, 0, SIMPLE_BANGLA_VIEWED_LIMIT );
+	// Nothing to write when the visitor is looking at the product that is already at the front of
+	// their list — a reload, a back button, a variation change. Re-sending an identical cookie
+	// would cost the page its cacheability for no change at all.
+	if ( simple_bangla_viewed_products() === $viewed ) {
+		return;
+	}
 
 	setcookie(
 		SIMPLE_BANGLA_VIEWED_COOKIE,

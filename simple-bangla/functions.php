@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * Used as the asset cache-buster in production. During development inc/enqueue.php
  * prefers the file modification time so edits show up without bumping this.
  */
-define( 'SIMPLE_BANGLA_VERSION', '1.5.0' );
+define( 'SIMPLE_BANGLA_VERSION', '1.7.0' );
 
 /** Absolute path to the theme directory, with a trailing slash. */
 define( 'SIMPLE_BANGLA_DIR', trailingslashit( get_template_directory() ) );
@@ -52,6 +52,12 @@ require_once SIMPLE_BANGLA_DIR . 'inc/demo-content.php';
  */
 if ( class_exists( 'WooCommerce' ) ) {
 	require_once SIMPLE_BANGLA_DIR . 'inc/woocommerce.php';
+	/*
+	 * The cart and checkout render as the classic shortcodes whatever the pages hold. Everything the
+	 * theme overrides about the checkout — the Bangla copy, the delivery radios, the block list —
+	 * exists only on the classic form, and WooCommerce 11 creates those pages as blocks.
+	 */
+	require_once SIMPLE_BANGLA_DIR . 'inc/classic-checkout.php';
 	require_once SIMPLE_BANGLA_DIR . 'inc/recently-viewed.php';
 	require_once SIMPLE_BANGLA_DIR . 'inc/ajax-filter.php';
 	/*

@@ -30,6 +30,15 @@ defined( 'ABSPATH' ) || exit;
 function simple_bangla_cms_abilities() {
 
 	$abilities = array(
+		/*
+		 * The shell's landing screen, and the gate on `/manage` itself. **Derived, not mapped** —
+		 * see simple_bangla_cms_can(). It used to map to `read`, which every registered customer on
+		 * a WooCommerce store holds, so anyone who had ever placed an order with an account could
+		 * open the CMS and read the shop's order counts, catalogue size, stock figures and version
+		 * information. Mapping it to a real management capability instead would have picked one:
+		 * `manage_woocommerce` shuts out a content editor, `edit_pages` shuts out the order desk.
+		 * The honest rule is that whoever can use any screen may see the shell, and nobody else.
+		 */
 		'dashboard.view'     => array(
 			'cap'   => 'read',
 			'label' => __( 'See the dashboard', 'simple-bangla-cms' ),
@@ -95,15 +104,24 @@ function simple_bangla_cms_abilities() {
 }
 
 /**
- * Whether the current user holds an ability.
+ * The ability that is the shell rather than a screen.
+ *
+ * It gates `/manage`, `/session` and `/dashboard`, and it is the one ability that is not a
+ * capability lookup — holding it means holding at least one of the others.
+ */
+const SIMPLE_BANGLA_CMS_SHELL_ABILITY = 'dashboard.view';
+
+/**
+ * Whether the given user holds an ability.
  *
  * An unknown ability is denied rather than allowed. A typo in a `permission_callback` should
  * lock a route, never open one.
  *
- * @param string $ability Ability key from simple_bangla_cms_abilities().
+ * @param string       $ability Ability key from simple_bangla_cms_abilities().
+ * @param WP_User|null $user    User to test, or null for the current user.
  * @return bool
  */
-function simple_bangla_cms_can( $ability ) {
+function simple_bangla_cms_can( $ability, $user = null ) {
 
 	$abilities = simple_bangla_cms_abilities();
 
@@ -111,7 +129,26 @@ function simple_bangla_cms_can( $ability ) {
 		return false;
 	}
 
-	return current_user_can( $abilities[ $ability ]['cap'] );
+	$holds = static function ( $cap ) use ( $user ) {
+		return $user ? user_can( $user, $cap ) : current_user_can( $cap );
+	};
+
+	if ( SIMPLE_BANGLA_CMS_SHELL_ABILITY === $ability ) {
+
+		if ( ! $holds( $abilities[ $ability ]['cap'] ) ) {
+			return false;
+		}
+
+		foreach ( $abilities as $key => $spec ) {
+			if ( SIMPLE_BANGLA_CMS_SHELL_ABILITY !== $key && $holds( $spec['cap'] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	return $holds( $abilities[ $ability ]['cap'] );
 }
 
 /**
@@ -130,8 +167,11 @@ function simple_bangla_cms_user_abilities( $user_id = 0 ) {
 
 	$granted = array();
 
-	foreach ( simple_bangla_cms_abilities() as $ability => $spec ) {
-		if ( user_can( $user, $spec['cap'] ) ) {
+	// Through simple_bangla_cms_can() rather than a second capability loop, so the shell ability's
+	// derived rule is applied here too. Reporting it from a straight `user_can( 'read' )` would put
+	// a Dashboard item in the sidebar of someone the route then refuses.
+	foreach ( array_keys( simple_bangla_cms_abilities() ) as $ability ) {
+		if ( simple_bangla_cms_can( $ability, $user ) ) {
 			$granted[] = $ability;
 		}
 	}

@@ -28,7 +28,14 @@ import {
 import { api, apiList, money } from '../api.js';
 import { OrderItems, OrderTotals, DeliveryDetails, StageActions, FraudReport } from '../order-parts.js';
 import { href, onLinkClick, navigate } from '../router.js';
-import { statusLabel, statusTone, statusOptions, dateTime, refundedTotal } from '../order-utils.js';
+import {
+	statusLabel,
+	statusTone,
+	statusOptions,
+	dateTime,
+	refundedTotal,
+	collectsOnDelivery,
+} from '../order-utils.js';
 
 export function OrderDetail( { id } ) {
 	const [ order, setOrder ] = useState( null );
@@ -322,7 +329,9 @@ export function OrderDetail( { id } ) {
 					<${ Card } title="Payment">
 						<p><strong>${ order.payment_method_title || 'Not recorded' }</strong></p>
 						<p class="sb-hint">
-							${ order.date_paid ? 'Paid ' + dateTime( order.date_paid ) : 'To be collected on delivery.' }
+							${ collectsOnDelivery( order )
+								? 'To collect on delivery: ' + money( order.total )
+								: ( order.date_paid ? 'Paid ' + dateTime( order.date_paid ) : 'Not paid yet.' ) }
 						</p>
 						${ order.transaction_id
 							? html`<p class="sb-hint">Transaction ${ order.transaction_id }</p>`

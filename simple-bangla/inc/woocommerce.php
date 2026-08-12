@@ -117,6 +117,18 @@ remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_r
 remove_action( 'woocommerce_before_shop_loop_item_title', 'woocommerce_template_loop_product_thumbnail', 10 );
 remove_action( 'woocommerce_before_shop_loop_item_title', 'woocommerce_show_product_loop_sale_flash', 10 );
 
+/*
+ * The shop archive fires `woocommerce_before_shop_loop` so that WooCommerce's notices — and any
+ * plugin hanging off it — actually appear. Its own result count and sort dropdown are unhooked
+ * because archive-product.php calls both directly, inside a toolbar row they share with the
+ * mobile filter button; leaving them hooked would print each of them twice on every shop page.
+ *
+ * Same pattern as the card's `woocommerce_before_shop_loop_item_title` above: fire the hook, keep
+ * the extension point, unhook only the core callbacks the template has taken over.
+ */
+remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+
 /**
  * Add a Buy Now button beside Add to Cart.
  *

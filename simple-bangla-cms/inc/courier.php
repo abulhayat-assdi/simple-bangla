@@ -392,6 +392,52 @@ function simple_bangla_cms_courier_json( $response, $label ) {
 /* ------------------------------------------------------------------ dispatch */
 
 /**
+ * The gateways whose money the courier collects at the door.
+ *
+ * Cash on delivery is the only one this shop uses. Every other method it could add — bKash, Nagad,
+ * SSLCommerz — takes the money before the order exists, so there is nothing left to collect.
+ *
+ * @return string[] Gateway ids.
+ */
+function simple_bangla_cms_cod_methods() {
+
+	/**
+	 * Filter the gateways treated as cash on delivery.
+	 *
+	 * @param string[] $methods Gateway ids.
+	 */
+	return array_filter( array_map( 'strval', (array) apply_filters( 'simple_bangla_cms_cod_methods', array( 'cod' ) ) ) );
+}
+
+/**
+ * What the courier collects at the door.
+ *
+ * **This asks the payment method, not the order status, and the difference is the whole point.**
+ * The obvious test is `$order->is_paid()`, and it is wrong here: it is status-based, and
+ * WooCommerce's Cash on Delivery gateway moves an order to `processing` the moment it is placed —
+ * before a single Taka has changed hands. So `is_paid()` answers true for every COD order this shop
+ * takes, and the courier was being told to collect nothing on every parcel it was handed.
+ *
+ * The direction of the fallback is deliberate. An order with no recorded gateway is treated as cash,
+ * because the two mistakes are not equally expensive: collecting from a customer who already paid is
+ * a refund and an apology, while collecting nothing from one who has not is money that never arrives
+ * and that nobody notices until the month is reconciled.
+ *
+ * @param WC_Order $order Order.
+ * @return float Amount in the store currency.
+ */
+function simple_bangla_cms_amount_to_collect( $order ) {
+
+	$method = (string) $order->get_payment_method();
+
+	if ( '' === $method || in_array( $method, simple_bangla_cms_cod_methods(), true ) ) {
+		return (float) $order->get_total();
+	}
+
+	return 0.0;
+}
+
+/**
  * What a courier needs to know about an order.
  *
  * @param WC_Order $order Order.
@@ -414,12 +460,7 @@ function simple_bangla_cms_courier_parcel( $order ) {
 		$names[] = $item->get_name() . ' × ' . $item->get_quantity();
 	}
 
-	/*
-	 * The amount to collect is the order total, unless it has already been paid — a prepaid order
-	 * still needs delivering, but collecting its value a second time at the door is the single most
-	 * expensive mistake this function could make.
-	 */
-	$collect = $order->is_paid() ? 0 : (float) $order->get_total();
+	$collect = simple_bangla_cms_amount_to_collect( $order );
 
 	return array(
 		'invoice' => $order->get_order_number(),

@@ -1281,17 +1281,27 @@ function simple_bangla_demo_checkout_setup() {
 		return;
 	}
 
-	// Clear out anything a previous run left, including named zones, so the two rates below
-	// are the only ones a customer is offered.
-	foreach ( WC_Shipping_Zones::get_zones() as $existing ) {
-		$old = new WC_Shipping_Zone( $existing['zone_id'] );
-		$old->delete();
-	}
-
 	$zone = new WC_Shipping_Zone( 0 );
 
-	foreach ( $zone->get_shipping_methods() as $method ) {
-		$zone->delete_shipping_method( $method->instance_id );
+	/*
+	 * **Nothing is deleted here, and an earlier version of this function deleted everything.**
+	 *
+	 * It looped `WC_Shipping_Zones::get_zones()` calling `delete()` on each, then cleared the
+	 * catch-all zone's methods, so that the two rates below would be the only ones offered. On a
+	 * fresh install that is a no-op. On a store that had been set up — which is every store where
+	 * somebody clicked the demo button to see what it did, or ran it a second time after adding
+	 * their own courier zones — it destroyed the entire shipping configuration, with no warning
+	 * either side of the click, and `simple_bangla_demo_reset()` cannot put it back. Shipping zones
+	 * are not demo content; they are how the shop charges for delivery.
+	 *
+	 * So the rule is the same one the rest of the importer already follows: never touch something
+	 * that is already there. A store with any zone or any rate of its own is left exactly as it is,
+	 * and the flag is set so this is not asked again — the owner has answered the question by
+	 * having configured it.
+	 */
+	if ( WC_Shipping_Zones::get_zones() || $zone->get_shipping_methods() ) {
+		update_option( 'simple_bangla_shipping_ready', time() );
+		return;
 	}
 
 	$rates = array(

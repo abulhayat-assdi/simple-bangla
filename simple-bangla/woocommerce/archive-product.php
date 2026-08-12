@@ -36,6 +36,18 @@ get_header();
 
 		<main id="main" class="sb-shop__main">
 
+			<?php
+			/**
+			 * This hook is documented in woocommerce/templates/archive-product.php.
+			 *
+			 * Fired for WooCommerce's notices, which had nowhere to print on this template — an
+			 * "added to your cart" confirmation or a stock error simply never appeared. Its result
+			 * count and sort callbacks are unhooked in inc/woocommerce.php, because the toolbar
+			 * below calls both directly.
+			 */
+			do_action( 'woocommerce_before_shop_loop' );
+			?>
+
 			<div class="sb-shop__toolbar">
 				<?php woocommerce_result_count(); ?>
 				<?php woocommerce_catalog_ordering(); ?>

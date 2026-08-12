@@ -125,6 +125,14 @@ function simple_bangla_cms_staff_payload( $user ) {
 		// True when this role is outside the short list above, which means the CMS can show the
 		// account but must not offer to change it into something it does not understand.
 		'unmanaged'  => $role && ! isset( $roles[ $role ] ),
+		/*
+		 * Whether the acting user may touch *this* account. Both are meta capabilities resolved
+		 * against the target, so they answer "may I edit the owner's account", which the route's
+		 * own `promote_users` check cannot. The endpoint enforces the same two; these exist so the
+		 * screen does not offer a control that is going to be refused.
+		 */
+		'can_edit'   => current_user_can( 'promote_user', $user->ID ),
+		'can_delete' => current_user_can( 'delete_user', $user->ID ),
 	);
 }
 
@@ -154,11 +162,34 @@ function simple_bangla_cms_staff_list() {
 	return rest_ensure_response(
 		array(
 			'staff'       => $out,
-			'roles'       => simple_bangla_cms_staff_roles(),
+			// The roles this user may actually hand out, not every role the screen knows about. A
+			// shop manager offered `shop_manager` here would pick it and be refused on save.
+			'roles'       => simple_bangla_cms_assignable_roles(),
 			'can_grant_admin' => current_user_can( 'manage_options' ),
 			'admin_count' => count( get_users( array( 'role' => 'administrator', 'fields' => 'ID' ) ) ),
 		)
 	);
+}
+
+/**
+ * The roles WordPress will let the acting user hand out.
+ *
+ * `get_editable_roles()` is the same list wp-admin's own user screens are built from, and consulting
+ * it is what makes the rules below WordPress's rules rather than this plugin's guesses. WooCommerce
+ * filters it: a shop manager is offered `customer` and nothing else, so a shop manager cannot make
+ * a second shop manager here any more than they can in wp-admin.
+ *
+ * It lives in wp-admin/includes/user.php, which a REST request has not loaded.
+ *
+ * @return array<string,string> Role slug => label, restricted to the ones this screen manages.
+ */
+function simple_bangla_cms_assignable_roles() {
+
+	if ( ! function_exists( 'get_editable_roles' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+	}
+
+	return array_intersect_key( simple_bangla_cms_staff_roles(), get_editable_roles() );
 }
 
 /**
@@ -181,6 +212,20 @@ function simple_bangla_cms_check_role( $role ) {
 		return new WP_Error(
 			'sb_cms_cannot_grant_admin',
 			__( 'Only an administrator can make someone else an administrator.', 'simple-bangla-cms' ),
+			array( 'status' => 403 )
+		);
+	}
+
+	/*
+	 * The general form of the check above, and the one that catches everything it does not.
+	 * `staff.manage` maps to `promote_users`, which WooCommerce grants to every shop manager — so
+	 * without this a shop manager could hand out `shop_manager`, and a shop with one trusted
+	 * order-desk account would be one screen away from having several.
+	 */
+	if ( ! isset( simple_bangla_cms_assignable_roles()[ $role ] ) ) {
+		return new WP_Error(
+			'sb_cms_role_not_allowed',
+			__( 'Your account cannot give someone that role.', 'simple-bangla-cms' ),
 			array( 'status' => 403 )
 		);
 	}
@@ -386,6 +431,21 @@ function simple_bangla_cms_staff_update( $request ) {
 		return $check;
 	}
 
+	/*
+	 * `promote_user` is a *meta* capability: it is resolved against this particular target, unlike
+	 * the `promote_users` the route's permission callback checks. The difference is the whole point.
+	 * WooCommerce maps it to `do_not_allow` when a non-administrator aims at an administrator, so
+	 * this one line is what stops a shop manager demoting the owner from a phone. Without it the
+	 * only guard was "is this the last administrator", which a shop with two administrators passes.
+	 */
+	if ( ! current_user_can( 'promote_user', $user->ID ) ) {
+		return new WP_Error(
+			'sb_cms_cannot_promote',
+			__( 'Your account cannot change that person\'s role.', 'simple-bangla-cms' ),
+			array( 'status' => 403 )
+		);
+	}
+
 	$user->set_role( $role );
 
 	return rest_ensure_response( simple_bangla_cms_staff_payload( get_userdata( $user->ID ) ) );
@@ -414,8 +474,14 @@ function simple_bangla_cms_staff_delete( $request ) {
 		return $check;
 	}
 
-	if ( ! current_user_can( 'delete_users' ) ) {
-		return new WP_Error( 'sb_cms_cannot_delete', __( 'Your account cannot remove users.', 'simple-bangla-cms' ), array( 'status' => 403 ) );
+	/*
+	 * `delete_user` with the target, not the blanket `delete_users`. WooCommerce grants a shop
+	 * manager `delete_users`, so the plural form was a check that every caller reaching this line
+	 * already passed — it read like a guard and let a shop manager erase an administrator's account.
+	 * The singular form is a meta capability resolved against this user, and WooCommerce refuses it.
+	 */
+	if ( ! current_user_can( 'delete_user', $user->ID ) ) {
+		return new WP_Error( 'sb_cms_cannot_delete', __( 'Your account cannot remove that person.', 'simple-bangla-cms' ), array( 'status' => 403 ) );
 	}
 
 	// wp_delete_user() lives in wp-admin and is not loaded on a REST request.

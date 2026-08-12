@@ -71,7 +71,12 @@ export const ORDER_VIEWS = [
 	{ key: 'new', label: 'New Orders', statuses: [ 'pending', 'processing', 'on-hold', 'sb-courier' ] },
 	{ key: 'completed', label: 'Completed Orders', statuses: [ 'completed' ] },
 	{ key: 'cancelled', label: 'Cancel Orders', statuses: [ 'cancelled' ] },
-	{ key: 'failed', label: 'Failed / Cancelled', statuses: [ 'sb-returned', 'refunded', 'failed' ] },
+	/*
+	 * Named for what it holds. It was "Failed / Cancelled" — beside a "Cancel Orders" tab, and
+	 * containing no cancelled orders at all, since `cancelled` is the tab before it. Someone looking
+	 * for a cancelled order read the two labels and opened the wrong one.
+	 */
+	{ key: 'failed', label: 'Returned / Failed', statuses: [ 'sb-returned', 'refunded', 'failed' ] },
 ];
 
 /**
@@ -110,6 +115,34 @@ export function offersOutcomes( order ) {
 	return isDispatched( order ) && OPEN_STATUSES.includes( order.status );
 }
 
+/**
+ * The gateways whose money the courier collects at the door.
+ *
+ * Mirrors `simple_bangla_cms_cod_methods()` on the server, which is where the amount sent to the
+ * courier is actually decided. Kept in step by being the same one-item list; a shop that filters
+ * that list has to say so here too, which is the honest cost of the screen not asking the server a
+ * question it can answer itself.
+ */
+const COD_METHODS = [ 'cod' ];
+
+/**
+ * Whether this order is still to be paid for at the door.
+ *
+ * **Do not read `date_paid` for this.** WooCommerce sets it on cash-on-delivery orders as well —
+ * verified against WooCommerce 11 — because its COD gateway moves the order to `processing`, and
+ * `processing` is the status WooCommerce treats as payment having completed. So `date_paid` is set
+ * on an order where nothing has been paid, and a screen that trusted it told the owner a parcel was
+ * already paid for on the morning they were about to collect the cash for it.
+ *
+ * @param {object} order Order record.
+ * @return {boolean}
+ */
+export function collectsOnDelivery( order ) {
+	const method = ( order && order.payment_method ) || '';
+
+	return '' === method || COD_METHODS.includes( method );
+}
+
 /** The view the order screen opens on: what arrived and still needs doing. */
 export const DEFAULT_VIEW = 'new';
 
@@ -146,6 +179,11 @@ const STATUS_BN = {
 	cancelled: 'বাতিল',
 	refunded: 'ফেরত দেওয়া হয়েছে',
 	failed: 'ব্যর্থ',
+	// The theme's own two statuses. Without them `statusLabelBn()` fell through to the English
+	// label, so the one deliberately Bangla document in the CMS printed "Returned" on exactly the
+	// orders most likely to be handed to a customer to read.
+	'sb-courier': 'কুরিয়ারে পাঠানো হয়েছে',
+	'sb-returned': 'ফেরত এসেছে',
 };
 
 export function statusLabelBn( status ) {

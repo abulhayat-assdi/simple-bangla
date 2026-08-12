@@ -2,9 +2,9 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Simple Bangla CMS 1.7.0\n"
+"Project-Id-Version: Simple Bangla CMS 1.9.0\n"
 "Report-Msgid-Bugs-To: https://simplebangla.com/\n"
-"POT-Creation-Date: 2026-08-11 19:16+0000\n"
+"POT-Creation-Date: 2026-08-12 05:51+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -69,61 +69,61 @@ msgstr ""
 msgid "Store management needs JavaScript enabled."
 msgstr ""
 
-#: inc/auth.php:35
+#: inc/auth.php:44
 msgid "See the dashboard"
 msgstr ""
 
-#: inc/auth.php:39
+#: inc/auth.php:48
 msgid "View orders"
 msgstr ""
 
-#: inc/auth.php:43
+#: inc/auth.php:52
 msgid "Change order status and refund"
 msgstr ""
 
-#: inc/auth.php:47
+#: inc/auth.php:56
 msgid "View products"
 msgstr ""
 
-#: inc/auth.php:51
+#: inc/auth.php:60
 msgid "Create and edit products"
 msgstr ""
 
-#: inc/auth.php:58
+#: inc/auth.php:67
 msgid "Edit the homepage, footer and colours"
 msgstr ""
 
-#: inc/auth.php:68
+#: inc/auth.php:77
 msgid "Write and edit site pages"
 msgstr ""
 
-#: inc/auth.php:72
+#: inc/auth.php:81
 msgid "Change store settings"
 msgstr ""
 
-#: inc/auth.php:76
+#: inc/auth.php:85
 msgid "Add and remove staff accounts"
 msgstr ""
 
-#: inc/auth.php:85
+#: inc/auth.php:94
 msgid "Approve and remove product reviews"
 msgstr ""
 
-#: inc/auth.php:159
+#: inc/auth.php:199
 msgid "You are signed out. Sign in again to continue."
 msgstr ""
 
-#: inc/auth.php:167
+#: inc/auth.php:207
 msgid "Your account does not have permission to do this."
 msgstr ""
 
-#: inc/auth.php:184
+#: inc/auth.php:224
 msgid "The Simple Bangla theme is not active, so its settings cannot be read or changed."
 msgstr ""
 
 #: inc/courier.php:62
-#: inc/courier.php:550
-#: inc/courier.php:1079
+#: inc/courier.php:591
+#: inc/courier.php:1120
 msgid "Steadfast"
 msgstr ""
 
@@ -193,9 +193,9 @@ msgid "Default zone ID"
 msgstr ""
 
 #: inc/courier.php:122
-#: inc/courier.php:728
-#: inc/courier.php:1187
-#: inc/courier.php:1214
+#: inc/courier.php:769
+#: inc/courier.php:1228
+#: inc/courier.php:1255
 msgid "RedX"
 msgstr ""
 
@@ -224,7 +224,7 @@ msgid "The number you sign in to the RedX merchant panel with. Only used to read
 msgstr ""
 
 #: inc/courier.php:311
-#: inc/courier.php:486
+#: inc/courier.php:527
 msgid "That courier is not one this shop can use."
 msgstr ""
 
@@ -243,72 +243,72 @@ msgstr ""
 msgid "%1$s answered with something this could not read (HTTP %2$d). The credentials are the usual cause."
 msgstr ""
 
-#: inc/courier.php:452
+#: inc/courier.php:493
 msgid "No courier is set up yet. Add one under Settings → Courier."
 msgstr ""
 
-#: inc/courier.php:468
+#: inc/courier.php:509
 msgid "This order has no phone number or no address, so no courier will accept it."
 msgstr ""
 
 #. translators: 1: courier name, 2: consignment id, 3: tracking code.
-#: inc/courier.php:508
+#: inc/courier.php:549
 msgid "Sent to %1$s. Consignment %2$s, tracking %3$s."
 msgstr ""
 
-#: inc/courier.php:559
+#: inc/courier.php:600
 msgid "Steadfast refused the parcel."
 msgstr ""
 
-#: inc/courier.php:616
-#: inc/courier.php:675
-#: inc/courier.php:1121
-#: inc/courier.php:1144
+#: inc/courier.php:657
+#: inc/courier.php:716
+#: inc/courier.php:1162
+#: inc/courier.php:1185
 msgid "Pathao"
 msgstr ""
 
-#: inc/courier.php:625
+#: inc/courier.php:666
 msgid "Pathao refused the parcel."
 msgstr ""
 
-#: inc/courier.php:684
+#: inc/courier.php:725
 msgid "Pathao would not issue a token. Check the client ID, secret and merchant login."
 msgstr ""
 
-#: inc/courier.php:737
+#: inc/courier.php:778
 msgid "RedX refused the parcel."
 msgstr ""
 
-#: inc/courier.php:1044
+#: inc/courier.php:1085
 msgid "Steadfast’s sign-in page has changed, so its delivery record cannot be read."
 msgstr ""
 
-#: inc/courier.php:1128
+#: inc/courier.php:1169
 msgid "Pathao would not accept that merchant login."
 msgstr ""
 
-#: inc/courier.php:1196
+#: inc/courier.php:1237
 msgid "RedX would not accept that portal login."
 msgstr ""
 
-#: inc/courier.php:1338
+#: inc/courier.php:1379
 msgid "What this order was sent to a courier as, if it has been."
 msgstr ""
 
-#: inc/courier.php:1384
+#: inc/courier.php:1425
 msgid "WooCommerce is not active."
 msgstr ""
 
-#: inc/courier.php:1390
+#: inc/courier.php:1431
 msgid "That order no longer exists."
 msgstr ""
 
 #. translators: 1: courier name, 2: consignment id.
-#: inc/courier.php:1419
+#: inc/courier.php:1460
 msgid "This order was already sent to %1$s as consignment %2$s."
 msgstr ""
 
-#: inc/courier.php:1420
+#: inc/courier.php:1461
 msgid "a courier"
 msgstr ""
 
@@ -380,55 +380,63 @@ msgstr ""
 msgid "Customer — can order, no management access"
 msgstr ""
 
-#: inc/rest-staff.php:175
+#: inc/rest-staff.php:206
 msgid "That is not a role this screen manages."
 msgstr ""
 
-#: inc/rest-staff.php:183
+#: inc/rest-staff.php:214
 msgid "Only an administrator can make someone else an administrator."
 msgstr ""
 
-#: inc/rest-staff.php:203
-msgid "That account no longer exists."
-msgstr ""
-
-#: inc/rest-staff.php:214
-msgid "You cannot remove your own account."
-msgstr ""
-
-#: inc/rest-staff.php:215
-msgid "You cannot change your own role. Ask another administrator to do it."
+#: inc/rest-staff.php:228
+msgid "Your account cannot give someone that role."
 msgstr ""
 
 #: inc/rest-staff.php:248
+msgid "That account no longer exists."
+msgstr ""
+
+#: inc/rest-staff.php:259
+msgid "You cannot remove your own account."
+msgstr ""
+
+#: inc/rest-staff.php:260
+msgid "You cannot change your own role. Ask another administrator to do it."
+msgstr ""
+
+#: inc/rest-staff.php:293
 msgid "This is the only administrator. Make someone else an administrator first."
 msgstr ""
 
-#: inc/rest-staff.php:308
+#: inc/rest-staff.php:353
 msgid "That is not a valid email address."
 msgstr ""
 
-#: inc/rest-staff.php:312
+#: inc/rest-staff.php:357
 msgid "An account already uses that email address."
 msgstr ""
 
-#: inc/rest-staff.php:320
+#: inc/rest-staff.php:365
 msgid "The password needs to be at least 8 characters."
 msgstr ""
 
-#: inc/rest-staff.php:330
+#: inc/rest-staff.php:375
 msgid "That username is already taken."
 msgstr ""
 
-#: inc/rest-staff.php:334
+#: inc/rest-staff.php:379
 msgid "No usable sign-in name could be made from that email address."
 msgstr ""
 
-#: inc/rest-staff.php:418
-msgid "Your account cannot remove users."
+#: inc/rest-staff.php:444
+msgid "Your account cannot change that person's role."
 msgstr ""
 
-#: inc/rest-staff.php:429
+#: inc/rest-staff.php:484
+msgid "Your account cannot remove that person."
+msgstr ""
+
+#: inc/rest-staff.php:495
 msgid "That account could not be removed."
 msgstr ""
 

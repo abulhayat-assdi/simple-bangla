@@ -214,6 +214,31 @@ function simple_bangla_find_block( $phone, $ip = '' ) {
 }
 
 /**
+ * What a refused customer is told.
+ *
+ * One function because the refusal now has two callers — the classic checkout and the Store API —
+ * and a shop that said two different things depending on which checkout the customer happened to
+ * reach would be the one detail nobody thought to keep in step.
+ *
+ * It deliberately does not say "you are blocked". The shop may want to talk to the person, and
+ * someone whose number was mistyped onto the list deserves a way back rather than an accusation.
+ *
+ * @return string
+ */
+function simple_bangla_block_message() {
+
+	$contact = simple_bangla_get_contact( 'phone' );
+
+	return $contact
+		? sprintf(
+			/* translators: %s: the shop's phone number. */
+			__( 'এই তথ্য দিয়ে অর্ডার করা যাচ্ছে না। অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন: %s', 'simple-bangla' ),
+			$contact
+		)
+		: __( 'এই তথ্য দিয়ে অর্ডার করা যাচ্ছে না। অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন।', 'simple-bangla' );
+}
+
+/**
  * Refuse a checkout from a blocked customer.
  *
  * Hooked on validation rather than on order creation: the customer is told before anything is
@@ -234,17 +259,44 @@ function simple_bangla_block_checkout( $data, $errors ) {
 		return;
 	}
 
-	$contact = simple_bangla_get_contact( 'phone' );
-
-	$errors->add(
-		'simple_bangla_blocked',
-		$contact
-			? sprintf(
-				/* translators: %s: the shop's phone number. */
-				__( 'এই তথ্য দিয়ে অর্ডার করা যাচ্ছে না। অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন: %s', 'simple-bangla' ),
-				$contact
-			)
-			: __( 'এই তথ্য দিয়ে অর্ডার করা যাচ্ছে না। অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন।', 'simple-bangla' )
-	);
+	$errors->add( 'simple_bangla_blocked', simple_bangla_block_message() );
 }
 add_action( 'woocommerce_after_checkout_validation', 'simple_bangla_block_checkout', 10, 2 );
+
+/**
+ * Refuse the same customer on the Store API.
+ *
+ * `woocommerce_after_checkout_validation` is fired by the classic checkout and by nothing else, so
+ * for as long as it was the only hook here the block list had a hole in it that no amount of
+ * checking the checkout page would have revealed: **`/wp-json/wc/store/v1/checkout` is registered
+ * whatever the checkout page contains.** A blocked customer did not need to find the block
+ * checkout — the route was there to be posted to either way.
+ *
+ * `woocommerce_store_api_checkout_update_order_from_request` is the counterpart moment: the draft
+ * order has been filled in from the request and payment has not been taken. A `RouteException`
+ * thrown here is what the Store API turns into an error the customer sees, so it is deliberately
+ * not a bare `Exception` — the route's own handler answers that with an unhelpful 500.
+ *
+ * The draft order exists at this point, which the classic path avoids. That is WooCommerce's design
+ * rather than a choice made here: the Store API builds the draft before it will validate anything.
+ * A `checkout-draft` is not a real order, is never counted anywhere, and the CMS's own order views
+ * exclude it.
+ *
+ * @param WC_Order $order Draft order.
+ * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException When the customer is blocked.
+ */
+function simple_bangla_block_store_api_checkout( $order ) {
+
+	if ( ! simple_bangla_find_block( $order->get_billing_phone(), simple_bangla_client_ip() ) ) {
+		return;
+	}
+
+	$exception = '\Automattic\WooCommerce\StoreApi\Exceptions\RouteException';
+
+	if ( ! class_exists( $exception ) ) {
+		return;
+	}
+
+	throw new $exception( 'simple_bangla_blocked', simple_bangla_block_message(), 403 );
+}
+add_action( 'woocommerce_store_api_checkout_update_order_from_request', 'simple_bangla_block_store_api_checkout', 10, 1 );

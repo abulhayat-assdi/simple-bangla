@@ -22,6 +22,18 @@ while ( have_posts() ) :
 
 		<?php woocommerce_breadcrumb(); ?>
 
+		<?php
+		/**
+		 * This hook is documented in woocommerce/templates/content-single-product.php.
+		 *
+		 * WooCommerce hangs its notice output here and nothing else, so without it an "added to
+		 * your cart" confirmation had nowhere to print — and neither did the error when a variation
+		 * was not chosen or stock had run out. With AJAX add-to-cart off on product pages, the page
+		 * simply reloaded and said nothing at all.
+		 */
+		do_action( 'woocommerce_before_single_product' );
+		?>
+
 		<div id="product-<?php the_ID(); ?>" <?php wc_product_class( 'sb-product__layout', $product ); ?>>
 
 			<div class="sb-product__gallery">

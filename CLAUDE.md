@@ -1880,3 +1880,190 @@ newest first, ending at August 2026), a clock set to July 2026 (still one), and 
 March 2028 down to August 2026). `php -l` clean on the version bump. The plugin version moves to
 1.7.1 because the import map versions every module by it — without the bump a browser keeps serving
 the cached dashboard.
+
+## Two launch blockers (2026-08-12, theme 1.6.0 / plugin 1.8.0)
+
+A launch-readiness review turned up eleven findings. These are the two that had to be fixed before
+the shop could take a real order; the other nine are queued behind them.
+
+### The courier was told to collect ৳0 on every parcel
+
+`simple_bangla_cms_courier_parcel()` derived the amount from `$order->is_paid()`. That is a
+**status** test, and WooCommerce's Cash on Delivery gateway moves an order to `processing` the
+moment it is placed — so `is_paid()` answered true for every order this shop has ever taken, and
+every consignment went to Steadfast, Pathao or RedX with `cod_amount: 0`. Nothing failed, nothing
+was logged, and the loss would have surfaced as a month that did not reconcile.
+
+- **`simple_bangla_cms_amount_to_collect()` asks the payment method instead.** Cash on delivery is
+  the only gateway where the courier collects; every other one this shop could add — bKash, Nagad,
+  SSLCommerz — takes the money before the order exists. `simple_bangla_cms_cod_methods()` is the
+  list, filterable, defaulting to `cod` alone.
+- **An order with no recorded gateway is treated as cash**, deliberately. The two mistakes are not
+  equally expensive: collecting from someone who already paid is a refund and an apology, while
+  collecting nothing is money that never arrives.
+- **`date_paid` is not the fix either, and this is the part worth remembering.** The review claimed
+  the CMS order card was already right because it tests `date_paid` rather than `is_paid()`. It was
+  not. `WC_Order::save()` calls `maybe_set_date_paid()`, which sets the date as soon as the order
+  reaches the status WooCommerce considers payment-complete — `processing` for a physical product.
+  **Measured against WooCommerce 11: a COD order that has paid nothing carries a `date_paid`.** So
+  the card and the full order page were both telling the owner a parcel was already paid for on the
+  morning they were about to collect the cash for it. Both now ask `collectsOnDelivery()` in
+  `order-utils.js`, which mirrors the server's list, and they print the amount rather than a date.
+
+### The custom checkout was inert on a stock install
+
+The block list hooked `woocommerce_after_checkout_validation`, which only the classic checkout
+shortcode fires — and **WooCommerce 11 creates the Cart and Checkout pages holding its block
+versions.** The decision that those pages are the classic shortcodes (2026-08-06) was enforced only
+in the demo importer, which swaps the page content and which nobody has to run. On any store set up
+by hand, the checkout rendered as WooCommerce's default block: English, WooCommerce's layout, no
+delivery-charge radios, no order summary, and the block list never consulted. Everything worked.
+Nothing warned.
+
+- **`simple-bangla/inc/classic-checkout.php` makes the theme answer for its own decision.** A
+  `pre_render_block` filter returns `[woocommerce_checkout]` / `[woocommerce_cart]` in place of the
+  two blocks. `pre_render_block` rather than `render_block`, because returning a string there
+  short-circuits the block entirely — with `render_block` the checkout block's thirty-odd inner
+  blocks would each be rendered in full and then discarded.
+- **Rendered, not rewritten.** The pages keep whatever markup they hold; only what a visitor is
+  shown changes. Switch the theme away and the block checkout returns by itself, which is the same
+  reversibility rule the rest of the theme is built on. It also means this file and the importer's
+  swap cannot disagree — the swap is now a tidier version of what would happen anyway.
+- **Front end only.** In wp-admin the owner sees the block they actually have; an editor showing the
+  shortcode's output would be describing a page that does not exist.
+- **The block's frontend script and style are dequeued** on the two pages when the block was in fact
+  replaced, since they are weight for markup that is not on the page.
+- **The block list gained a second hook, and this one was a real hole rather than a consequence of
+  the first.** `/wp-json/wc/store/v1/checkout` is registered whatever the checkout page contains, so
+  a blocked customer never needed to find the block checkout — the route was there to be posted to.
+  `woocommerce_store_api_checkout_update_order_from_request` is the counterpart moment (draft filled
+  in, payment not taken), and it throws a `RouteException` because the Store API turns any other
+  exception into an unhelpful 500. The draft order exists by then; that is WooCommerce's design, not
+  a choice, and a `checkout-draft` is counted nowhere.
+- **`simple_bangla_block_message()` is one function because the refusal now has two callers.** A
+  shop that said two different things depending on which checkout a customer reached would be the
+  detail nobody thought to keep in step.
+
+Verified with **17 assertions** against real WordPress 7.0.3 + WooCommerce 11.0.1 in Playground, on
+a site where the demo importer had deliberately *not* been run: a COD order confirmed to report
+`is_paid() === true` and to carry a `date_paid` while having paid nothing, its parcel carrying the
+full ৳1,500, a `payment_complete()` order collecting 0, an order with no gateway collecting the
+total; the checkout page confirmed to still hold `wp:woocommerce/checkout` while rendering 21 KB of
+the *theme's* classic form — Bangla copy present, delivery-charge radios present, no block wrapper —
+and the cart page likewise; then the block list refusing `+8801712345678` against a stored
+`01712345678` on the classic path, letting an unrelated number through, and throwing a
+`RouteException` with the same Bangla message on the Store API path.
+
+**Note for future runs:** the checkout shortcode prints a notice rather than a form when the cart is
+empty, and renders no delivery-charge list when the store has no shipping rates at all. An early
+version of this suite reported both as failures of the fix; they were failures of the fixture. Load
+a cart with `wc_load_cart()` and add the two flat rates before rendering.
+
+## The other nine findings (2026-08-12, theme 1.7.0 / plugin 1.9.0)
+
+The rest of the launch review, in the order it was fixed. Two of them turned out to be less serious
+than reported and one turned out to be differently serious; all three are written up as found rather
+than as claimed.
+
+### Staff permissions ask about the person, not about the verb
+
+Both staff guards used blanket capabilities. Changing a role checked nothing at all beyond "is this
+the last administrator", and deleting checked `delete_users` — the plural, which asks "may this
+account delete users in general" and never mentions the account being deleted.
+
+- **`promote_user` and `delete_user`, with the target id.** They are *meta* capabilities: WordPress
+  resolves them per target, and WooCommerce's `map_meta_cap` filter answers `do_not_allow` when a
+  non-administrator aims at an administrator. One argument is the whole fix.
+- **`get_editable_roles()` decides which roles may be handed out**, through
+  `simple_bangla_cms_assignable_roles()`, and the staff list now reports that instead of the full
+  set. It is the same list wp-admin's user screens are built from, and WooCommerce filters it so a
+  shop manager is offered `customer` and nothing else. The screen offering a role the save would
+  refuse was the previous behaviour.
+- **`can_edit` / `can_delete` are on the payload** so the screen stops offering controls that are
+  going to 403, with a line saying why. The endpoint is still the control.
+
+**The review's framing was wrong, and the measurement is worth keeping.** It said a shop manager
+could demote or delete an administrator. On stock WooCommerce 11 a shop manager holds neither
+`promote_users` nor `delete_users` — verified — so `staff.manage` never let one near the route. The
+real exposure is any role that *has* been granted those, which is two ticks in any WooCommerce role
+editor and exactly what a shop does when it wants an office account that can add staff. The first
+version of the suite missed this entirely: with one administrator on the site, every refusal came
+back as `sb_cms_last_admin` and the new guards were never reached, so a passing run proved nothing.
+**A permission test needs a second administrator and an actor who genuinely holds the capability**,
+or the guard under test is masked by the one in front of it.
+
+### The dashboard ability is derived, not mapped
+
+`dashboard.view` mapped to `read`, which every registered customer on a WooCommerce store holds —
+and it gates `/manage` itself, so anyone who had ever placed an order with an account could open the
+CMS and read order counts, catalogue size, stock figures and version information.
+
+Mapping it to a real management capability would have picked a side: `manage_woocommerce` shuts out
+whoever writes the pages, `edit_pages` shuts out the order desk. So it is the one ability that is
+not a capability lookup — holding it means holding at least one *other* ability.
+`SIMPLE_BANGLA_CMS_SHELL_ABILITY` names it and `simple_bangla_cms_can()` is where the rule lives;
+`simple_bangla_cms_user_abilities()` now routes through the same function rather than running its
+own capability loop, or the sidebar would have shown a Dashboard item the route then refused.
+
+### The demo importer no longer deletes shipping zones
+
+It looped every zone calling `delete()` before adding its two flat rates, so that they would be the
+only rates offered. On a fresh install that is a no-op; on a store that had been set up it destroyed
+the entire shipping configuration, with no warning either side of the click and nothing in
+`simple_bangla_demo_reset()` able to put it back. Shipping zones are not demo content.
+
+Now: a store with any zone of its own, or any rate on the catch-all zone, is left exactly as it is
+and the one-shot flag is set — the owner answered the question by having configured it. A store with
+no shipping at all still gets ঢাকার ভেতরে / ঢাকার বাইরে. Same rule as the rest of the importer:
+never touch what is already there.
+
+### WooCommerce notices had nowhere to print
+
+Neither `woocommerce_before_single_product` nor `woocommerce_before_shop_loop` was fired, and those
+two hooks are where core hangs its notice output. With AJAX add-to-cart off on product pages, adding
+something to the cart reloaded the page and said nothing at all; a stock error or a variation that
+had not been chosen was equally invisible.
+
+Both templates fire their hook now. On the archive, core's `woocommerce_result_count` and
+`woocommerce_catalog_ordering` are unhooked in `inc/woocommerce.php` because the toolbar calls both
+directly and would otherwise print each twice — the same fire-the-hook-unhook-the-callback pattern
+the product card already uses for `woocommerce_before_shop_loop_item_title`.
+
+### The checkout override kept the part it does not use
+
+`form-billing.php` dropped WooCommerce's account block. This store does not offer registration at
+the checkout, which is why nobody noticed and why it had to come back: the moment anyone ticks
+"Allow customers to create an account during checkout", WooCommerce starts validating and saving
+`account_password` while no field for it exists on the page, and the checkout fails with an error
+the customer cannot act on. A template override has to carry the parts it does not use.
+
+### Two smaller ones
+
+- **The recently-viewed cookie.** Writing it on the product template means every product page
+  answers with `Set-Cookie`, and most page caches refuse to store such a response — on the shop's
+  most-visited template. The write is now skipped when the list has not changed (a reload, a back
+  button, a variation), and `simple_bangla_track_recently_viewed` switches the whole thing off for a
+  shop that puts a cache in front. That reduces the interaction rather than removing it: a shopper
+  moving between products still writes on each one, which is inherent to a server-rendered strip.
+  Removing it entirely means rendering the strip client-side, which is a different feature.
+  `simple_bangla_viewed_after()` was split out so the "has anything changed?" question can be tested
+  without a request, a query and a cookie header in the way.
+- **Two CMS labels.** `STATUS_BN` had no entry for `sb-courier` or `sb-returned`, so the one
+  deliberately Bangla document in the CMS printed English on exactly the orders most likely to be
+  handed to a customer. And the fourth order tab was called "Failed / Cancelled" while sitting beside
+  a "Cancel Orders" tab and containing no cancelled orders at all — it is "Returned / Failed" now.
+  That is an owner-visible label the owner chose, so it is the one change here worth their veto.
+
+Verified with **40 assertions** against real WordPress + WooCommerce 11.0.1, plus the step-1 suite
+re-run as a regression in the same site: 57/57. The staff half covers a role holding `promote_users`
+being refused per target while the blanket capability it used to be asked about still passes, both
+refusals naming the new guard rather than the last-admin one, WooCommerce's own shop manager not
+reaching the route at all, and an administrator still able to do everything. Then the importer
+leaving a named zone alone and still configuring a bare store, both notice hooks printing a seeded
+notice with no result count leaking, the account password field appearing with registration on and
+nothing appearing with it off, and the cookie's three list cases.
+
+**Fixture order matters when two suites share a site.** Run second, the step-1 suite failed four
+assertions: the steps-2-4 suite calls the importer, the importer swaps the checkout page to the
+shortcode, and step 1's premise is that the page still holds the block. Nothing was broken. Run the
+suite that asserts about a pristine install first, or give it its own site.

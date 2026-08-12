@@ -2,9 +2,9 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Simple Bangla 1.4.0\n"
+"Project-Id-Version: Simple Bangla 1.7.0\n"
 "Report-Msgid-Bugs-To: https://simplebangla.com/\n"
-"POT-Creation-Date: 2026-08-11 04:29+0000\n"
+"POT-Creation-Date: 2026-08-12 05:51+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -48,11 +48,11 @@ msgid "Skip to content"
 msgstr ""
 
 #. translators: %s: the shop's phone number.
-#: inc/blocklist.php:244
+#: inc/blocklist.php:235
 msgid "এই তথ্য দিয়ে অর্ডার করা যাচ্ছে না। অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন: %s"
 msgstr ""
 
-#: inc/blocklist.php:247
+#: inc/blocklist.php:238
 msgid "এই তথ্য দিয়ে অর্ডার করা যাচ্ছে না। অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন।"
 msgstr ""
 
@@ -407,118 +407,118 @@ msgstr ""
 msgid "পণ্য হাতে পাওয়ার সময় ডেলিভারি ম্যানকে টাকা পরিশোধ করবেন।"
 msgstr ""
 
-#: inc/demo-content.php:1298
+#: inc/demo-content.php:1308
 msgid "ঢাকার ভেতরে"
 msgstr ""
 
-#: inc/demo-content.php:1299
+#: inc/demo-content.php:1309
 msgid "ঢাকার বাইরে"
 msgstr ""
 
-#: inc/demo-content.php:1405
+#: inc/demo-content.php:1415
 msgid "Primary Menu"
 msgstr ""
 
-#: inc/demo-content.php:1451
+#: inc/demo-content.php:1461
 msgid "Footer — Company"
 msgstr ""
 
-#: inc/demo-content.php:1455
+#: inc/demo-content.php:1465
 msgid "Footer — Helps"
 msgstr ""
 
-#: inc/demo-content.php:1515
+#: inc/demo-content.php:1525
 #: template-parts/footer/mobile-bar.php:36
 msgid "Home"
 msgstr ""
 
-#: inc/demo-content.php:1546
+#: inc/demo-content.php:1556
 msgid "Simple Bangla Demo Content"
 msgstr ""
 
-#: inc/demo-content.php:1547
-#: inc/demo-content.php:1595
+#: inc/demo-content.php:1557
+#: inc/demo-content.php:1605
 msgid "Demo Content"
 msgstr ""
 
-#: inc/demo-content.php:1561
+#: inc/demo-content.php:1571
 msgid "You are not allowed to do that."
 msgstr ""
 
-#: inc/demo-content.php:1599
+#: inc/demo-content.php:1609
 msgid "WooCommerce needs to be active before the catalogue can be imported."
 msgstr ""
 
-#: inc/demo-content.php:1605
+#: inc/demo-content.php:1615
 msgid "PHP has no GD image support here, so products will be created without placeholder images unless an Unsplash key is set below."
 msgstr ""
 
-#: inc/demo-content.php:1611
+#: inc/demo-content.php:1621
 msgid "Unsplash key saved."
 msgstr ""
 
 #. translators: 1: categories created, 2: products created, 3: images created.
-#: inc/demo-content.php:1621
+#: inc/demo-content.php:1631
 msgid "Done. Created %1$d categories, %2$d products and %3$d images."
 msgstr ""
 
 #. translators: 1: categories removed, 2: products removed, 3: images removed.
-#: inc/demo-content.php:1637
+#: inc/demo-content.php:1647
 msgid "Removed %1$d categories, %2$d products and %3$d images. Click \"Import demo content\" below to rebuild the catalogue."
 msgstr ""
 
-#: inc/demo-content.php:1647
+#: inc/demo-content.php:1657
 msgid "Real product photos (optional)"
 msgstr ""
 
 #. translators: 1: opening link tag to unsplash.com/developers, 2: closing link tag.
-#: inc/demo-content.php:1653
+#: inc/demo-content.php:1663
 msgid "Paste a free Unsplash Access Key to have the importer fetch real, category-matched photos instead of drawn placeholders. Get one in about two minutes at %1$sunsplash.com/developers%2$s — no card required. Leave this blank to keep the drawn placeholders."
 msgstr ""
 
-#: inc/demo-content.php:1668
+#: inc/demo-content.php:1678
 msgid "Unsplash Access Key"
 msgstr ""
 
-#: inc/demo-content.php:1672
+#: inc/demo-content.php:1682
 msgid "Save key"
 msgstr ""
 
-#: inc/demo-content.php:1676
+#: inc/demo-content.php:1686
 msgid "Save the key before importing — it only affects products created after it is set. Products already imported keep whatever image they already have; use \"Remove demo content\" below and re-import to swap them for real photos."
 msgstr ""
 
-#: inc/demo-content.php:1683
+#: inc/demo-content.php:1693
 msgid "Fills the store with a demo catalogue so the design can be judged with real content in it: a three-level category tree, a few dozen products with sale prices, navigation menus and homepage banners."
 msgstr ""
 
-#: inc/demo-content.php:1687
+#: inc/demo-content.php:1697
 msgid "Nothing is overwritten."
 msgstr ""
 
-#: inc/demo-content.php:1688
+#: inc/demo-content.php:1698
 msgid "Anything that already exists under the same slug is left exactly as it is, so running this twice is harmless."
 msgstr ""
 
 #. translators: %s: human-readable date and time.
-#: inc/demo-content.php:1696
+#: inc/demo-content.php:1706
 msgid "Last run: %s"
 msgstr ""
 
-#: inc/demo-content.php:1707
-#: inc/demo-content.php:1745
+#: inc/demo-content.php:1717
+#: inc/demo-content.php:1755
 msgid "Import demo content"
 msgstr ""
 
-#: inc/demo-content.php:1715
+#: inc/demo-content.php:1725
 msgid "Delete every demo product, category and image? This cannot be undone. Store settings and pages are kept."
 msgstr ""
 
-#: inc/demo-content.php:1717
+#: inc/demo-content.php:1727
 msgid "Remove demo content"
 msgstr ""
 
-#: inc/demo-content.php:1743
+#: inc/demo-content.php:1753
 msgid "Simple Bangla can fill your store with demo products so you can see the design working."
 msgstr ""
 
@@ -625,25 +625,25 @@ msgstr ""
 msgid "Use this icon"
 msgstr ""
 
-#: inc/order-status.php:38
+#: inc/order-status.php:45
 msgctxt "Order status"
 msgid "Courier-এ আছে"
 msgstr ""
 
 #. translators: %s: number of orders.
-#: inc/order-status.php:40
+#: inc/order-status.php:47
 msgid "Courier-এ আছে <span class=\"count\">(%s)</span>"
 msgid_plural "Courier-এ আছে <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/order-status.php:43
+#: inc/order-status.php:50
 msgctxt "Order status"
 msgid "Returned"
 msgstr ""
 
 #. translators: %s: number of orders.
-#: inc/order-status.php:45
+#: inc/order-status.php:52
 msgid "Returned <span class=\"count\">(%s)</span>"
 msgid_plural "Returned <span class=\"count\">(%s)</span>"
 msgstr[0] ""
@@ -653,7 +653,7 @@ msgstr[1] ""
 msgid "Helps"
 msgstr ""
 
-#: inc/recently-viewed.php:114
+#: inc/recently-viewed.php:157
 msgid "Recently viewed"
 msgstr ""
 
@@ -750,121 +750,121 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: inc/template-tags.php:234
+#: inc/template-tags.php:239
 msgid "View cart"
 msgstr ""
 
 #. translators: %s: number of items in the cart.
-#: inc/template-tags.php:253
+#: inc/template-tags.php:258
 msgid "item in cart"
 msgid_plural "items in cart"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/template-tags.php:466
+#: inc/template-tags.php:471
 #: woocommerce/single-product/related.php:18
 msgid "You may also like"
 msgstr ""
 
-#: inc/template-tags.php:493
+#: inc/template-tags.php:498
 msgid "View All"
 msgstr ""
 
-#: inc/template-tags.php:508
+#: inc/template-tags.php:513
 #: single.php:24
 #: template-parts/shop/results.php:72
 msgid "Previous"
 msgstr ""
 
-#: inc/template-tags.php:509
+#: inc/template-tags.php:514
 #: single.php:25
 #: template-parts/shop/results.php:73
 msgid "Next"
 msgstr ""
 
-#: inc/template-tags.php:510
+#: inc/template-tags.php:515
 msgid "Page navigation"
 msgstr ""
 
-#: inc/woocommerce.php:142
+#: inc/woocommerce.php:154
 msgid "Buy Now"
 msgstr ""
 
 #. translators: 1: product name, 2: product URL.
-#: inc/woocommerce.php:219
+#: inc/woocommerce.php:231
 msgid "Hello! I would like to order: %1$s (%2$s)"
 msgstr ""
 
-#: inc/woocommerce.php:235
+#: inc/woocommerce.php:247
 msgid "Order on WhatsApp"
 msgstr ""
 
 #. translators: %s: the shop's phone number.
-#: inc/woocommerce.php:263
+#: inc/woocommerce.php:275
 msgid "Call for order: %s"
 msgstr ""
 
-#: inc/woocommerce.php:355
+#: inc/woocommerce.php:367
 msgid "আপনার নাম"
 msgstr ""
 
-#: inc/woocommerce.php:356
+#: inc/woocommerce.php:368
 msgid "আপনার নাম লিখুন *"
 msgstr ""
 
-#: inc/woocommerce.php:362
+#: inc/woocommerce.php:374
 msgid "মোবাইল নাম্বার"
 msgstr ""
 
-#: inc/woocommerce.php:363
+#: inc/woocommerce.php:375
 msgid "মোবাইল নাম্বার *"
 msgstr ""
 
-#: inc/woocommerce.php:369
+#: inc/woocommerce.php:381
 msgid "সম্পূর্ণ ঠিকানা"
 msgstr ""
 
-#: inc/woocommerce.php:370
+#: inc/woocommerce.php:382
 msgid "সম্পূর্ণ ঠিকানা (জেলা সহ) *"
 msgstr ""
 
-#: inc/woocommerce.php:376
+#: inc/woocommerce.php:388
 msgid "ইমেইল ঠিকানা"
 msgstr ""
 
-#: inc/woocommerce.php:377
+#: inc/woocommerce.php:389
 msgid "ইমেইল ঠিকানা (ঐচ্ছিক)"
 msgstr ""
 
-#: inc/woocommerce.php:399
+#: inc/woocommerce.php:411
 #: template-parts/checkout/delivery-note.php:25
 #: woocommerce/checkout/thankyou.php:150
 msgid "ডেলিভারি নোট"
 msgstr ""
 
-#: inc/woocommerce.php:400
+#: inc/woocommerce.php:412
 msgid "ডেলিভারি সংক্রান্ত কোন নির্দেশনা থাকলে লিখুন (ঐচ্ছিক)"
 msgstr ""
 
-#: inc/woocommerce.php:494
+#: inc/woocommerce.php:506
 #: woocommerce/checkout/form-checkout.php:32
 msgid "অর্ডারটি কনফার্ম করতে ফর্মটি সম্পূর্ণ পূরণ করে নিচের Place Order বাটনে ক্লিক করুন।"
 msgstr ""
 
-#: inc/woocommerce.php:518
+#: inc/woocommerce.php:530
 msgid "Breadcrumb"
 msgstr ""
 
-#: inc/woocommerce.php:564
+#: inc/woocommerce.php:576
 msgid "কার্ট পাওয়া যায়নি।"
 msgstr ""
 
-#: inc/woocommerce.php:572
+#: inc/woocommerce.php:584
 msgid "পণ্যটি আর কার্টে নেই।"
 msgstr ""
 
 #. translators: %s: the number of units still in stock.
-#: inc/woocommerce.php:589
+#: inc/woocommerce.php:601
 msgid "স্টকে আছে মাত্র %s টি।"
 msgstr ""
 
@@ -1026,12 +1026,16 @@ msgstr ""
 msgid "Load more products"
 msgstr ""
 
-#: woocommerce/archive-product.php:45
+#: woocommerce/archive-product.php:57
 msgid "Filters"
 msgstr ""
 
 #: woocommerce/checkout/form-billing.php:19
 msgid "ডেলিভারি তথ্য"
+msgstr ""
+
+#: woocommerce/checkout/form-billing.php:58
+msgid "একটি অ্যাকাউন্ট খুলবেন?"
 msgstr ""
 
 #: woocommerce/checkout/form-checkout.php:25

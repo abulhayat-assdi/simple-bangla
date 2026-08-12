@@ -156,7 +156,7 @@ export function Admins() {
 														<div class="sb-table__sub">${ user.email }</div>
 													</td>
 													<td>
-														${ user.is_self || user.unmanaged
+														${ user.is_self || user.unmanaged || ! user.can_edit
 															? html`<span class="sb-table__sub">${ user.role_label }</span>`
 															: html`<${ Select }
 																	value=${ user.role }
@@ -174,9 +174,14 @@ export function Admins() {
 																	Managed in WordPress — this screen does not change this role.
 															  </div>`
 															: null }
+														${ ! user.is_self && ! user.unmanaged && ! user.can_edit
+															? html`<div class="sb-table__sub">
+																	Only an administrator can change this account.
+															  </div>`
+															: null }
 													</td>
 													<td>
-														${ user.is_self
+														${ user.is_self || ! user.can_delete
 															? null
 															: html`<button
 																	class="sb-btn sb-btn--ghost sb-btn--sm"

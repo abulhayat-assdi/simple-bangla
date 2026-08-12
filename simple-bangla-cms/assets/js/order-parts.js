@@ -24,6 +24,7 @@ import {
 	ORDER_OUTCOMES,
 	isDispatched,
 	offersOutcomes,
+	collectsOnDelivery,
 } from './order-utils.js';
 
 /** What is in the parcel. */
@@ -175,7 +176,9 @@ export function PaymentSummary( { order } ) {
 		<div class="sb-payment">
 			<p class="sb-payment__method">${ order.payment_method_title || 'Not recorded' }</p>
 			<p class="sb-hint">
-				${ order.date_paid ? 'Paid ' + dateTime( order.date_paid ) : 'To be collected on delivery.' }
+				${ collectsOnDelivery( order )
+					? 'To collect on delivery: ' + money( order.total )
+					: ( order.date_paid ? 'Paid ' + dateTime( order.date_paid ) : 'Not paid yet.' ) }
 			</p>
 			${ order.transaction_id ? html`<p class="sb-hint">Transaction ${ order.transaction_id }</p>` : null }
 		</div>
