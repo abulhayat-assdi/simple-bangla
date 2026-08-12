@@ -69,13 +69,21 @@ function simple_bangla_setup() {
 	/*
 	 * Image sizes.
 	 *
-	 * All three are hard-cropped: the product card and the category circle are both square
+	 * Hard-cropped throughout: the product card and the category circle are both square
 	 * by design, and letting WordPress letterbox them would break the grid rhythm.
+	 *
+	 * Performance note: card images are max ~270px wide on desktop (4-column grid at
+	 * 1200px). 400px covers a 1.5× retina phone (270px × 1.5 = 405px) without sending
+	 * 6× more bytes than necessary. The hero banner is a separate, wider size because
+	 * it spans the full column — the card size would look blurry there.
+	 *
+	 * After changing these sizes, run "Regenerate Thumbnails" to re-crop existing media.
 	 */
-	set_post_thumbnail_size( 1024, 1024, true );
+	set_post_thumbnail_size( 600, 600, true );
+	add_image_size( 'simple-bangla-hero', 1200, 500, true );
 	add_image_size( 'simple-bangla-category-icon', 150, 150, true );
 	add_image_size( 'simple-bangla-gallery', 600, 600, true );
-	add_image_size( 'simple-bangla-card', 1024, 1024, true );
+	add_image_size( 'simple-bangla-card', 400, 400, true );
 }
 add_action( 'after_setup_theme', 'simple_bangla_setup' );
 
@@ -89,9 +97,10 @@ function simple_bangla_custom_image_size_names( $sizes ) {
 	return array_merge(
 		$sizes,
 		array(
+			'simple-bangla-hero'          => esc_html__( 'Hero Banner (1200×500)', 'simple-bangla' ),
 			'simple-bangla-category-icon' => esc_html__( 'Category Icon (150×150)', 'simple-bangla' ),
 			'simple-bangla-gallery'       => esc_html__( 'Product Gallery (600×600)', 'simple-bangla' ),
-			'simple-bangla-card'          => esc_html__( 'Product Card (1024×1024)', 'simple-bangla' ),
+			'simple-bangla-card'          => esc_html__( 'Product Card (400×400)', 'simple-bangla' ),
 		)
 	);
 }

@@ -4,8 +4,21 @@
  *
  * Everything the footer, the mobile bottom bar, the WhatsApp float and the product page's
  * "order on WhatsApp" button need comes from here, so none of it is ever hard-coded in a
- * template. Defaults are obvious placeholders — the store owner replaces them in the
- * Customizer without touching code.
+ * template.
+ *
+ * **Every content field ships empty, and the example lives in its description** (2026-08-12).
+ * These used to default to `+880 1XXX-XXXXXX`, `hello@simplebangla.com` and three
+ * `.../simplebangla` social URLs, on the reasoning that an obvious placeholder invites being
+ * replaced. On a shop that went live before anyone opened the Customizer it did the opposite:
+ * `simple_bangla_tel_href()` strips the X's, so the mobile Call button rendered as `tel:+8801`
+ * and the WhatsApp float as `wa.me/8801` — the two most-tapped controls on a phone, both dialling
+ * nothing, and neither of them looking broken until a customer tapped one. The social defaults
+ * were worse than useless: they pointed at handles this shop may not own.
+ *
+ * Empty is the honest default because every consumer already treats a blank field as "not
+ * configured" and simply does not render the control. So an unconfigured shop shows no Call
+ * button rather than a dead one, and the example the owner needs is on screen beside the field
+ * where an example belongs.
  *
  * @package Simple_Bangla
  */
@@ -21,29 +34,29 @@ function simple_bangla_contact_fields() {
 	return array(
 		'phone'          => array(
 			'label'       => __( 'Phone number', 'simple-bangla' ),
-			'description' => __( 'Shown in the footer, the menu drawer and the mobile Call button.', 'simple-bangla' ),
-			'default'     => '+880 1XXX-XXXXXX',
+			'description' => __( 'Shown in the footer, the menu drawer and the mobile Call button. Leave it empty and no Call button is shown at all. Example: +880 1712-345678', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
 		),
 		'whatsapp'       => array(
 			'label'       => __( 'WhatsApp number', 'simple-bangla' ),
-			'description' => __( 'Powers the floating WhatsApp button and the Order on WhatsApp button on each product.', 'simple-bangla' ),
-			'default'     => '+880 1XXX-XXXXXX',
+			'description' => __( 'Powers the floating WhatsApp button and the Order on WhatsApp button on each product. Leave it empty and neither is shown. Example: +880 1712-345678', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
 		),
 		'email'          => array(
 			'label'       => __( 'Email address', 'simple-bangla' ),
-			'description' => __( 'Shown in the footer contact row.', 'simple-bangla' ),
-			'default'     => 'hello@simplebangla.com',
+			'description' => __( 'Shown in the footer contact row. Example: hello@yourshop.com', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'sanitize_email',
 			'type'        => 'email',
 		),
 		'messenger'      => array(
 			'label'       => __( 'Messenger username', 'simple-bangla' ),
-			'description' => __( 'Just the username, without m.me/. Used by the mobile Chat button.', 'simple-bangla' ),
-			'default'     => 'simplebangla',
+			'description' => __( 'Just the username, without m.me/. Used by the mobile Chat button. Example: yourshoppage', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
 		),
@@ -53,12 +66,13 @@ function simple_bangla_contact_fields() {
 		 * Blanking the URL already drops the icon, but that throws the address away — and a shop that
 		 * pauses its Instagram for a month should not have to find the link again afterwards. The
 		 * switch is the reversible version of the same decision. Default on, so nothing disappears
-		 * from a footer that was working before this field existed.
+		 * from a footer that was working before this field existed — with the URL empty by default
+		 * the switch has nothing to show either way, which is the intended starting state.
 		 */
 		'facebook'       => array(
 			'label'       => __( 'Facebook URL', 'simple-bangla' ),
-			'description' => '',
-			'default'     => 'https://facebook.com/simplebangla',
+			'description' => __( 'The full address of your page. Example: https://facebook.com/yourshop', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'esc_url_raw',
 			'type'        => 'url',
 		),
@@ -71,8 +85,8 @@ function simple_bangla_contact_fields() {
 		),
 		'instagram'      => array(
 			'label'       => __( 'Instagram URL', 'simple-bangla' ),
-			'description' => '',
-			'default'     => 'https://instagram.com/simplebangla',
+			'description' => __( 'The full address of your profile. Example: https://instagram.com/yourshop', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'esc_url_raw',
 			'type'        => 'url',
 		),
@@ -85,8 +99,8 @@ function simple_bangla_contact_fields() {
 		),
 		'youtube'        => array(
 			'label'       => __( 'YouTube URL', 'simple-bangla' ),
-			'description' => '',
-			'default'     => 'https://youtube.com/@simplebangla',
+			'description' => __( 'The full address of your channel. Example: https://youtube.com/@yourshop', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'esc_url_raw',
 			'type'        => 'url',
 		),
@@ -99,8 +113,8 @@ function simple_bangla_contact_fields() {
 		),
 		'address'        => array(
 			'label'       => __( 'Street address', 'simple-bangla' ),
-			'description' => __( 'One line. Shown under the footer logo.', 'simple-bangla' ),
-			'default'     => 'Dhaka, Bangladesh',
+			'description' => __( 'One line. Shown under the footer logo and printed on the invoice. Example: 12 Elephant Road, Dhaka 1205', 'simple-bangla' ),
+			'default'     => '',
 			'sanitize'    => 'sanitize_text_field',
 			'type'        => 'text',
 		),

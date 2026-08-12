@@ -145,13 +145,13 @@ function simple_bangla_cms_settings_schema() {
 	$count_sanitizer = function_exists( 'simple_bangla_sanitize_count' ) ? 'simple_bangla_sanitize_count' : 'absint';
 	$bool_sanitizer  = function_exists( 'simple_bangla_sanitize_checkbox' ) ? 'simple_bangla_sanitize_checkbox' : 'rest_sanitize_boolean';
 
-	$schema['simple_bangla_home_hotdeals_heading'] = array(
-		'type'     => 'text',
-		'default'  => __( 'Hot Deals', 'simple-bangla-cms' ),
-		'sanitize' => 'sanitize_text_field',
-		'group'    => 'hotdeals',
-		'label'    => __( 'Hot Deals — heading', 'simple-bangla-cms' ),
-	);
+	/*
+	 * No `simple_bangla_home_hotdeals_heading`. The theme removed that setting on 2026-08-12 — the
+	 * Hot Deals shelf is the hero's left column and no template ever read a heading for it. It was
+	 * carried here while it still existed in the Customizer, but the CMS deliberately rendered no
+	 * control for it, so nothing in the interface changes by dropping it. Leaving it in the schema
+	 * would keep a writable key that configures nothing.
+	 */
 
 	$schema['simple_bangla_home_hotdeals_count'] = array(
 		'type'     => 'int',

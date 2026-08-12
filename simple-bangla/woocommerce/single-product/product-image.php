@@ -7,6 +7,7 @@
  * files, so the gallery degrades to something usable rather than something broken.
  *
  * @package Simple_Bangla
+ * @version 10.5.0
  */
 
 defined( 'ABSPATH' ) || exit;

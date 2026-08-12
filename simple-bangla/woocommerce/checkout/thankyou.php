@@ -11,6 +11,7 @@
  * bookmarked URL shows the same page.
  *
  * @package Simple_Bangla
+ * @version 8.1.0
  */
 
 defined( 'ABSPATH' ) || exit;

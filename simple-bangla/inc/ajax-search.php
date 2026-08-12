@@ -50,6 +50,23 @@ function simple_bangla_ajax_search() {
 		wp_send_json_success( array( 'results' => array() ) );
 	}
 
+	/*
+	 * Cache live-search results for 5 minutes.
+	 *
+	 * The same short queries ('শার্ট', 'মোবাইল', etc.) are typed by many visitors in
+	 * parallel; running a fresh WP_Query for each one is wasteful. When a persistent
+	 * object store (Redis, Memcached) is installed, cache hits return instantly from
+	 * memory. Without one, wp_cache_get/set still benefits within a single request
+	 * cycle and adds zero overhead on cache miss.
+	 */
+	$cache_key  = 'sb_search_' . md5( $term );
+	$cache_group = 'simple_bangla_search';
+	$cached     = wp_cache_get( $cache_key, $cache_group );
+
+	if ( false !== $cached ) {
+		wp_send_json_success( $cached );
+	}
+
 	$post_type = post_type_exists( 'product' ) ? 'product' : 'post';
 
 	$query = new WP_Query(
@@ -92,20 +109,24 @@ function simple_bangla_ajax_search() {
 		$results[] = $result;
 	}
 
-	wp_send_json_success(
-		array(
-			'results' => $results,
-			'allUrl'  => add_query_arg(
-				array_filter(
-					array(
-						's'         => $term,
-						'post_type' => 'product' === $post_type ? 'product' : '',
-					)
-				),
-				home_url( '/' )
+	$data = array(
+		'results' => $results,
+		'allUrl'  => add_query_arg(
+			array_filter(
+				array(
+					's'         => $term,
+					'post_type' => 'product' === $post_type ? 'product' : '',
+				)
 			),
-		)
+			home_url( '/' )
+		),
 	);
+
+	// Store in object cache for 5 minutes. Cleared automatically when the cache expires
+	// or when the object cache is flushed (e.g. after product saves).
+	wp_cache_set( $cache_key, $data, $cache_group, 5 * MINUTE_IN_SECONDS );
+
+	wp_send_json_success( $data );
 }
 add_action( 'wp_ajax_simple_bangla_search', 'simple_bangla_ajax_search' );
 add_action( 'wp_ajax_nopriv_simple_bangla_search', 'simple_bangla_ajax_search' );

@@ -18,6 +18,18 @@ defined( 'ABSPATH' ) || exit;
  */
 function simple_bangla_asset_version( $relative_path ) {
 
+	/*
+	 * Performance: skip the disk read in production.
+	 *
+	 * filemtime() is only useful during development — it surfaces local edits without
+	 * bumping SIMPLE_BANGLA_VERSION on every save. On a live site with WP_DEBUG off,
+	 * all it does is stat every CSS/JS file on every request. Using the theme version
+	 * string instead costs nothing and still busts the cache on each theme update.
+	 */
+	if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
+		return SIMPLE_BANGLA_VERSION;
+	}
+
 	$absolute = SIMPLE_BANGLA_DIR . ltrim( $relative_path, '/' );
 
 	if ( file_exists( $absolute ) ) {
@@ -63,11 +75,6 @@ function simple_bangla_fonts_url() {
 	 */
 	$lato = _x( 'on', 'Lato font: on or off', 'simple-bangla' );
 
-	/*
-	 * translators: If Raleway does not render well in your language, translate this to 'off'.
-	 * Do not translate into your own alphabet.
-	 */
-	$raleway = _x( 'on', 'Raleway font: on or off', 'simple-bangla' );
 
 	$families = array();
 
@@ -79,21 +86,25 @@ function simple_bangla_fonts_url() {
 		$families[] = 'Lato:wght@400;600;700';
 	}
 
-	// Only weight 900 — the footer headings are the sole place Raleway appears.
-	if ( 'off' !== $raleway ) {
-		$families[] = 'Raleway:wght@900';
-	}
-
 	/*
-	 * translators: If Baskervville does not render well in your language, translate this to
-	 * 'off'. Do not translate into your own alphabet.
+	 * Raleway and Baskervville are deliberately not requested.
+	 *
+	 * Raleway was only used for the footer column headings (a single weight, wght@900).
+	 * Baskervville was only used for the large uppercase section headings.
+	 *
+	 * Both fonts add an extra network round-trip to fonts.gstatic.com on first load —
+	 * from Bangladesh that can cost 200-400 ms each. The system-font fallbacks already
+	 * defined in --sb-font-footer and --sb-font-display (Georgia / Oswald / Lato) render
+	 * correctly in all browsers without any download at all.
+	 *
+	 * To restore them, un-comment the two blocks below and the translator strings above.
 	 */
-	$baskervville = _x( 'on', 'Baskervville font: on or off', 'simple-bangla' );
-
-	// Google ships Baskervville in one weight; the reference faux-bolds it to 600 and so do we.
-	if ( 'off' !== $baskervville ) {
-		$families[] = 'Baskervville';
-	}
+	// if ( 'off' !== $raleway ) {
+	//     $families[] = 'Raleway:wght@900';
+	// }
+	// if ( 'off' !== $baskervville ) {
+	//     $families[] = 'Baskervville';
+	// }
 
 	if ( empty( $families ) ) {
 		return '';

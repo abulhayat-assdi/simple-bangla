@@ -11,6 +11,7 @@
  * translated like any other.
  *
  * @package Simple_Bangla
+ * @version 9.4.0
  */
 
 defined( 'ABSPATH' ) || exit;

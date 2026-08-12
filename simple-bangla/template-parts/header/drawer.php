@@ -34,10 +34,12 @@ defined( 'ABSPATH' ) || exit;
 			// No My Account button — see the note in template-parts/header/bar.php. The phone
 			// number is what a shopper opening this drawer actually wants from it.
 			$simple_bangla_phone = simple_bangla_get_contact( 'phone' );
+			// The dialable form decides whether the link appears; the display string is printed.
+			$simple_bangla_tel   = simple_bangla_tel_href( $simple_bangla_phone );
 
-			if ( $simple_bangla_phone ) :
+			if ( $simple_bangla_tel ) :
 				?>
-				<a class="sb-drawer__phone" href="<?php echo esc_url( 'tel:' . simple_bangla_tel_href( $simple_bangla_phone ) ); ?>">
+				<a class="sb-drawer__phone" href="<?php echo esc_url( 'tel:' . $simple_bangla_tel ); ?>">
 					<?php simple_bangla_icon( 'phone' ); ?>
 					<?php echo esc_html( $simple_bangla_phone ); ?>
 				</a>

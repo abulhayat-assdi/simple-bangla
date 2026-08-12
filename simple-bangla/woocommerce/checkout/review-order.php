@@ -13,6 +13,7 @@
  * gateways, fee lines and tax rows keep working.
  *
  * @package Simple_Bangla
+ * @version 11.0.0
  */
 
 defined( 'ABSPATH' ) || exit;

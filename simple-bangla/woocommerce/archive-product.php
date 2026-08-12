@@ -6,6 +6,7 @@
  * share one collapsible container on mobile, and WooCommerce's hook order cannot express that.
  *
  * @package Simple_Bangla
+ * @version 8.6.0
  */
 
 defined( 'ABSPATH' ) || exit;

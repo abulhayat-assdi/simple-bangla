@@ -7,6 +7,7 @@
  * one. The separate shipping-address form is switched off in `inc/woocommerce.php`.
  *
  * @package Simple_Bangla
+ * @version 3.6.0
  */
 
 defined( 'ABSPATH' ) || exit;

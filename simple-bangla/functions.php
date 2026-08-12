@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * Used as the asset cache-buster in production. During development inc/enqueue.php
  * prefers the file modification time so edits show up without bumping this.
  */
-define( 'SIMPLE_BANGLA_VERSION', '1.7.0' );
+define( 'SIMPLE_BANGLA_VERSION', '1.8.0' );
 
 /** Absolute path to the theme directory, with a trailing slash. */
 define( 'SIMPLE_BANGLA_DIR', trailingslashit( get_template_directory() ) );
@@ -78,3 +78,21 @@ if ( class_exists( 'WooCommerce' ) ) {
 	 */
 	require_once SIMPLE_BANGLA_DIR . 'inc/order-number.php';
 }
+
+/*
+ * Disable the recently-viewed Set-Cookie header on product pages.
+ *
+ * WHY: Writing a cookie on every product page prevents Cloudflare, LiteSpeed Cache,
+ * WP Rocket and virtually every other page cache from storing the response. On the
+ * most-visited page type of a shop, this means every visitor triggers a full PHP +
+ * MySQL boot instead of receiving a cached HTML file. The latency cost of that miss
+ * (~400–800 ms TTFB) far outweighs the convenience of the recently-viewed strip.
+ *
+ * With this filter active the recently-viewed strip stops updating and will disappear
+ * once the browser's existing cookie expires. Everything else on the site is unaffected.
+ *
+ * TO RE-ENABLE: Comment out or remove the add_filter line below, then clear your
+ * page cache so product pages start being cached again.
+ */
+add_filter( 'simple_bangla_track_recently_viewed', '__return_false' );
+

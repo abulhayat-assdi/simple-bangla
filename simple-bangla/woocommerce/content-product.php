@@ -12,6 +12,7 @@
  * `woocommerce_before_shop_loop_item_title`, which is where badge-style plugins hook in.
  *
  * @package Simple_Bangla
+ * @version 9.4.0
  */
 
 defined( 'ABSPATH' ) || exit;

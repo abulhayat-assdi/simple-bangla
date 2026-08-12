@@ -6,6 +6,7 @@
  * WooCommerce's `ul.products.columns-4`, which none of the theme's CSS knows about.
  *
  * @package Simple_Bangla
+ * @version 10.3.0
  */
 
 defined( 'ABSPATH' ) || exit;

@@ -7,6 +7,7 @@
  * and any plugin that hooks the summary all keep working.
  *
  * @package Simple_Bangla
+ * @version 1.6.4
  */
 
 defined( 'ABSPATH' ) || exit;

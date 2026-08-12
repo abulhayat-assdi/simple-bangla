@@ -251,17 +251,20 @@ function simple_bangla_customize_home( $wp_customize ) {
 		);
 	}
 
-	/* -- Hot Deals -- */
-
-	$add(
-		'simple_bangla_home_hotdeals_heading',
-		__( 'Hot Deals', 'simple-bangla' ),
-		'sanitize_text_field',
-		array(
-			'label' => __( 'Hot Deals — heading', 'simple-bangla' ),
-			'type'  => 'text',
-		)
-	);
+	/*
+	 * -- Hot Deals --
+	 *
+	 * There is no heading field. There was one — `simple_bangla_home_hotdeals_heading` — and it was
+	 * left behind on 2026-08-06 when the Hot Deals shelf became the hero's left column: a one-card
+	 * slider standing beside the banner carousel, with no room for a heading above it and no
+	 * template reading the setting. It has been removed rather than wired up (2026-08-12), because
+	 * putting a heading over that column would unbalance a two-column hero the owner has approved,
+	 * and because a control that visibly does nothing is worse than an absent one — the owner types
+	 * a name, saves, and the homepage does not change, with nothing on screen to explain why.
+	 *
+	 * The CMS never rendered a control for it, so this removes the only place it could be reached.
+	 * A `theme_mod` left over on an existing install is harmless and simply stops being read.
+	 */
 
 	$add(
 		'simple_bangla_home_hotdeals_count',

@@ -10,7 +10,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$simple_bangla_phone     = simple_bangla_get_contact( 'phone' );
+// The dialable form, not the display string. A number with no digits in it — a note left in the
+// field, a half-typed entry — would otherwise render `href="tel:"`, a Call button that looks like
+// every other one and does nothing when a thumb lands on it.
+$simple_bangla_tel       = simple_bangla_tel_href( simple_bangla_get_contact( 'phone' ) );
 $simple_bangla_messenger = simple_bangla_get_contact( 'messenger' );
 
 $simple_bangla_items = array();
@@ -23,11 +26,11 @@ if ( function_exists( 'wc_get_page_permalink' ) ) {
 	);
 }
 
-if ( $simple_bangla_phone ) {
+if ( $simple_bangla_tel ) {
 	$simple_bangla_items[] = array(
 		'icon'  => 'phone',
 		'label' => __( 'Call', 'simple-bangla' ),
-		'url'   => 'tel:' . simple_bangla_tel_href( $simple_bangla_phone ),
+		'url'   => 'tel:' . $simple_bangla_tel,
 	);
 }
 

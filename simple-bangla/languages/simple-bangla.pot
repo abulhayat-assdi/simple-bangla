@@ -2,9 +2,9 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Simple Bangla 1.7.0\n"
+"Project-Id-Version: Simple Bangla 1.8.0\n"
 "Report-Msgid-Bugs-To: https://simplebangla.com/\n"
-"POT-Creation-Date: 2026-08-12 05:51+0000\n"
+"POT-Creation-Date: 2026-08-12 07:53+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -106,183 +106,185 @@ msgstr ""
 msgid "Hero slide %d — link"
 msgstr ""
 
-#: inc/customizer-home.php:258
-#: woocommerce/content-product.php:66
-#: woocommerce/single-product/product-image.php:25
-msgid "Hot Deals"
-msgstr ""
-
-#: inc/customizer-home.php:261
-msgid "Hot Deals — heading"
-msgstr ""
-
-#: inc/customizer-home.php:271
+#: inc/customizer-home.php:274
 msgid "Hot Deals — how many products"
 msgstr ""
 
-#: inc/customizer-home.php:272
+#: inc/customizer-home.php:275
 msgid "Only products that are actually on sale appear here."
 msgstr ""
 
-#: inc/customizer-home.php:288
+#: inc/customizer-home.php:291
 msgid "Category circles — how many"
 msgstr ""
 
-#: inc/customizer-home.php:289
+#: inc/customizer-home.php:292
 msgid "Top-level product categories, shown as circular thumbnails."
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:310
+#: inc/customizer-home.php:313
 msgid "Row %d — show this row"
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:321
+#: inc/customizer-home.php:324
 msgid "Row %d — heading"
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:332
+#: inc/customizer-home.php:335
 msgid "Row %d — category"
 msgstr ""
 
-#: inc/customizer-home.php:333
+#: inc/customizer-home.php:336
 msgid "The heading above and the category here are separate on purpose. Set both."
 msgstr ""
 
 #. translators: %d: row number.
-#: inc/customizer-home.php:345
+#: inc/customizer-home.php:348
 msgid "Row %d — how many products"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:380
+#: inc/customizer-home.php:383
 msgid "Banner pair %d — narrow image"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:382
+#: inc/customizer-home.php:385
 msgid "Banner pair %d — wide image"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:396
+#: inc/customizer-home.php:399
 msgid "Banner pair %d — narrow link"
 msgstr ""
 
 #. translators: %d: banner pair number.
-#: inc/customizer-home.php:398
+#: inc/customizer-home.php:401
 msgid "Banner pair %d — wide link"
 msgstr ""
 
-#: inc/customizer-store.php:23
+#: inc/customizer-store.php:36
 msgid "Phone number"
 msgstr ""
 
-#: inc/customizer-store.php:24
-msgid "Shown in the footer, the menu drawer and the mobile Call button."
+#: inc/customizer-store.php:37
+msgid "Shown in the footer, the menu drawer and the mobile Call button. Leave it empty and no Call button is shown at all. Example: +880 1712-345678"
 msgstr ""
 
-#: inc/customizer-store.php:30
+#: inc/customizer-store.php:43
 msgid "WhatsApp number"
 msgstr ""
 
-#: inc/customizer-store.php:31
-msgid "Powers the floating WhatsApp button and the Order on WhatsApp button on each product."
+#: inc/customizer-store.php:44
+msgid "Powers the floating WhatsApp button and the Order on WhatsApp button on each product. Leave it empty and neither is shown. Example: +880 1712-345678"
 msgstr ""
 
-#: inc/customizer-store.php:37
+#: inc/customizer-store.php:50
 msgid "Email address"
 msgstr ""
 
-#: inc/customizer-store.php:38
-msgid "Shown in the footer contact row."
+#: inc/customizer-store.php:51
+msgid "Shown in the footer contact row. Example: hello@yourshop.com"
 msgstr ""
 
-#: inc/customizer-store.php:44
+#: inc/customizer-store.php:57
 msgid "Messenger username"
 msgstr ""
 
-#: inc/customizer-store.php:45
-msgid "Just the username, without m.me/. Used by the mobile Chat button."
-msgstr ""
-
-#: inc/customizer-store.php:59
-msgid "Facebook URL"
-msgstr ""
-
-#: inc/customizer-store.php:66
-msgid "Show Facebook"
-msgstr ""
-
-#: inc/customizer-store.php:67
-#: inc/customizer-store.php:81
-#: inc/customizer-store.php:95
-msgid "Uncheck to hide the icon without losing the address."
+#: inc/customizer-store.php:58
+msgid "Just the username, without m.me/. Used by the mobile Chat button. Example: yourshoppage"
 msgstr ""
 
 #: inc/customizer-store.php:73
-msgid "Instagram URL"
+msgid "Facebook URL"
+msgstr ""
+
+#: inc/customizer-store.php:74
+msgid "The full address of your page. Example: https://facebook.com/yourshop"
 msgstr ""
 
 #: inc/customizer-store.php:80
-msgid "Show Instagram"
+msgid "Show Facebook"
+msgstr ""
+
+#: inc/customizer-store.php:81
+#: inc/customizer-store.php:95
+#: inc/customizer-store.php:109
+msgid "Uncheck to hide the icon without losing the address."
 msgstr ""
 
 #: inc/customizer-store.php:87
-msgid "YouTube URL"
+msgid "Instagram URL"
+msgstr ""
+
+#: inc/customizer-store.php:88
+msgid "The full address of your profile. Example: https://instagram.com/yourshop"
 msgstr ""
 
 #: inc/customizer-store.php:94
-msgid "Show YouTube"
+msgid "Show Instagram"
 msgstr ""
 
 #: inc/customizer-store.php:101
-msgid "Street address"
+msgid "YouTube URL"
 msgstr ""
 
 #: inc/customizer-store.php:102
-msgid "One line. Shown under the footer logo."
+msgid "The full address of your channel. Example: https://youtube.com/@yourshop"
 msgstr ""
 
-#: inc/customizer-store.php:207
+#: inc/customizer-store.php:108
+msgid "Show YouTube"
+msgstr ""
+
+#: inc/customizer-store.php:115
+msgid "Street address"
+msgstr ""
+
+#: inc/customizer-store.php:116
+msgid "One line. Shown under the footer logo and printed on the invoice. Example: 12 Elephant Road, Dhaka 1205"
+msgstr ""
+
+#: inc/customizer-store.php:221
 msgid "Facebook"
 msgstr ""
 
-#: inc/customizer-store.php:208
+#: inc/customizer-store.php:222
 msgid "Instagram"
 msgstr ""
 
-#: inc/customizer-store.php:209
+#: inc/customizer-store.php:223
 msgid "YouTube"
 msgstr ""
 
-#: inc/customizer-store.php:237
+#: inc/customizer-store.php:251
 msgid "Call us"
 msgstr ""
 
-#: inc/customizer-store.php:247
+#: inc/customizer-store.php:261
 msgid "Email us"
 msgstr ""
 
-#: inc/customizer-store.php:257
+#: inc/customizer-store.php:271
 msgid "WhatsApp"
 msgstr ""
 
-#: inc/customizer-store.php:275
+#: inc/customizer-store.php:289
 msgid "Store details"
 msgstr ""
 
-#: inc/customizer-store.php:276
+#: inc/customizer-store.php:290
 msgid "Contact routes and social profiles. These placeholders are wired through the whole theme — replace them with your real details before launch."
 msgstr ""
 
-#: inc/customizer-store.php:326
+#: inc/customizer-store.php:340
 msgid "Payment methods image"
 msgstr ""
 
-#: inc/customizer-store.php:327
+#: inc/customizer-store.php:341
 msgid "A single wide image showing the payment methods you accept. Shown near the bottom of the footer."
 msgstr ""
 
@@ -427,98 +429,98 @@ msgstr ""
 msgid "Footer — Helps"
 msgstr ""
 
-#: inc/demo-content.php:1525
-#: template-parts/footer/mobile-bar.php:36
+#: inc/demo-content.php:1530
+#: template-parts/footer/mobile-bar.php:39
 msgid "Home"
 msgstr ""
 
-#: inc/demo-content.php:1556
+#: inc/demo-content.php:1561
 msgid "Simple Bangla Demo Content"
 msgstr ""
 
-#: inc/demo-content.php:1557
-#: inc/demo-content.php:1605
+#: inc/demo-content.php:1562
+#: inc/demo-content.php:1610
 msgid "Demo Content"
 msgstr ""
 
-#: inc/demo-content.php:1571
+#: inc/demo-content.php:1576
 msgid "You are not allowed to do that."
 msgstr ""
 
-#: inc/demo-content.php:1609
+#: inc/demo-content.php:1614
 msgid "WooCommerce needs to be active before the catalogue can be imported."
 msgstr ""
 
-#: inc/demo-content.php:1615
+#: inc/demo-content.php:1620
 msgid "PHP has no GD image support here, so products will be created without placeholder images unless an Unsplash key is set below."
 msgstr ""
 
-#: inc/demo-content.php:1621
+#: inc/demo-content.php:1626
 msgid "Unsplash key saved."
 msgstr ""
 
 #. translators: 1: categories created, 2: products created, 3: images created.
-#: inc/demo-content.php:1631
+#: inc/demo-content.php:1636
 msgid "Done. Created %1$d categories, %2$d products and %3$d images."
 msgstr ""
 
 #. translators: 1: categories removed, 2: products removed, 3: images removed.
-#: inc/demo-content.php:1647
+#: inc/demo-content.php:1652
 msgid "Removed %1$d categories, %2$d products and %3$d images. Click \"Import demo content\" below to rebuild the catalogue."
 msgstr ""
 
-#: inc/demo-content.php:1657
+#: inc/demo-content.php:1662
 msgid "Real product photos (optional)"
 msgstr ""
 
 #. translators: 1: opening link tag to unsplash.com/developers, 2: closing link tag.
-#: inc/demo-content.php:1663
+#: inc/demo-content.php:1668
 msgid "Paste a free Unsplash Access Key to have the importer fetch real, category-matched photos instead of drawn placeholders. Get one in about two minutes at %1$sunsplash.com/developers%2$s — no card required. Leave this blank to keep the drawn placeholders."
 msgstr ""
 
-#: inc/demo-content.php:1678
+#: inc/demo-content.php:1683
 msgid "Unsplash Access Key"
 msgstr ""
 
-#: inc/demo-content.php:1682
+#: inc/demo-content.php:1687
 msgid "Save key"
 msgstr ""
 
-#: inc/demo-content.php:1686
+#: inc/demo-content.php:1691
 msgid "Save the key before importing — it only affects products created after it is set. Products already imported keep whatever image they already have; use \"Remove demo content\" below and re-import to swap them for real photos."
 msgstr ""
 
-#: inc/demo-content.php:1693
+#: inc/demo-content.php:1698
 msgid "Fills the store with a demo catalogue so the design can be judged with real content in it: a three-level category tree, a few dozen products with sale prices, navigation menus and homepage banners."
 msgstr ""
 
-#: inc/demo-content.php:1697
+#: inc/demo-content.php:1702
 msgid "Nothing is overwritten."
 msgstr ""
 
-#: inc/demo-content.php:1698
+#: inc/demo-content.php:1703
 msgid "Anything that already exists under the same slug is left exactly as it is, so running this twice is harmless."
 msgstr ""
 
 #. translators: %s: human-readable date and time.
-#: inc/demo-content.php:1706
+#: inc/demo-content.php:1711
 msgid "Last run: %s"
 msgstr ""
 
-#: inc/demo-content.php:1717
-#: inc/demo-content.php:1755
+#: inc/demo-content.php:1722
+#: inc/demo-content.php:1760
 msgid "Import demo content"
 msgstr ""
 
-#: inc/demo-content.php:1725
+#: inc/demo-content.php:1730
 msgid "Delete every demo product, category and image? This cannot be undone. Store settings and pages are kept."
 msgstr ""
 
-#: inc/demo-content.php:1727
+#: inc/demo-content.php:1732
 msgid "Remove demo content"
 msgstr ""
 
-#: inc/demo-content.php:1753
+#: inc/demo-content.php:1758
 msgid "Simple Bangla can fill your store with demo products so you can see the design working."
 msgstr ""
 
@@ -601,7 +603,7 @@ msgid "Show submenu for %s"
 msgstr ""
 
 #: inc/nav-walker.php:274
-#: template-parts/footer/mobile-bar.php:21
+#: template-parts/footer/mobile-bar.php:24
 msgid "Shop"
 msgstr ""
 
@@ -649,7 +651,7 @@ msgid_plural "Returned <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/pages.php:110
+#: inc/pages.php:119
 msgid "Helps"
 msgstr ""
 
@@ -762,7 +764,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: inc/template-tags.php:471
-#: woocommerce/single-product/related.php:18
+#: woocommerce/single-product/related.php:19
 msgid "You may also like"
 msgstr ""
 
@@ -838,7 +840,7 @@ msgstr ""
 
 #: inc/woocommerce.php:411
 #: template-parts/checkout/delivery-note.php:25
-#: woocommerce/checkout/thankyou.php:150
+#: woocommerce/checkout/thankyou.php:151
 msgid "ডেলিভারি নোট"
 msgstr ""
 
@@ -847,7 +849,7 @@ msgid "ডেলিভারি সংক্রান্ত কোন নির�
 msgstr ""
 
 #: inc/woocommerce.php:506
-#: woocommerce/checkout/form-checkout.php:32
+#: woocommerce/checkout/form-checkout.php:33
 msgid "অর্ডারটি কনফার্ম করতে ফর্মটি সম্পূর্ণ পূরণ করে নিচের Place Order বাটনে ক্লিক করুন।"
 msgstr ""
 
@@ -885,7 +887,7 @@ msgid "Sidebar"
 msgstr ""
 
 #: template-parts/checkout/shipping.php:36
-#: woocommerce/checkout/thankyou.php:252
+#: woocommerce/checkout/thankyou.php:253
 msgid "ডেলিভারি চার্জ"
 msgstr ""
 
@@ -925,19 +927,19 @@ msgstr ""
 msgid "Back to top"
 msgstr ""
 
-#: template-parts/footer/mobile-bar.php:29
+#: template-parts/footer/mobile-bar.php:32
 msgid "Call"
 msgstr ""
 
-#: template-parts/footer/mobile-bar.php:44
+#: template-parts/footer/mobile-bar.php:47
 msgid "Chat"
 msgstr ""
 
-#: template-parts/footer/mobile-bar.php:53
+#: template-parts/footer/mobile-bar.php:56
 msgid "Cart"
 msgstr ""
 
-#: template-parts/footer/mobile-bar.php:62
+#: template-parts/footer/mobile-bar.php:65
 msgid "Quick links"
 msgstr ""
 
@@ -1026,175 +1028,180 @@ msgstr ""
 msgid "Load more products"
 msgstr ""
 
-#: woocommerce/archive-product.php:57
+#: woocommerce/archive-product.php:58
 msgid "Filters"
 msgstr ""
 
-#: woocommerce/checkout/form-billing.php:19
+#: woocommerce/checkout/form-billing.php:20
 msgid "ডেলিভারি তথ্য"
 msgstr ""
 
-#: woocommerce/checkout/form-billing.php:58
+#: woocommerce/checkout/form-billing.php:59
 msgid "একটি অ্যাকাউন্ট খুলবেন?"
 msgstr ""
 
-#: woocommerce/checkout/form-checkout.php:25
+#: woocommerce/checkout/form-checkout.php:26
 msgid "চেক আউট"
 msgstr ""
 
-#: woocommerce/checkout/form-checkout.php:46
+#: woocommerce/checkout/form-checkout.php:47
 msgid "অর্ডার করতে হলে আগে লগইন করুন।"
 msgstr ""
 
-#: woocommerce/checkout/form-checkout.php:91
+#: woocommerce/checkout/form-checkout.php:92
 msgid "আপনার অর্ডার"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:24
+#: woocommerce/checkout/review-order.php:25
 msgid "পণ্য"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:25
+#: woocommerce/checkout/review-order.php:26
 msgid "মোট"
 msgstr ""
 
 #. translators: %s: product name.
-#: woocommerce/checkout/review-order.php:50
+#: woocommerce/checkout/review-order.php:51
 msgid "%s সরিয়ে ফেলুন"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:80
+#: woocommerce/checkout/review-order.php:81
 msgid "পরিমাণ কমান"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:90
+#: woocommerce/checkout/review-order.php:91
 msgid "পরিমাণ বাড়ান"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:110
-#: woocommerce/checkout/thankyou.php:230
+#: woocommerce/checkout/review-order.php:111
+#: woocommerce/checkout/thankyou.php:231
 msgid "সাবটোটাল"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:159
-#: woocommerce/checkout/thankyou.php:281
+#: woocommerce/checkout/review-order.php:160
+#: woocommerce/checkout/thankyou.php:282
 msgid "সর্বমোট"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:37
+#: woocommerce/checkout/thankyou.php:38
 msgid "পেমেন্টটি সম্পন্ন হয়নি"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:40
+#: woocommerce/checkout/thankyou.php:41
 msgid "দুঃখিত, আপনার পেমেন্টটি গ্রহণ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:49
+#: woocommerce/checkout/thankyou.php:50
 msgid "আপনার অর্ডারের জন্য ধন্যবাদ!"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:52
+#: woocommerce/checkout/thankyou.php:53
 msgid "আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে।"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:66
+#: woocommerce/checkout/thankyou.php:67
 msgid "আপনার অর্ডারটি গ্রহণ করা হয়েছে।"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:74
+#: woocommerce/checkout/thankyou.php:75
 msgid "টাকা কেটে নেওয়া হয়ে থাকলে চিন্তার কারণ নেই — আবার চেষ্টা করার আগে আমাদের সাথে যোগাযোগ করুন।"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:78
+#: woocommerce/checkout/thankyou.php:79
 msgid "আবার চেষ্টা করুন"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:100
+#: woocommerce/checkout/thankyou.php:101
 msgid "অর্ডার নাম্বার"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:104
+#: woocommerce/checkout/thankyou.php:105
 msgid "তারিখ"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:117
+#: woocommerce/checkout/thankyou.php:118
 msgid "কাস্টমারের তথ্য"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:123
+#: woocommerce/checkout/thankyou.php:124
 msgid "পুরো নাম"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:129
+#: woocommerce/checkout/thankyou.php:130
 msgid "মোবাইল"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:136
+#: woocommerce/checkout/thankyou.php:137
 msgid "ইমেইল"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:143
+#: woocommerce/checkout/thankyou.php:144
 msgid "ডেলিভারি ঠিকানা"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:163
+#: woocommerce/checkout/thankyou.php:164
 msgid "অর্ডার করা পণ্য"
 msgstr ""
 
 #. translators: %s: number of products in the order.
-#: woocommerce/checkout/thankyou.php:168
+#: woocommerce/checkout/thankyou.php:169
 msgid "%s টি পণ্য"
 msgid_plural "%s টি পণ্য"
 msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: unit price, 2: quantity ordered.
-#: woocommerce/checkout/thankyou.php:205
+#: woocommerce/checkout/thankyou.php:206
 msgid "%1$s × %2$s"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:237
+#: woocommerce/checkout/thankyou.php:238
 msgid "ডিসকাউন্ট"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:293
+#: woocommerce/checkout/thankyou.php:294
 msgid "পেমেন্টের তথ্য"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:298
+#: woocommerce/checkout/thankyou.php:299
 msgid "পেমেন্ট মাধ্যম"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:302
+#: woocommerce/checkout/thankyou.php:303
 msgid "প্রদেয় পরিমাণ"
 msgstr ""
 
 #. translators: %s: order total.
-#: woocommerce/checkout/thankyou.php:312
+#: woocommerce/checkout/thankyou.php:313
 msgid "পণ্যটি হাতে পাওয়ার সময় %s ডেলিভারি ম্যানকে পরিশোধ করবেন। টাকাটি প্রস্তুত রাখার অনুরোধ রইল।"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:322
+#: woocommerce/checkout/thankyou.php:323
 msgid "আমাদের একজন প্রতিনিধি শীঘ্রই আপনার নাম্বারে কল করে অর্ডারটি নিশ্চিত করবেন।"
 msgstr ""
 
-#: woocommerce/checkout/thankyou.php:348
+#: woocommerce/checkout/thankyou.php:349
 msgid "আরও কেনাকাটা করুন"
 msgstr ""
 
-#: woocommerce/content-product.php:72
+#: woocommerce/content-product.php:67
+#: woocommerce/single-product/product-image.php:26
+msgid "Hot Deals"
+msgstr ""
+
+#: woocommerce/content-product.php:73
 msgid "Out of stock"
 msgstr ""
 
-#: woocommerce/content-product.php:114
+#: woocommerce/content-product.php:115
 msgid "Order Now"
 msgstr ""
 
-#: woocommerce/content-product.php:115
+#: woocommerce/content-product.php:116
 msgid "Choose Options"
 msgstr ""
 
 #. translators: %d: image number within the gallery.
-#: woocommerce/single-product/product-image.php:90
+#: woocommerce/single-product/product-image.php:91
 msgid "Show image %d"
 msgstr ""

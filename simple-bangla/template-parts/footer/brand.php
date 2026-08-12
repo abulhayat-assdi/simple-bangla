@@ -11,6 +11,8 @@
 defined( 'ABSPATH' ) || exit;
 
 $simple_bangla_phone   = simple_bangla_get_contact( 'phone' );
+// The dialable form is what decides whether the row appears; the display string is only printed.
+$simple_bangla_tel     = simple_bangla_tel_href( $simple_bangla_phone );
 $simple_bangla_email   = simple_bangla_get_contact( 'email' );
 $simple_bangla_address = simple_bangla_get_contact( 'address' );
 $simple_bangla_socials = simple_bangla_social_links();
@@ -29,8 +31,8 @@ $simple_bangla_socials = simple_bangla_social_links();
 	}
 	?>
 
-	<?php if ( $simple_bangla_phone ) : ?>
-		<a class="sb-footer__contact-item" href="<?php echo esc_url( 'tel:' . simple_bangla_tel_href( $simple_bangla_phone ) ); ?>">
+	<?php if ( $simple_bangla_tel ) : ?>
+		<a class="sb-footer__contact-item" href="<?php echo esc_url( 'tel:' . $simple_bangla_tel ); ?>">
 			<?php simple_bangla_icon( 'phone', 20 ); ?>
 			<span><?php echo esc_html( $simple_bangla_phone ); ?></span>
 		</a>

@@ -2067,3 +2067,72 @@ nothing appearing with it off, and the cookie's three list cases.
 assertions: the steps-2-4 suite calls the importer, the importer swaps the checkout page to the
 shortcode, and step 1's premise is that the page still holds the block. Nothing was broken. Run the
 suite that asserts about a pristine install first, or give it its own site.
+
+## The pre-launch audit (2026-08-12, theme 1.8.0 / plugin 1.9.1)
+
+The owner asked whether the site could go live. A full read of both packages plus a live run against
+real WordPress 7.0.3 + WooCommerce 11.0.1 said yes — **no HIGH or MEDIUM security finding, no fatal,
+no PHP notice on any page, and a real cash-on-delivery order placed end to end** — with five things
+worth fixing first. Four were repairs; the fifth was that the packages in `dist/` were two releases
+stale, which is the one that would have shipped a site missing the Store API block-list fix.
+
+- **Every store-detail field now ships empty, and the example lives in its description.** This is the
+  one that mattered. The defaults were `+880 1XXX-XXXXXX`, `hello@simplebangla.com` and three
+  `.../simplebangla` social URLs, on the reasoning that an obvious placeholder invites replacement.
+  On a shop that went live before anyone opened the Customizer it did the opposite:
+  `simple_bangla_tel_href()` strips the X's, so the homepage rendered `tel:+8801` and `wa.me/8801` —
+  **verified on a running install, not reasoned about** — and those two are the most-tapped controls
+  on a phone. Nothing looked broken until a customer tapped one. The social defaults were worse than
+  dead: they pointed at handles this shop may not own, so the footer sent customers to a stranger.
+  Empty is the honest default because every consumer already skips a blank field, so an unconfigured
+  shop shows no Call button rather than a dead one. Verified both directions: with the fields empty
+  the bottom bar is Shop · Home · Cart and not one `tel:`/`wa.me`/`m.me`/social link is in the
+  markup; saving a real number through the CMS brings back `tel:+8801712345678`,
+  `wa.me/8801712345678` and the four-item bar.
+- **The three `tel:` builders guard on the href, not on the display string.** `drawer.php`,
+  `footer/brand.php` and `footer/mobile-bar.php` each tested the raw field and then ran it through
+  `simple_bangla_tel_href()` inside the link, so a value with no digits in it — a note left in the
+  box, a half-typed entry — produced `href="tel:"`: a Call button identical to every other one that
+  does nothing. `woocommerce.php`'s call button and `simple_bangla_social_links()` already had this
+  right; now all five agree.
+- **All nine WooCommerce overrides carry an `@version`.** WooCommerce → Status reported "Version
+  header is missing" for every one of them. The cosmetic half is a red warning on the page a support
+  person looks at first; the real half is that **nothing would ever tell the shop a WooCommerce
+  update had changed one of those templates**. Each version is the core version of the file it
+  overrides, read from WooCommerce 11.0.1 and cross-checked against what the running install
+  reported. The version must be **bare** on its line: `get_file_version()` matches
+  `@version[\s]*(.*)$` and only strips a trailing `*/`, so an explanatory clause after the number
+  becomes part of the version string and `version_compare()` then reads nonsense. Status now reports
+  zero warnings. Bump these after reconciling with a WooCommerce update.
+- **`simple_bangla_home_hotdeals_heading` is removed rather than wired up.** It was left behind on
+  2026-08-06 when the Hot Deals shelf became the hero's left column, and had been dead in the
+  Customizer ever since. Wiring it in would have put a heading over one half of a two-column hero the
+  owner has approved; removing it costs nothing, because the CMS already declined to render a control
+  for it. Gone from `customizer-home.php` and from the plugin's schema, so `?group=hotdeals` now
+  returns the count alone. A leftover `theme_mod` on an existing install simply stops being read.
+- **`contact-us` and `terms-and-condition` are in the footer.** Both are created by
+  `simple_bangla_default_pages()` and neither was linked from anywhere — Contact Us, on a shop,
+  reachable only by typing its address. The fallback lists in `simple_bangla_footer_columns()` should
+  name every page the theme creates, and that is now written down beside them. The demo importer
+  keeps a second copy of the same two lists and had already drifted (it had Terms, the theme did
+  not); both were corrected together and each now points at the other.
+
+Verified on a live install after the change: the nine overrides clean on WooCommerce → Status, both
+new links rendering in the footer, the hero's Hot Deals column and banner carousel both still there,
+a second real order placed and numbered `#GXH227J`, every page free of notices, and the six CMS REST
+routes still answering 401 anonymously. `php -l` clean across all 26 PHP files; both `.pot` files
+regenerated (280 theme strings, 130 plugin); `dist/` rebuilt with `tools/package.ps1` and
+`tools/check-zip.php` passing 23/23.
+
+**Left for the owner, not fixable in code** — the real phone, WhatsApp, Messenger, email and social
+addresses; permalinks set to Post name or `/manage` 404s; WooCommerce's "Coming soon" switched off;
+HPOS turned on *before* orders accumulate; an SMTP plugin, because `wp_mail()` fails on most shared
+Bangladeshi hosts and the confirmation email is the only thing the customer gets; the demo catalogue
+deleted; and the first real parcel sent with the courier's own panel open, since **no courier
+dispatch has ever run against a live account.**
+
+**One configuration trap worth knowing:** the sign-in throttle keys on `REMOTE_ADDR` alone, which is
+right (a forwarded-for header is spoofable, and trusting one makes the control decoration). Behind
+Cloudflare or any reverse proxy every visitor shares one bucket, so five failures by anyone locks the
+owner out for fifteen minutes. If the shop goes behind a proxy, the host must restore the real client
+address before PHP sees it.

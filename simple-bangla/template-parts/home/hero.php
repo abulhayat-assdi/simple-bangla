@@ -65,9 +65,14 @@ if ( ! $simple_bangla_has_deals || empty( $simple_bangla_slides ) ) {
 							$simple_bangla_attrs['loading'] = 'lazy';
 						}
 
+						/*
+						 * 'simple-bangla-hero' is a 1200×500 crop registered in inc/setup.php.
+						 * Previously this used 'full', which loaded the original uploaded image —
+						 * potentially several MB per slide. The dedicated crop is ~90% smaller.
+						 */
 						$simple_bangla_image = wp_get_attachment_image(
 							$simple_bangla_slide['image'],
-							'full',
+							'simple-bangla-hero',
 							false,
 							$simple_bangla_attrs
 						);

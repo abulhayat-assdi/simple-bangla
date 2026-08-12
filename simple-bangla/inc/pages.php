@@ -101,14 +101,23 @@ function simple_bangla_page_in_footer( $page_id ) {
  */
 function simple_bangla_footer_columns() {
 
+	/*
+	 * The fallback lists name every page simple_bangla_default_pages() creates, and that is not a
+	 * coincidence to be broken casually: a default page missing from both lists is created on
+	 * activation, linked from nowhere, and reachable only by typing its address. `contact-us` and
+	 * `terms-and-condition` were exactly that until 2026-08-12 — Contact Us, on a shop, invisible.
+	 *
+	 * These lists are also what the demo importer builds its footer menus from, so the two are kept
+	 * in step by hand; see simple_bangla_demo_footer_menus() in inc/demo-content.php.
+	 */
 	return array(
 		'footer-1' => array(
 			'heading'  => get_bloginfo( 'name' ),
-			'fallback' => array( 'about-us', 'privacy-policy', 'refund_returns' ),
+			'fallback' => array( 'about-us', 'privacy-policy', 'refund_returns', 'terms-and-condition' ),
 		),
 		'footer-2' => array(
 			'heading'  => __( 'Helps', 'simple-bangla' ),
-			'fallback' => array( 'tutorials', 'warranty-policy', 'special-deals' ),
+			'fallback' => array( 'contact-us', 'tutorials', 'warranty-policy', 'special-deals' ),
 		),
 	);
 }

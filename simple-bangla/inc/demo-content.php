@@ -1463,9 +1463,14 @@ function simple_bangla_demo_menus( $term_ids ) {
 		),
 		'footer-2' => array(
 			'name'  => __( 'Footer — Helps', 'simple-bangla' ),
-			'pages' => array( 'tutorials', 'warranty-policy', 'special-deals' ),
+			'pages' => array( 'contact-us', 'tutorials', 'warranty-policy', 'special-deals' ),
 		),
 		// No third column: the footer's contact routes live in the brand cell beside these.
+		//
+		// These two lists mirror the `fallback` arrays in simple_bangla_footer_columns(), which is
+		// what the footer prints when no menu is assigned here. Keep them in step: a page in one and
+		// not the other means the same shop links to a different set of pages depending on whether
+		// this importer was ever run.
 	);
 
 	foreach ( $footer_menus as $location => $definition ) {
