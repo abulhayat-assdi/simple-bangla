@@ -2,9 +2,9 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Simple Bangla 1.8.0\n"
+"Project-Id-Version: Simple Bangla 1.8.1\n"
 "Report-Msgid-Bugs-To: https://simplebangla.com/\n"
-"POT-Creation-Date: 2026-08-12 07:53+0000\n"
+"POT-Creation-Date: 2026-08-12 08:26+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -525,75 +525,63 @@ msgid "Simple Bangla can fill your store with demo products so you can see the d
 msgstr ""
 
 #. translators: If Oswald does not render well in your language, translate this to 'off'. Do not translate into your own alphabet.
-#: inc/enqueue.php:58
+#: inc/enqueue.php:70
 msgctxt "Oswald font: on or off"
 msgid "on"
 msgstr ""
 
 #. translators: If Lato does not render well in your language, translate this to 'off'. Do not translate into your own alphabet.
-#: inc/enqueue.php:64
+#: inc/enqueue.php:76
 msgctxt "Lato font: on or off"
 msgid "on"
 msgstr ""
 
-#. translators: If Raleway does not render well in your language, translate this to 'off'. Do not translate into your own alphabet.
-#: inc/enqueue.php:70
-msgctxt "Raleway font: on or off"
-msgid "on"
-msgstr ""
-
-#. translators: If Baskervville does not render well in your language, translate this to 'off'. Do not translate into your own alphabet.
-#: inc/enqueue.php:91
-msgctxt "Baskervville font: on or off"
-msgid "on"
-msgstr ""
-
-#: inc/enqueue.php:216
+#: inc/enqueue.php:227
 msgid "Previous products"
 msgstr ""
 
-#: inc/enqueue.php:217
+#: inc/enqueue.php:228
 msgid "Next products"
 msgstr ""
 
-#: inc/enqueue.php:218
+#: inc/enqueue.php:229
 #: template-parts/shop/results.php:74
 msgid "Product pages"
 msgstr ""
 
-#: inc/enqueue.php:219
+#: inc/enqueue.php:230
 msgid "Page"
 msgstr ""
 
-#: inc/enqueue.php:235
+#: inc/enqueue.php:246
 msgid "Loading…"
 msgstr ""
 
-#: inc/enqueue.php:236
+#: inc/enqueue.php:247
 msgid "That is everything."
 msgstr ""
 
-#: inc/enqueue.php:237
+#: inc/enqueue.php:248
 msgid "Something went wrong. Please try again."
 msgstr ""
 
-#: inc/enqueue.php:259
+#: inc/enqueue.php:270
 msgid "পরিমাণ পরিবর্তন করা যায়নি। আবার চেষ্টা করুন।"
 msgstr ""
 
-#: inc/enqueue.php:273
+#: inc/enqueue.php:284
 msgid "Give Review"
 msgstr ""
 
-#: inc/enqueue.php:274
+#: inc/enqueue.php:285
 msgid "Cancel"
 msgstr ""
 
-#: inc/enqueue.php:288
+#: inc/enqueue.php:299
 msgid "No products matched."
 msgstr ""
 
-#: inc/enqueue.php:289
+#: inc/enqueue.php:300
 msgid "See all results"
 msgstr ""
 
@@ -671,72 +659,76 @@ msgstr ""
 msgid "Footer Column 2"
 msgstr ""
 
-#: inc/setup.php:92
+#: inc/setup.php:100
+msgid "Hero Banner (1200×500)"
+msgstr ""
+
+#: inc/setup.php:101
 msgid "Category Icon (150×150)"
 msgstr ""
 
-#: inc/setup.php:93
+#: inc/setup.php:102
 msgid "Product Gallery (600×600)"
 msgstr ""
 
-#: inc/setup.php:94
-msgid "Product Card (1024×1024)"
+#: inc/setup.php:103
+msgid "Product Card (400×400)"
 msgstr ""
 
-#: inc/setup.php:115
+#: inc/setup.php:124
 msgid "Shop Sidebar"
 msgstr ""
 
-#: inc/setup.php:117
+#: inc/setup.php:126
 msgid "Shown beside the shop and product category archives."
 msgstr ""
 
-#: inc/setup.php:127
+#: inc/setup.php:136
 msgid "Blog Sidebar"
 msgstr ""
 
-#: inc/setup.php:129
+#: inc/setup.php:138
 msgid "Shown beside posts and non-shop archives."
 msgstr ""
 
-#: inc/setup.php:149
+#: inc/setup.php:158
 msgid "Tutorials"
 msgstr ""
 
-#: inc/setup.php:150
+#: inc/setup.php:159
 msgid "Special Deals"
 msgstr ""
 
-#: inc/setup.php:156
+#: inc/setup.php:165
 msgid "Warranty Policy"
 msgstr ""
 
-#: inc/setup.php:157
+#: inc/setup.php:166
 msgid "About Us"
 msgstr ""
 
-#: inc/setup.php:158
+#: inc/setup.php:167
 msgid "Privacy Policy"
 msgstr ""
 
-#: inc/setup.php:159
+#: inc/setup.php:168
 msgid "Delivery &amp; Return Policy"
 msgstr ""
 
-#: inc/setup.php:160
+#: inc/setup.php:169
 msgid "Contact Us"
 msgstr ""
 
-#: inc/setup.php:161
+#: inc/setup.php:170
 msgid "Terms &amp; Conditions"
 msgstr ""
 
 #. translators: %s: the page title, e.g. "About Us".
-#: inc/setup.php:210
+#: inc/setup.php:219
 msgid "Placeholder content for the %s page. Edit this page to add your own copy."
 msgstr ""
 
-#: inc/setup.php:233
+#: inc/setup.php:242
 msgid "Simple Bangla needs WooCommerce for its shop, cart and product features. Everything else works without it."
 msgstr ""
 
