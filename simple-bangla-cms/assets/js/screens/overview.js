@@ -23,13 +23,22 @@ const STAGE_TONES = { new: 'warn', courier: '', completed: 'ok', returned: 'bad'
 const DEFAULT_PERIOD = '30d';
 
 /**
- * The periods offered, newest first: the rolling spans, then the last two years month by month.
+ * The first month the dashboard offers — the month the shop opened its doors (owner's decision,
+ * 2026-08-12). The list used to run two years back from today, so it offered twenty-three months
+ * that predate the store's first order: twenty-three guaranteed zeroes, and a long scroll past
+ * them to reach the only months that mean anything.
+ *
+ * `YYYY-MM`. It is a floor, not a length — the list is built from *today* down to it, so next
+ * month appears on its own and nobody has to edit this file again.
+ */
+const FIRST_MONTH = '2026-08';
+
+/**
+ * The periods offered, newest first: the rolling spans, then every month since the shop opened.
  *
  * The months are generated here rather than fetched, because the browser already knows today's
  * date and a second request to be told the names of the months would be absurd. The server parses
  * `YYYY-MM` and answers with the range it resolved, so the two cannot drift.
- *
- * Two years is the cut-off. A shop that wants March 2023 has outgrown a dropdown and wants a report.
  *
  * @return Array<{value:string,label:string}>
  */
@@ -43,9 +52,16 @@ function periodOptions() {
 
 	const now = new Date();
 
-	for ( let back = 0; back < 24; back++ ) {
-		// Day 1 of the month, so stepping back never lands on the 31st of a 30-day month.
-		const month = new Date( now.getFullYear(), now.getMonth() - back, 1 );
+	// Counted in months since year 0 so the loop never has to reason about December → January.
+	const first = FIRST_MONTH.split( '-' );
+	const floor = ( Number( first[ 0 ] ) * 12 ) + ( Number( first[ 1 ] ) - 1 );
+	const today = ( now.getFullYear() * 12 ) + now.getMonth();
+
+	// Clamped, so a device whose clock is set before the shop opened still gets one month rather
+	// than a dropdown with no months in it at all.
+	for ( let index = Math.max( today, floor ); index >= floor; index-- ) {
+		// Day 1 of the month, so the date never lands on the 31st of a 30-day month.
+		const month = new Date( Math.floor( index / 12 ), index % 12, 1 );
 		const value = month.getFullYear() + '-' + String( month.getMonth() + 1 ).padStart( 2, '0' );
 
 		options.push( {

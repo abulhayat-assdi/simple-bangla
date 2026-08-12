@@ -6,10 +6,15 @@
  * the checkboxes and the bulk status change — clicking into 40 orders one at a time to mark them
  * processing is the difference between this screen being used and being abandoned.
  *
- * **Filtering is by stage, not by status** (owner's decision, 2026-08-09). The five tabs are the
- * ones the shop thinks in — New, with the courier, completed, returned, failed — and the mapping
- * onto WooCommerce's statuses lives in `order-utils.js` so this screen never decides it. The screen
- * opens on New Orders, because the only reason to open it is that something has come in.
+ * **Filtering is by stage, not by status** (owner's decision, 2026-08-09). The tabs are the ones the
+ * shop thinks in — New, completed, cancelled, failed — and the mapping onto WooCommerce's statuses
+ * lives in `order-utils.js` so this screen never decides it. The screen opens on New Orders, because
+ * the only reason to open it is that something has come in.
+ *
+ * **A dispatched order stays on this tab** (owner's decision, 2026-08-12, replacing the Courier tab).
+ * Sending a parcel swaps the Send button for its consignment number and puts the three outcome
+ * buttons — Completed, Canceled, Returned — where the status badge was. So the whole life of an
+ * order happens on one row of one tab, and it leaves only when the owner says how it ended.
  *
  * **Two layouts, one data source.** Below 900px each order is a card, matching the reference the
  * owner supplied; above it the table stays, because a desk is where forty orders get worked through
@@ -46,8 +51,9 @@ import {
 	ORDER_VIEWS,
 	DEFAULT_VIEW,
 	viewStatuses,
-	STATUS_WITH_COURIER,
-	COURIER_OUTCOMES,
+	ORDER_OUTCOMES,
+	isDispatched,
+	offersOutcomes,
 } from '../order-utils.js';
 
 const PER_PAGE = 20;
@@ -83,7 +89,7 @@ export function Orders() {
 	);
 
 	const [ selected, setSelected ] = useState( [] );
-	const [ bulkStatus, setBulkStatus ] = useState( STATUS_WITH_COURIER );
+	const [ bulkStatus, setBulkStatus ] = useState( 'completed' );
 	const [ applying, setApplying ] = useState( false );
 
 	// The id of the order whose card action is in flight, so only that card's buttons go quiet.
@@ -194,9 +200,8 @@ export function Orders() {
 	 * working through a morning's orders on a phone is a list of one-tap decisions, and making each
 	 * one cost an open-and-go-back is what turns the screen into something nobody uses.
 	 *
-	 * The row is removed from the list afterwards rather than updated in place — it no longer belongs
-	 * to the view being looked at, and leaving it there under its old label would invite a second tap
-	 * on an order that has already moved.
+	 * The row stays where it is and is refetched, because a dispatch no longer moves an order between
+	 * tabs — it only gives it a consignment number and the three buttons that end it.
 	 */
 	const dispatch = async ( order ) => {
 		setActing( order.id );
@@ -316,6 +321,9 @@ export function Orders() {
 								selected=${ selected }
 								onToggle=${ toggle }
 								onToggleAll=${ toggleAll }
+								acting=${ acting }
+								onDispatch=${ dispatch }
+								onStatus=${ setStatus }
 								onOpen=${ setOpenOrder }
 							/>
 						</div>
@@ -460,25 +468,37 @@ function OrderCards( { rows, selected, onToggle, acting, onDispatch, onStatus, o
 
 						${ shipment
 							? html`<${ CardRow } label="Courier">
-									${ shipment.provider_label } · ${ shipment.consignment_id || '—' }
+									<span class="sb-ordercard__consignment">
+										${ shipment.provider_label } · ${ shipment.consignment_id || '—' }
+									</span>
 							  <//>`
 							: null }
 
 						<footer class="sb-ordercard__foot">
-							${ order.status === STATUS_WITH_COURIER
-								? COURIER_OUTCOMES.map(
-										( outcome ) => html`
-											<button
-												key=${ outcome.status }
-												class=${ 'sb-btn sb-btn--block sb-btn--' + outcome.tone +
-													( outcome.tone === 'danger' ? ' sb-btn--outline' : '' ) }
-												disabled=${ acting === order.id }
-												onClick=${ () => onStatus( order, outcome.status ) }
-											>
-												${ acting === order.id ? 'Working…' : outcome.label }
-											</button>
-										`
-								  )
+							${ /*
+							 * Before dispatch the card offers the one thing the order is waiting for. After
+							 * it, the three ways the order can end — the same three the table shows, from
+							 * the same list, so a phone and a desk can never disagree about what is on
+							 * offer. A dispatched order that has already ended shows neither.
+							 */
+							offersOutcomes( order )
+								? html`<div class="sb-outcomes sb-outcomes--block">
+										${ ORDER_OUTCOMES.map(
+											( outcome ) => html`
+												<button
+													key=${ outcome.status }
+													class=${ 'sb-btn sb-btn--' + outcome.tone +
+														( outcome.tone === 'danger' ? ' sb-btn--outline' : '' ) }
+													disabled=${ acting === order.id }
+													onClick=${ () => onStatus( order, outcome.status ) }
+												>
+													${ acting === order.id ? '…' : outcome.label }
+												</button>
+											`
+										) }
+								  </div>`
+								: isDispatched( order )
+								? null
 								: html`<button
 										class="sb-btn sb-btn--primary sb-btn--block"
 										disabled=${ acting === order.id }
@@ -530,8 +550,14 @@ function shortAddress( order ) {
  *
  * The order number stays a real link inside the row, so middle-click and "open in new tab" still
  * reach the full page.
+ *
+ * **The last two columns are where the order is worked, not only where it is reported** (owner's
+ * decision, 2026-08-12). Courier holds the Send button until there is a consignment number to hold
+ * instead, and Status holds the three buttons that end the order until there is an outcome to show
+ * instead. Each cell therefore says what has happened *or* offers the one thing that happens next,
+ * never both — which is what keeps a row from growing a second line of controls it does not need.
  */
-function OrderTable( { rows, selected, onToggle, onToggleAll, onOpen } ) {
+function OrderTable( { rows, selected, onToggle, onToggleAll, acting, onDispatch, onStatus, onOpen } ) {
 	return html`
 		<div class="sb-table-wrap sb-orders__table">
 			<table class="sb-table">
@@ -603,13 +629,51 @@ function OrderTable( { rows, selected, onToggle, onToggleAll, onOpen } ) {
 								</td>
 								<td class="sb-table__sub">${ itemCount( order ) }</td>
 								<td><strong>${ money( order.total ) }</strong></td>
-								<td class="sb-table__sub">
-									${ shipment ? shipment.provider_label : '—' }
-									${ shipment && shipment.consignment_id
-										? html`<div class="sb-table__sub">${ shipment.consignment_id }</div>`
-										: null }
+								<td>
+									${ shipment
+										? html`
+												<div class="sb-consignment">
+													<span class="sb-consignment__id">
+														#${ shipment.consignment_id || '—' }
+													</span>
+													<span class="sb-table__sub">${ shipment.provider_label }</span>
+												</div>
+										  `
+										: html`
+												<button
+													class="sb-btn sb-btn--primary sb-btn--sm"
+													disabled=${ acting === order.id }
+													onClick=${ () => onDispatch( order ) }
+												>
+													<${ Icon } name="truck" size=${ 14 } />
+													${ acting === order.id ? 'Sending…' : 'Send courier' }
+												</button>
+										  ` }
 								</td>
-								<td><${ Badge } tone=${ statusTone( order.status ) }>${ statusLabel( order.status ) }<//></td>
+								<td>
+									${ offersOutcomes( order )
+										? html`
+												<div class="sb-outcomes">
+													${ ORDER_OUTCOMES.map(
+														( outcome ) => html`
+															<button
+																key=${ outcome.status }
+																class=${ 'sb-btn sb-btn--sm sb-btn--' + outcome.tone +
+																	( outcome.tone === 'danger' ? ' sb-btn--outline' : '' ) }
+																disabled=${ acting === order.id }
+																title=${ outcome.label }
+																onClick=${ () => onStatus( order, outcome.status ) }
+															>
+																${ outcome.short }
+															</button>
+														`
+													) }
+												</div>
+										  `
+										: html`<${ Badge } tone=${ statusTone( order.status ) }>
+												${ statusLabel( order.status ) }
+										  <//>` }
+								</td>
 							</tr>
 						`;
 					} ) }

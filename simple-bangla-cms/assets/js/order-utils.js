@@ -19,7 +19,8 @@ export const ORDER_STATUSES = {
 	pending: { label: 'Pending payment', tone: 'warn' },
 	processing: { label: 'New — to confirm', tone: 'warn' },
 	'on-hold': { label: 'On hold', tone: 'warn' },
-	// Registered by the theme, in inc/order-status.php.
+	// Registered by the theme, in inc/order-status.php. Nothing sets `sb-courier` any more — see
+	// ORDER_VIEWS — but orders dispatched under the old system still carry it and must still be named.
 	'sb-courier': { label: 'Courier-এ আছে', tone: 'ok' },
 	completed: { label: 'Completed', tone: 'ok' },
 	'sb-returned': { label: 'Returned', tone: 'bad' },
@@ -28,12 +29,18 @@ export const ORDER_STATUSES = {
 	failed: { label: 'Failed', tone: 'bad' },
 };
 
-/** The statuses offered as a bulk change, in the order a COD store moves through them. */
+/**
+ * The statuses offered as a bulk change, in the order a COD store moves through them.
+ *
+ * `sb-courier` is deliberately absent since 2026-08-12. Handing a parcel to the courier no longer
+ * changes an order's status — the consignment number records it and the order stays in New Orders —
+ * so offering the status here would let the owner park orders in a stage nothing else now sets, and
+ * whose only remaining purpose is to name the ones dispatched under the old system.
+ */
 export const STATUS_ORDER = [
 	'pending',
 	'processing',
 	'on-hold',
-	'sb-courier',
 	'completed',
 	'sb-returned',
 	'cancelled',
@@ -42,46 +49,66 @@ export const STATUS_ORDER = [
 ];
 
 /**
- * The five stages the shop actually thinks in, and the WooCommerce statuses behind each.
+ * The four stages the shop actually thinks in, and the WooCommerce statuses behind each.
  *
  * The order list is filtered by these rather than by raw status (owner's decision, 2026-08-09), and
  * this table is the whole of that mapping — nothing else in the CMS decides what "New Orders" means.
  *
- * **Revised the same day, after a real test order.** The first version mapped the stages onto
- * WooCommerce's existing statuses with `processing` standing in for "with the courier". That is
- * wrong at the source: WooCommerce's Cash on Delivery gateway sets an order to `processing` as it
- * is placed, so every new order arrived already looking dispatched. The theme now registers
- * `sb-courier` and `sb-returned` (see `simple-bangla/inc/order-status.php`) and a stage is only
- * entered by someone deciding it was.
+ * **There is no longer a Courier stage** (owner's decision, 2026-08-12). Handing a parcel over is
+ * not a place an order waits: it is something that happened *to* an order that is still the shop's
+ * outstanding work. So a dispatched order keeps its status, wears its consignment number in the list,
+ * and stays under New Orders until someone says how it ended. That removed a tab the owner had to
+ * check twice a day to find parcels they had already dealt with.
  *
- * The rule that has to hold: **every status appears in exactly one view.** These five are the only
- * filters, so a status missing from all of them would be an order the owner can never find. That is
- * why `pending`, `processing` and `on-hold` all sit under New — they are the three ways an order can
- * arrive un-dispatched — and why `refunded` sits with `sb-returned`.
+ * `sb-courier` therefore sits under New too. Nothing sets it any more, but orders dispatched under
+ * the previous system are in it, and they belong beside the rest of the un-finished work rather than
+ * only in All.
+ *
+ * The rule that has to hold: **every status appears in exactly one view.** These four are the only
+ * filters, so a status missing from all of them would be an order the owner can never find.
  */
 export const ORDER_VIEWS = [
-	{ key: 'new', label: 'New Orders', statuses: [ 'pending', 'processing', 'on-hold' ] },
-	{ key: 'courier', label: 'Courier-এ আছে', statuses: [ 'sb-courier' ] },
+	{ key: 'new', label: 'New Orders', statuses: [ 'pending', 'processing', 'on-hold', 'sb-courier' ] },
 	{ key: 'completed', label: 'Completed Orders', statuses: [ 'completed' ] },
-	{ key: 'returned', label: 'Returned', statuses: [ 'sb-returned', 'refunded' ] },
-	{ key: 'failed', label: 'Failed / Cancelled', statuses: [ 'failed', 'cancelled' ] },
+	{ key: 'cancelled', label: 'Cancel Orders', statuses: [ 'cancelled' ] },
+	{ key: 'failed', label: 'Failed / Cancelled', statuses: [ 'sb-returned', 'refunded', 'failed' ] },
 ];
-
-/** The status an order takes when it is handed to the courier. */
-export const STATUS_WITH_COURIER = 'sb-courier';
 
 /**
- * The two ways a parcel that is with the courier can end, as buttons.
+ * The statuses an order can still be worked on from — the ones the New Orders tab holds.
  *
- * The owner asked for exactly these two on an order at the courier stage. "Returned" rather than
- * "Cancelled" for the second one: a parcel that came back is a different thing from an order killed
- * before it ever shipped, and the shop needs to count them separately — the returns are what the
- * courier fees were spent on. Cancelling before dispatch is still available from the status list.
+ * Used to decide whether the three outcome buttons are offered on a dispatched order. A parcel
+ * already marked delivered must not show them again, or one stray tap turns a completed sale into a
+ * return.
  */
-export const COURIER_OUTCOMES = [
-	{ status: 'completed', label: 'Delivered — mark completed', tone: 'primary' },
-	{ status: 'sb-returned', label: 'Returned / not received', tone: 'danger' },
+export const OPEN_STATUSES = [ 'pending', 'processing', 'on-hold', 'sb-courier' ];
+
+/**
+ * The three ways an order ends, as buttons, in the order the owner asked for them.
+ *
+ * They appear on a dispatched order in place of the status badge, and each one is a whole decision:
+ * the parcel arrived, the order was killed, or the parcel came back. Returned is kept apart from
+ * cancelled deliberately — a parcel that came back cost the shop a courier fee and a cancelled order
+ * did not, and the two tabs are how that is counted.
+ *
+ * `sb-returned` is the theme's own status (see `simple-bangla/inc/order-status.php`); it restocks,
+ * which is the other half of why it cannot just be `cancelled`.
+ */
+export const ORDER_OUTCOMES = [
+	{ status: 'completed', label: 'Completed', short: 'Completed', tone: 'primary' },
+	{ status: 'cancelled', label: 'Canceled', short: 'Canceled', tone: 'ghost' },
+	{ status: 'sb-returned', label: 'Returned', short: 'Returned', tone: 'danger' },
 ];
+
+/** Whether an order has been handed to a courier, which is a fact about its record, not its status. */
+export function isDispatched( order ) {
+	return !! ( order && order.sb_courier );
+}
+
+/** Whether the three outcome buttons belong on this order. */
+export function offersOutcomes( order ) {
+	return isDispatched( order ) && OPEN_STATUSES.includes( order.status );
+}
 
 /** The view the order screen opens on: what arrived and still needs doing. */
 export const DEFAULT_VIEW = 'new';
@@ -129,9 +156,22 @@ export function statusTone( status ) {
 	return ORDER_STATUSES[ status ] ? ORDER_STATUSES[ status ].tone : 'muted';
 }
 
-/** Options for a status <select>. */
-export function statusOptions( includeAny = false ) {
-	const options = STATUS_ORDER.map( ( value ) => ( { value, label: ORDER_STATUSES[ value ].label } ) );
+/**
+ * Options for a status `<select>`.
+ *
+ * `current` is what keeps the control honest. A select whose value matches none of its options
+ * displays the *first* one instead, so an order sitting in a status this list no longer offers —
+ * `sb-courier` since 2026-08-12, or anything a plugin registered — would read as "Pending payment",
+ * and saving the form the owner never touched would move a real order. Appending it means the
+ * control always shows what the order actually is.
+ *
+ * @param {boolean} [includeAny] Prepend an "Any status" option, for filtering rather than setting.
+ * @param {string}  [current]    The value the control is showing, appended if it is not on the list.
+ * @return {Array<{value:string,label:string}>}
+ */
+export function statusOptions( includeAny = false, current = '' ) {
+	const slugs = current && ! STATUS_ORDER.includes( current ) ? [ ...STATUS_ORDER, current ] : STATUS_ORDER;
+	const options = slugs.map( ( value ) => ( { value, label: statusLabel( value ) } ) );
 
 	return includeAny ? [ { value: '', label: 'Any status' }, ...options ] : options;
 }

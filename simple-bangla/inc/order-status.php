@@ -18,6 +18,13 @@
  * deactivating the management interface would leave real orders sitting in a status nothing could
  * name, which is a worse failure than losing the interface.
  *
+ * **`sb-courier` is no longer set by anything** (owner's decision, 2026-08-12). Handing a parcel to
+ * the courier stopped changing the status: the consignment number records it and the order stays
+ * under New Orders until someone says how it ended. The status stays registered — and stays on the
+ * paid list — because the orders dispatched under the previous system are still in it, and a status
+ * WordPress does not know is an order that vanishes from every list including the customer's own.
+ * `sb-returned` is unaffected; it is one of the three outcome buttons and is set every day.
+ *
  * @package Simple_Bangla
  */
 

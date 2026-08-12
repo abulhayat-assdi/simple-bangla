@@ -36,6 +36,13 @@ const SIMPLE_BANGLA_CMS_COURIER_OPTION = 'simple_bangla_cms_courier';
 /** How long a delivery record is reused before it is fetched again. */
 const SIMPLE_BANGLA_CMS_FRAUD_TTL = 6 * HOUR_IN_SECONDS;
 
+/**
+ * The courier whose delivery record *is* the report.
+ *
+ * See simple_bangla_cms_courier_records() for why one of the three is singled out.
+ */
+const SIMPLE_BANGLA_CMS_RECORD_PRIMARY = 'steadfast';
+
 /** How long a request to a courier is given before it is abandoned. */
 const SIMPLE_BANGLA_CMS_COURIER_TIMEOUT = 20;
 
@@ -67,7 +74,7 @@ function simple_bangla_cms_courier_providers() {
 					'label'       => __( 'Portal email', 'simple-bangla-cms' ),
 					'secret'      => false,
 					'record'      => true,
-					'description' => __( 'The email you sign in to steadfast.com.bd with. Only used to read a customer’s delivery record — the API key cannot do that.', 'simple-bangla-cms' ),
+					'description' => __( 'The email you sign in to steadfast.com.bd with. This is what a customer’s delivery record is read with. The API key above cannot do it — Steadfast publishes no API for that figure, so without this the record on an order stays blank.', 'simple-bangla-cms' ),
 				),
 				'portal_password' => array(
 					'label'  => __( 'Portal password', 'simple-bangla-cms' ),
@@ -742,113 +749,185 @@ function simple_bangla_cms_redx_dispatch( $config, $parcel ) {
 /* ------------------------------------------------------------------ delivery record */
 
 /**
- * How this shop's own orders from a number have turned out.
+ * A phone number in the one form every courier portal is asked with.
  *
- * This is the half of the report that needs no third party and cannot break: it is the shop's own
- * database, and for a repeat customer it is more useful than any national figure.
+ * The same Bangladeshi mobile arrives as `01712345678`, `+8801712345678`, `8801712345678` and
+ * `01712-345678` depending on the customer and the keyboard — the same problem the theme's block
+ * list solves, and the same answer: decide on the last ten digits. Normalising here rather than
+ * inside each courier keeps one cached answer per customer instead of one per spelling.
  *
- * Matching is on the last ten digits, the same rule the theme's block list uses, because the same
- * mobile arrives as `01712345678`, `+8801712345678` and `01712-345678` depending on the customer.
- * The SQL narrows on the last six digits — a `LIKE` cannot normalise, and six digits is short
- * enough to survive a dash in the middle of the number — and PHP then decides.
- *
- * @param string $phone Phone number.
- * @return array{total:int,delivered:int,returned:int,open:int,orders:array}
+ * @param string $phone Phone number as typed.
+ * @return string Local 11-digit form, or '' if it is not a number worth asking about.
  */
-function simple_bangla_cms_local_history( $phone ) {
-
-	global $wpdb;
-
-	$empty = array(
-		'total'     => 0,
-		'delivered' => 0,
-		'returned'  => 0,
-		'open'      => 0,
-	);
+function simple_bangla_cms_record_phone( $phone ) {
 
 	$digits = preg_replace( '/\D+/', '', (string) $phone );
 
-	if ( strlen( $digits ) < 6 ) {
-		return $empty;
+	if ( strlen( $digits ) < 10 ) {
+		return '';
 	}
 
-	$needle = '%' . $wpdb->esc_like( substr( $digits, -6 ) ) . '%';
+	return '0' . substr( $digits, -10 );
+}
 
-	$hpos = class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
-		&& \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+/**
+ * Whether an array is a plain list rather than a record.
+ *
+ * `array_is_list()` is PHP 8.1 and this plugin runs on whatever the shop's host offers.
+ *
+ * @param array $value Array.
+ * @return bool
+ */
+function simple_bangla_cms_is_list( $value ) {
 
-	if ( $hpos ) {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- No API reaches an order address by phone on both storage backends.
-		$ids = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT DISTINCT order_id FROM {$wpdb->prefix}wc_order_addresses
-				 WHERE address_type = 'billing' AND phone LIKE %s
-				 ORDER BY order_id DESC LIMIT 500",
-				$needle
-			)
-		);
-	} else {
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- As above.
-		$ids = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT DISTINCT post_id FROM {$wpdb->postmeta}
-				 WHERE meta_key = '_billing_phone' AND meta_value LIKE %s
-				 ORDER BY post_id DESC LIMIT 500",
-				$needle
-			)
-		);
+	if ( ! is_array( $value ) ) {
+		return false;
 	}
 
-	if ( ! $ids ) {
-		return $empty;
-	}
+	return array() === $value || array_keys( $value ) === range( 0, count( $value ) - 1 );
+}
 
-	$normalize = function_exists( 'simple_bangla_normalize_phone' )
-		? 'simple_bangla_normalize_phone'
-		: static function ( $value ) {
-			$only = preg_replace( '/\D+/', '', (string) $value );
+/**
+ * The first non-empty string among a set of candidate keys.
+ *
+ * @param array $row  Source row.
+ * @param array $keys Keys to try, in order of preference.
+ * @return string
+ */
+function simple_bangla_cms_first_string( $row, $keys ) {
 
-			return strlen( $only ) < 6 ? '' : substr( $only, -10 );
-		};
+	foreach ( $keys as $key ) {
 
-	$wanted = call_user_func( $normalize, $phone );
-	$counts = $empty;
-
-	foreach ( $ids as $id ) {
-
-		$order = wc_get_order( $id );
-
-		if ( ! $order || call_user_func( $normalize, $order->get_billing_phone() ) !== $wanted ) {
+		if ( ! isset( $row[ $key ] ) || ! is_scalar( $row[ $key ] ) ) {
 			continue;
 		}
 
-		$status = $order->get_status();
+		$value = trim( wp_strip_all_tags( (string) $row[ $key ] ) );
 
-		// checkout-draft is WooCommerce's placeholder for a basket in progress. Counting it would
-		// inflate a customer's history with orders they never actually placed.
-		if ( 'checkout-draft' === $status ) {
-			continue;
-		}
-
-		$counts['total']++;
-
-		if ( 'completed' === $status ) {
-			$counts['delivered']++;
-		} elseif ( in_array( $status, array( 'cancelled', 'refunded', 'failed' ), true ) ) {
-			$counts['returned']++;
-		} else {
-			$counts['open']++;
+		if ( '' !== $value ) {
+			return $value;
 		}
 	}
 
-	return $counts;
+	return '';
+}
+
+/**
+ * One merchant report, in the shape the interface draws.
+ *
+ * @param mixed $entry A string, or a row from the courier's reply.
+ * @return array{text:string,source:string,date:string}|null
+ */
+function simple_bangla_cms_record_report_entry( $entry ) {
+
+	if ( is_string( $entry ) || is_numeric( $entry ) ) {
+		$text = trim( wp_strip_all_tags( (string) $entry ) );
+
+		return '' === $text ? null : array(
+			'text'   => $text,
+			'source' => '',
+			'date'   => '',
+		);
+	}
+
+	if ( ! is_array( $entry ) ) {
+		return null;
+	}
+
+	$text   = simple_bangla_cms_first_string( $entry, array( 'details', 'detail', 'report', 'reason', 'note', 'comment', 'message', 'description', 'text', 'body', 'remarks', 'title' ) );
+	$source = simple_bangla_cms_first_string( $entry, array( 'merchant', 'merchant_name', 'shop', 'shop_name', 'store', 'store_name', 'reported_by', 'company', 'user', 'name' ) );
+	$date   = simple_bangla_cms_first_string( $entry, array( 'created_at', 'reported_at', 'date', 'time', 'updated_at' ) );
+
+	// A row with neither a complaint nor an author is some other part of the payload that happened
+	// to sit under a key this looks at — a count, a flag, a pagination block.
+	if ( '' === $text && '' === $source ) {
+		return null;
+	}
+
+	return array(
+		// Long enough for a real complaint, short enough that a runaway field cannot fill the card.
+		'text'   => function_exists( 'mb_substr' ) ? mb_substr( $text, 0, 500 ) : substr( $text, 0, 500 ),
+		'source' => $source,
+		'date'   => $date,
+	);
+}
+
+/**
+ * Any notes or complaints other merchants have filed against a number.
+ *
+ * There is no published schema for this — the portal's own dashboard renders it and nothing
+ * documents the field it comes back in — so rather than betting on one key this reads every key
+ * the reply plausibly carries it under and normalises whatever is found. A wrong guess costs an
+ * empty list, which is the honest answer when nothing recognisable arrived; betting on a single
+ * key would cost a silent "no reports" over a customer who has several.
+ *
+ * @param array $body Decoded reply.
+ * @return array<int,array{text:string,source:string,date:string}>
+ */
+function simple_bangla_cms_record_reports( $body ) {
+
+	$haystacks = array( $body );
+
+	foreach ( array( 'data', 'result', 'customer' ) as $nest ) {
+		if ( isset( $body[ $nest ] ) && is_array( $body[ $nest ] ) ) {
+			$haystacks[] = $body[ $nest ];
+		}
+	}
+
+	$keys  = array( 'reports', 'fraud_reports', 'frauds', 'fraud', 'notes', 'remarks', 'comments', 'feedbacks', 'customer_reports' );
+	$found = array();
+	$seen  = array();
+
+	foreach ( $haystacks as $haystack ) {
+		foreach ( $keys as $key ) {
+
+			if ( ! isset( $haystack[ $key ] ) || ! is_array( $haystack[ $key ] ) ) {
+				continue;
+			}
+
+			// A single report may arrive as the record itself rather than as a list of one.
+			$rows = simple_bangla_cms_is_list( $haystack[ $key ] ) ? $haystack[ $key ] : array( $haystack[ $key ] );
+
+			foreach ( $rows as $row ) {
+
+				$report = simple_bangla_cms_record_report_entry( $row );
+
+				if ( ! $report ) {
+					continue;
+				}
+
+				// The same report reached through two of the keys above is still one report.
+				$fingerprint = md5( $report['text'] . '|' . $report['source'] . '|' . $report['date'] );
+
+				if ( isset( $seen[ $fingerprint ] ) ) {
+					continue;
+				}
+
+				$seen[ $fingerprint ] = true;
+				$found[]              = $report;
+
+				if ( count( $found ) >= 20 ) {
+					return $found;
+				}
+			}
+		}
+	}
+
+	return $found;
 }
 
 /**
  * A customer's record with every courier this shop can ask.
  *
+ * **Steadfast is the report**; the other two are corroboration. It is the courier this shop
+ * actually dispatches with, it is the only one of the three whose portal publishes the notes other
+ * merchants have filed against a number, and it is therefore the one whose absence is itself an
+ * answer — an unconfigured Steadfast comes back as a line saying so, while an unconfigured Pathao
+ * or RedX is simply not mentioned. Since this report no longer carries the shop's own order
+ * history, silence from all three would otherwise be an empty card with nothing to explain it.
+ *
  * Each courier is asked separately and a failure is reported per courier rather than failing the
- * whole report — one expired portal password should not hide the two figures that did arrive.
+ * whole report — one expired portal password should not hide the figures that did arrive.
  *
  * @param string $phone Phone number.
  * @param bool   $fresh Skip the cache.
@@ -856,15 +935,36 @@ function simple_bangla_cms_local_history( $phone ) {
  */
 function simple_bangla_cms_courier_records( $phone, $fresh = false ) {
 
-	$out = array();
+	$out   = array();
+	$phone = simple_bangla_cms_record_phone( $phone );
+
+	if ( '' === $phone ) {
+		return $out;
+	}
 
 	foreach ( simple_bangla_cms_courier_providers() as $key => $provider ) {
 
-		if ( is_wp_error( simple_bangla_cms_courier_ready( $key, 'record' ) ) ) {
+		$primary = ( SIMPLE_BANGLA_CMS_RECORD_PRIMARY === $key );
+		$ready   = simple_bangla_cms_courier_ready( $key, 'record' );
+
+		if ( is_wp_error( $ready ) ) {
+
+			if ( $primary ) {
+				$out[] = array(
+					'provider' => $key,
+					'label'    => $provider['label'],
+					'primary'  => true,
+					'cached'   => false,
+					'error'    => $ready->get_error_message(),
+				);
+			}
+
 			continue;
 		}
 
-		$cache_key = 'sb_cms_record_' . $key . '_' . md5( $phone );
+		// Versioned: the cached shape gained the reports list, and a six-hour-old entry from before
+		// that would render as a customer with no reports rather than as one never asked about.
+		$cache_key = 'sb_cms_record2_' . $key . '_' . md5( $phone );
 		$cached    = $fresh ? false : get_transient( $cache_key );
 
 		if ( false !== $cached ) {
@@ -892,6 +992,7 @@ function simple_bangla_cms_courier_records( $phone, $fresh = false ) {
 		$entry = array(
 			'provider' => $key,
 			'label'    => $provider['label'],
+			'primary'  => $primary,
 			'cached'   => false,
 		);
 
@@ -983,7 +1084,11 @@ function simple_bangla_cms_steadfast_record( $config, $phone ) {
 
 	return simple_bangla_cms_record_shape(
 		(int) ( $body['total_delivered'] ?? $body['success'] ?? 0 ),
-		(int) ( $body['total_cancelled'] ?? $body['cancel'] ?? 0 )
+		(int) ( $body['total_cancelled'] ?? $body['cancel'] ?? 0 ),
+		// Always an array, even when empty: Steadfast is the one portal that publishes these, so
+		// "asked and found none" is a real answer here and must not read like the two couriers that
+		// were never able to be asked.
+		simple_bangla_cms_record_reports( $body )
 	);
 }
 
@@ -1126,21 +1231,27 @@ function simple_bangla_cms_redx_record( $config, $phone ) {
  * The rate is computed here rather than trusted from each courier, because the three of them do not
  * agree on whether it is a fraction, a percentage, or rounded.
  *
- * @param int $delivered Successful deliveries.
- * @param int $returned  Refused or returned parcels.
- * @return array{delivered:int,returned:int,total:int,rate:int|null}
+ * @param int        $delivered Successful deliveries.
+ * @param int        $returned  Refused or returned parcels.
+ * @param array|null $reports   Merchant reports filed against the number, or null when this
+ *                              courier has no way of answering that question at all.
+ * @return array{delivered:int,returned:int,total:int,rate:int|null,reports:array,reports_read:bool}
  */
-function simple_bangla_cms_record_shape( $delivered, $returned ) {
+function simple_bangla_cms_record_shape( $delivered, $returned, $reports = null ) {
 
 	$total = $delivered + $returned;
 
 	return array(
-		'delivered' => $delivered,
-		'returned'  => $returned,
-		'total'     => $total,
+		'delivered'    => $delivered,
+		'returned'     => $returned,
+		'total'        => $total,
 		// Null rather than 0 for a customer no courier has seen: "0% successful" and "never ordered"
 		// are opposite recommendations and must not render the same.
-		'rate'      => $total ? (int) round( $delivered / $total * 100 ) : null,
+		'rate'         => $total ? (int) round( $delivered / $total * 100 ) : null,
+		'reports'      => is_array( $reports ) ? $reports : array(),
+		// The same distinction one line down from the same trap: "nobody has complained" and "this
+		// courier does not publish complaints" are opposite readings of an empty list.
+		'reports_read' => is_array( $reports ),
 	);
 }
 
@@ -1323,24 +1434,18 @@ function simple_bangla_cms_courier_send( $request ) {
 	}
 
 	/*
-	 * A dispatched parcel moves to the theme's `sb-courier` stage, which is what the Courier tab on
-	 * the order list reads. Done here rather than left to the owner because the whole point of the
-	 * button is that one tap does the whole step.
+	 * **A dispatch does not change the status** (owner's decision, 2026-08-12, replacing the move to
+	 * the theme's `sb-courier` stage this used to make). The order stays in New Orders wearing its
+	 * consignment number, and it leaves only when someone says how it ended — delivered, cancelled or
+	 * returned. The reasoning is the shop's own: an order handed to the courier this morning is still
+	 * the shop's outstanding work, and moving it to a tab of its own meant every parcel had to be
+	 * found twice.
 	 *
-	 * Only from the three un-dispatched statuses, so re-sending a parcel that has already been
-	 * delivered or returned cannot drag it backwards. `processing` is in that list because
-	 * WooCommerce's Cash on Delivery gateway puts every new order there as it is placed — which is
-	 * exactly why `processing` could not itself be used to mean "with the courier".
-	 *
-	 * Guarded on the status existing: the plugin can be running under a different theme, and asking
-	 * WooCommerce for a status nothing registered would leave the order in limbo.
+	 * Nothing replaces the transition here. The dispatch is already recorded twice over by
+	 * `simple_bangla_cms_courier_dispatch()` — as `_sb_courier` meta, which is what the list reads to
+	 * show the consignment number and what refuses a second booking, and as an order note, which is
+	 * the trail a human reads. A status was only ever the third telling of the same fact.
 	 */
-	if (
-		in_array( $order->get_status(), array( 'pending', 'processing', 'on-hold' ), true )
-		&& array_key_exists( 'wc-sb-courier', wc_get_order_statuses() )
-	) {
-		$order->update_status( 'sb-courier', __( 'Handed to the courier.', 'simple-bangla-cms' ) );
-	}
 
 	return rest_ensure_response(
 		array(
@@ -1352,6 +1457,12 @@ function simple_bangla_cms_courier_send( $request ) {
 
 /**
  * The delivery record for an order's phone number.
+ *
+ * This used to lead with a count of the shop's own orders from the number. The owner asked for it
+ * removed (2026-08-12): the shop's own history is already on the Orders screen a search away, and
+ * putting it first in a card headed "fraud" invited reading a good customer's four completed orders
+ * here as evidence about how they behave *everywhere*, which is the only question this card exists
+ * to answer.
  *
  * @param WP_REST_Request $request Request.
  * @return WP_REST_Response|WP_Error
@@ -1369,8 +1480,7 @@ function simple_bangla_cms_courier_record_get( $request ) {
 	return rest_ensure_response(
 		array(
 			'phone'    => $phone,
-			'local'    => simple_bangla_cms_local_history( $phone ),
-			'couriers' => $phone ? simple_bangla_cms_courier_records( $phone, (bool) $request->get_param( 'refresh' ) ) : array(),
+			'couriers' => simple_bangla_cms_courier_records( $phone, (bool) $request->get_param( 'refresh' ) ),
 		)
 	);
 }

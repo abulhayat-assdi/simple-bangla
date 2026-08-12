@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * Used as the asset cache-buster in production. During development inc/enqueue.php
  * prefers the file modification time so edits show up without bumping this.
  */
-define( 'SIMPLE_BANGLA_VERSION', '1.4.1' );
+define( 'SIMPLE_BANGLA_VERSION', '1.5.0' );
 
 /** Absolute path to the theme directory, with a trailing slash. */
 define( 'SIMPLE_BANGLA_DIR', trailingslashit( get_template_directory() ) );
@@ -65,4 +65,10 @@ if ( class_exists( 'WooCommerce' ) ) {
 	 * and in every WooCommerce email — with the plugin off, real orders must still have a name.
 	 */
 	require_once SIMPLE_BANGLA_DIR . 'inc/order-status.php';
+	/*
+	 * The order number. In the theme for the same reason as the stages: it is printed in the
+	 * customer's confirmation email and in My Account, so an order must still answer to the number
+	 * its customer was given even with the management interface switched off.
+	 */
+	require_once SIMPLE_BANGLA_DIR . 'inc/order-number.php';
 }

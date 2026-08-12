@@ -1874,6 +1874,54 @@ a.sb-table__name:hover {
 	margin-top: var(--sb-space-4);
 }
 
+.sb-ordercard__consignment {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 13px;
+	overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- dispatch and outcome
+
+   The last two cells of an order row. Each holds either a fact or the one control that produces
+   it — the consignment number replaces the Send button, and the three outcome buttons replace the
+   status badge — so a row never carries both and never grows a second line of controls.
+*/
+
+.sb-consignment {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.sb-consignment__id {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 13px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+/*
+   `wrap` rather than a fixed row: at a narrow desktop width three buttons in one cell would
+   otherwise push the table sideways, and this table already scrolls in its own container — a row
+   that has to be scrolled to reach its own buttons is the thing being avoided.
+*/
+.sb-outcomes {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+/* On a phone card the same three go full width, one under the other, as thumb-sized targets. */
+.sb-outcomes--block {
+	flex-direction: column;
+	gap: var(--sb-space-2);
+}
+
+.sb-outcomes--block .sb-btn {
+	width: 100%;
+	justify-content: center;
+}
+
 @media (max-width: 900px) {
 	.sb-ordercards {
 		display: block;
@@ -2042,6 +2090,39 @@ a.sb-table__name:hover {
 .sb-courier-record__error {
 	color: var(--sb-bad);
 	font-size: 13px;
+}
+
+/*
+ * A complaint another shop filed against this number. Left-ruled in the warning colour rather than
+ * filled with it: there may be several, and a stack of solid red blocks reads as a system failure
+ * rather than as a list of things to weigh.
+ */
+.sb-reports {
+	display: grid;
+	gap: var(--sb-space-2);
+	margin: var(--sb-space-2) 0 var(--sb-space-4);
+}
+
+.sb-report {
+	padding: var(--sb-space-3);
+	border: 1px solid var(--sb-line);
+	border-left: 3px solid var(--sb-bad);
+	border-radius: var(--sb-radius-sm);
+	background: var(--sb-surface-2);
+}
+
+.sb-report__text {
+	margin: 0;
+	/* A merchant pastes a paragraph, or a URL with no spaces in it, and neither may widen the card. */
+	overflow-wrap: anywhere;
+	font-size: 13px;
+}
+
+.sb-report__meta {
+	margin: 4px 0 0;
+	color: var(--sb-muted);
+	font-size: 11px;
+	font-weight: 600;
 }
 
 /* ---------------------------------------------------------------- courier settings */

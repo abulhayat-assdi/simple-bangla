@@ -292,7 +292,6 @@ export function OrderDetail( { id } ) {
 					<${ Card } title="Actions">
 							<${ StageActions }
 								order=${ order }
-								status=${ status }
 								busy=${ busy }
 								sending=${ sending }
 								onStatus=${ saveStatus }
@@ -310,7 +309,12 @@ export function OrderDetail( { id } ) {
 
 					<${ Card } title="Status">
 						<${ Field } label="Order status" id="o-status">
-							<${ Select } id="o-status" value=${ status } onChange=${ saveStatus } options=${ statusOptions() } />
+							<${ Select }
+								id="o-status"
+								value=${ status }
+								onChange=${ saveStatus }
+								options=${ statusOptions( false, status ) }
+							/>
 						<//>
 						<p class="sb-hint">Changing this saves immediately and records a note.</p>
 					<//>

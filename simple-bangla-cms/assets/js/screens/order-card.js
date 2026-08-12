@@ -243,7 +243,6 @@ export function OrderCard( { id, onClose, onChange, onDelete } ) {
 											<h3 class="sb-panel__title">Actions</h3>
 											<${ StageActions }
 												order=${ order }
-												status=${ order.status }
 												busy=${ busy }
 												sending=${ sending }
 												onStatus=${ saveStatus }

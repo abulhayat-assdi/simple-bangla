@@ -21,8 +21,9 @@ import {
 	dateTime,
 	refundedTotal,
 	itemAttributes,
-	STATUS_WITH_COURIER,
-	COURIER_OUTCOMES,
+	ORDER_OUTCOMES,
+	isDispatched,
+	offersOutcomes,
 } from './order-utils.js';
 
 /** What is in the parcel. */
@@ -185,19 +186,23 @@ export function PaymentSummary( { order } ) {
  * The one decision this order is waiting for.
  *
  * Before dispatch there is exactly one: hand it to the courier. After dispatch there are exactly
- * two: it arrived, or it came back. Anything else — cancelling, marking it failed — is in the status
- * list, which is deliberately not here: this is the button a shop presses forty times on a Sunday
- * morning, and a dropdown between the owner and it would be forty extra taps.
+ * three — it arrived, it was cancelled, or it came back — and they are the same three the order list
+ * offers, read from the same table so the card and the list can never differ about what is on offer.
+ * Anything else, such as marking an order failed, is in the status list on the full order page: this
+ * is the button a shop presses forty times on a Sunday morning, and a dropdown between the owner and
+ * it would be forty extra taps.
+ *
+ * **Dispatch no longer changes the status** (owner's decision, 2026-08-12). The consignment number is
+ * what records it, which is why the buttons below key off the shipment rather than off a stage.
  *
  * @param {object}   props
- * @param {object}   props.order    Order record, for its dispatch record.
- * @param {string}   props.status   Current status.
+ * @param {object}   props.order    Order record, for its dispatch record and status.
  * @param {boolean}  props.busy     A status write is in flight.
  * @param {boolean}  props.sending  A dispatch is in flight.
  * @param {Function} props.onStatus Called with the new status.
  * @param {Function} props.onSend   Called to dispatch.
  */
-export function StageActions( { order, status, busy, sending, onStatus, onSend } ) {
+export function StageActions( { order, busy, sending, onStatus, onSend } ) {
 	const shipment = order.sb_courier;
 
 	return html`
@@ -207,15 +212,15 @@ export function StageActions( { order, status, busy, sending, onStatus, onSend }
 						<p class="sb-shipment__label">
 							<${ Icon } name="truck" size=${ 16 } /> ${ shipment.provider_label }
 						</p>
-						<p class="sb-mono">${ shipment.consignment_id || '—' }</p>
+						<p class="sb-mono">#${ shipment.consignment_id || '—' }</p>
 						<p class="sb-hint">Sent ${ dateTime( new Date( shipment.sent_at * 1000 ) ) }</p>
 					</div>
 			  `
 			: null }
 
-		${ status === STATUS_WITH_COURIER
+		${ offersOutcomes( order )
 			? html`
-					${ COURIER_OUTCOMES.map(
+					${ ORDER_OUTCOMES.map(
 						( outcome ) => html`
 							<button
 								key=${ outcome.status }
@@ -228,35 +233,46 @@ export function StageActions( { order, status, busy, sending, onStatus, onSend }
 							</button>
 						`
 					) }
-					<p class="sb-hint">Returned puts the items back into stock; completed does not.</p>
+					<p class="sb-hint">Returned puts the items back into stock; completed and canceled do not.</p>
+			  `
+			: null }
+
+		${ isDispatched( order )
+			? html`
 					<button class="sb-btn sb-btn--ghost sb-btn--block" disabled=${ sending } onClick=${ () => onSend( false ) }>
-						<${ Icon } name="truck" size=${ 16 } /> Send to courier again
+						<${ Icon } name="truck" size=${ 16 } />
+						${ sending ? 'Sending…' : 'Send to courier again' }
 					</button>
 			  `
 			: html`
 					<button class="sb-btn sb-btn--primary sb-btn--block" disabled=${ sending } onClick=${ () => onSend( false ) }>
 						<${ Icon } name="truck" size=${ 16 } />
-						${ sending ? 'Sending…' : shipment ? 'Send to courier again' : 'Send to courier' }
+						${ sending ? 'Sending…' : 'Send to courier' }
 					</button>
 					<p class="sb-hint">
-						Books the parcel with the courier set up under Settings and moves the order to
-						Courier-এ আছে.
+						Books the parcel with the courier set up under Settings. The order stays in New Orders
+						with its consignment number until you say how it ended.
 					</p>
 			  ` }
 	`;
 }
 
 /**
- * How this customer's parcels have gone before.
+ * How this customer's parcels have gone everywhere else.
  *
- * Two halves, and they are not equally reliable, so the card says which is which. The **local**
- * figures are this shop's own orders — always available, never wrong. The **courier** figures come
- * from each courier's merchant portal, which has no documented API for them; a courier that cannot
- * be reached says so on its own line rather than being reported as zero, because "no record" and
- * "never delivered successfully" point in opposite directions.
+ * **This is not this shop's history.** It used to lead with one, and the owner asked for it removed
+ * (2026-08-12): the shop's own orders from a number are one search away on the Orders screen, and
+ * reading them inside a card headed "fraud" answered a question nobody was asking. The question this
+ * card exists for is how the customer behaves with *other* shops, and only a courier can answer it.
  *
- * Loaded on demand rather than with the order. It is three sign-ins to three outside services and
- * it must not sit between the owner and an order they only wanted to read.
+ * Steadfast is the report; Pathao and RedX are corroboration and are only listed when they are set
+ * up. None of the three publishes a documented API for any of this — every figure here comes from
+ * signing in to a merchant portal and calling what its own dashboard calls — so a courier that
+ * cannot be reached says so on its own line rather than being reported as zero. "No record" and
+ * "never delivered successfully" point in opposite directions and must never render the same.
+ *
+ * Loaded on demand rather than with the order. It is a sign-in to an outside service and it must not
+ * sit between the owner and an order they only wanted to read.
  */
 export function FraudReport( { id, phone } ) {
 	const [ report, setReport ] = useState( null );
@@ -277,9 +293,13 @@ export function FraudReport( { id, phone } ) {
 		return null;
 	}
 
+	const couriers = report ? report.couriers : [];
+	const primary = couriers.find( ( record ) => record.primary );
+	const others = couriers.filter( ( record ) => ! record.primary );
+
 	return html`
 		<${ Card }
-			title="Courier and fraud report"
+			title="Customer delivery record"
 			action=${ html`
 				<button class="sb-btn sb-btn--ghost sb-btn--sm" disabled=${ loading } onClick=${ () => fetchReport( !! report ) }>
 					${ loading ? 'Checking…' : report ? 'Check again' : 'Check this number' }
@@ -288,56 +308,118 @@ export function FraudReport( { id, phone } ) {
 		>
 			${ ! report && ! loading && ! failed
 				? html`<p class="sb-hint">
-						Nothing is requested until you ask. Checking signs in to each courier's merchant panel
-						to read what ${ phone } has ordered elsewhere.
+						Nothing is requested until you ask. Checking signs in to the courier's merchant panel to
+						read how many parcels ${ phone } has taken delivery of — across every shop, not just this
+						one — and whether any merchant has filed a report against the number.
 				  </p>`
 				: null }
 
 			${ failed ? html`<${ ErrorBox } error=${ failed } onRetry=${ () => fetchReport( true ) } />` : null }
 
-			${ report
-				? html`
-						<p class="sb-field__label">This shop's own history</p>
-						<div class="sb-scoreboard">
-							<${ Score } label="Orders" value=${ report.local.total } />
-							<${ Score } label="Delivered" value=${ report.local.delivered } tone="ok" />
-							<${ Score } label="Returned / cancelled" value=${ report.local.returned } tone="bad" />
-							<${ Score } label="In progress" value=${ report.local.open } />
-						</div>
+			${ report && ! couriers.length
+				? html`<p class="sb-hint">
+						This order has no usable phone number, so there is nothing to look up.
+				  </p>`
+				: null }
 
-						<p class="sb-field__label">Courier records</p>
-						${ report.couriers.length
-							? html`
-									<div class="sb-courier-records">
-										${ report.couriers.map(
-											( record ) => html`
-												<div key=${ record.provider } class="sb-courier-record">
-													<span class="sb-courier-record__name">${ record.label }</span>
-													${ record.error
-														? html`<span class="sb-courier-record__error">${ record.error }</span>`
-														: record.rate === null
-														? html`<span class="sb-hint">No parcels on record.</span>`
-														: html`
-																<span class=${ 'sb-courier-record__rate' + ( record.rate < 60 ? ' is-bad' : '' ) }>
-																	${ record.rate }%
-																</span>
-																<span class="sb-hint">
-																	${ record.delivered } delivered · ${ record.returned } returned
-																	${ record.cached ? ' · cached' : '' }
-																</span>
-														  ` }
-												</div>
-											`
-										) }
+			${ primary ? html`<${ PrimaryRecord } record=${ primary } />` : null }
+
+			${ others.length
+				? html`
+						<p class="sb-field__label">Other couriers</p>
+						<div class="sb-courier-records">
+							${ others.map(
+								( record ) => html`
+									<div key=${ record.provider } class="sb-courier-record">
+										<span class="sb-courier-record__name">${ record.label }</span>
+										${ record.error
+											? html`<span class="sb-courier-record__error">${ record.error }</span>`
+											: record.rate === null
+											? html`<span class="sb-hint">No parcels on record.</span>`
+											: html`
+													<span class=${ 'sb-courier-record__rate' + ( record.rate < 60 ? ' is-bad' : '' ) }>
+														${ record.rate }%
+													</span>
+													<span class="sb-hint">
+														${ record.delivered } delivered · ${ record.returned } returned
+														${ record.cached ? ' · cached' : '' }
+													</span>
+											  ` }
 									</div>
-							  `
-							: html`<p class="sb-hint">
-									No courier is set up with a merchant panel login, so only this shop's own history
-									is available. Add one under Settings → Courier.
-							  </p>` }
+								`
+							) }
+						</div>
 				  `
 				: null }
 		<//>
+	`;
+}
+
+/**
+ * Steadfast's answer, drawn full size.
+ *
+ * The rate is the headline because it is the one number a decision is made on, but it is only shown
+ * beside the counts it came from: 100% off a single parcel and 100% off ninety are the same
+ * percentage and not remotely the same customer.
+ */
+function PrimaryRecord( { record } ) {
+	if ( record.error ) {
+		return html`
+			<p class="sb-field__label">${ record.label }</p>
+			<p class="sb-courier-record__error">${ record.error }</p>
+			<p class="sb-hint">
+				The delivery record needs the portal email and password you sign in to steadfast.com.bd
+				with — the API key cannot read it. Add them under Settings → Courier.
+			</p>
+		`;
+	}
+
+	return html`
+		<p class="sb-field__label">
+			${ record.label } — everywhere this number has ordered${ record.cached ? ' · cached' : '' }
+		</p>
+
+		${ record.total === 0
+			? html`<p class="sb-hint">
+					No parcels on record. Either the customer is new to cash on delivery, or they order under
+					a different number.
+			  </p>`
+			: html`
+					<div class="sb-scoreboard">
+						<${ Score } label="Total orders" value=${ record.total } />
+						<${ Score } label="Received" value=${ record.delivered } tone="ok" />
+						<${ Score } label="Refused / returned" value=${ record.returned } tone="bad" />
+						<${ Score }
+							label="Success rate"
+							value=${ record.rate + '%' }
+							tone=${ record.rate < 60 ? 'bad' : 'ok' }
+						/>
+					</div>
+			  ` }
+
+		${ record.reports_read
+			? html`
+					<p class="sb-field__label">Reports against this number</p>
+					${ record.reports.length
+						? html`
+								<div class="sb-reports">
+									${ record.reports.map(
+										( item, index ) => html`
+											<div key=${ index } class="sb-report">
+												${ item.text ? html`<p class="sb-report__text">${ item.text }</p>` : null }
+												${ item.source || item.date
+													? html`<p class="sb-report__meta">
+															${ [ item.source, item.date ].filter( Boolean ).join( ' · ' ) }
+													  </p>`
+													: null }
+											</div>
+										`
+									) }
+								</div>
+						  `
+						: html`<p class="sb-hint">None. No merchant has filed a report against this number.</p>` }
+			  `
+			: null }
 	`;
 }
 

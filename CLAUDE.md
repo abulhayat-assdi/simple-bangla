@@ -133,7 +133,9 @@ checkout. See phase 7 below. A second followed on 2026-08-09 for the same reason
 status is customer-visible, so it cannot belong to a plugin that might be switched off. A third the
 same day — `simple-bangla/inc/pages.php`, which owns the "show this page in the footer" tick and the
 query that turns it into links; the footer is the theme's, so its links cannot come from a plugin.
-See phase 9.
+See phase 9. A fourth on 2026-08-12 — `simple-bangla/inc/order-number.php`, the unique alphanumeric
+order number; it is printed in the customer's confirmation email and in My Account, so an order must
+still answer to it with the plugin off. See "Order numbers" below.
 
 ---
 
@@ -1580,6 +1582,67 @@ The emulation was right; the reading of it was wrong.
 every one, and below 768 the bar is exactly the viewport's width with all five items inside it.
 Plus the 30-assertion bar suite re-run as a regression, and no console errors anywhere.
 
+## Order numbers (2026-08-12, theme 1.5.0)
+
+The owner asked for an order number that is unique per order and mixes letters with digits, instead
+of `#234` — which is unique, but is also a running count of everything the shop has ever sold,
+printed on every invoice and read down the phone. `simple-bangla/inc/order-number.php`.
+
+- **In the theme, not the CMS plugin.** Fourth application of the block list's rule: the number is in
+  the confirmation email, on the thank-you page and in My Account, so with the management interface
+  switched off an order must still answer to the number its customer was given.
+- **Uniqueness is by construction, not by luck.** The number is three random characters followed by
+  the order's own ID re-spelled in a 31-character alphabet. Two orders can no more share a number
+  than they can share an ID, so there is no generate-check-retry loop and no race to lose when two
+  people check out in the same second. The random head is what stops consecutive orders reading as
+  consecutive, which is the whole point. Seven characters until the shop passes 923,520 orders.
+- **The alphabet drops `0`, `O`, `1`, `I` and `L`** — every one is half of a look-alike pair, and
+  this string gets copied off a screen onto a courier's label by hand.
+- **The first character is always a letter**, which is not cosmetic: it means a generated number can
+  never be all digits, and therefore can never collide with the plain numeric number an older order
+  still carries.
+- **Nothing is back-filled.** An order whose customer already holds an email saying `#234` must not
+  quietly become `CM7222K` on the invoice; the two would then disagree with no way to tell which was
+  real. Orders placed before this file keep their ID, and the point above guarantees the two kinds
+  cannot clash. Only orders created from now on are numbered.
+- **One filter does the whole display side.** `woocommerce_order_number` reaches the thank-you page,
+  every WooCommerce email, My Account, the CMS order list, card, detail screen and invoice, and the
+  `invoice` field sent to the courier — every one of those already asked `get_order_number()` rather
+  than reading the ID, so **no template and no CMS screen changed**. The CMS's `order.number` is that
+  same call, made by WooCommerce's REST controller.
+- **Search needs two filters because WooCommerce searches orders twice over** —
+  `woocommerce_shop_order_search_fields` when orders are posts and
+  `woocommerce_order_table_search_query_meta_keys` when they are in the HPOS tables. Both take a list
+  of meta keys and WooCommerce's own docblocks name each as the other's counterpart, so one callback
+  serves both. Registering only the mode in use today would make the Orders screen's search — whose
+  placeholder promises "order number" — stop working on a day nobody was touching this code.
+  **An earlier attempt used `woocommerce_order_table_search_filters` plus
+  `woocommerce_hpos_generate_where_for_search_filter` to build a WHERE clause by hand; neither name
+  is what WooCommerce 11 calls, the hook never fired, and the search silently found nothing.** Read
+  `OrdersTableSearchQuery.php` before guessing at that class's hooks.
+- **`simple_bangla_order_id_by_number()` is a direct query, not `wc_get_orders()`.** The obvious
+  version passed a `meta_query`, and on the legacy post-table store WooCommerce silently drops it:
+  every call came back with the newest order regardless of what was asked for — a lookup that answers
+  confidently and wrongly, which is worse than one that fails. Caught by the assertion that a lookup
+  of nonsense returns 0.
+- The prefix is empty by default (`simple_bangla_order_number_prefix` filters it) because every
+  template already prints a `#` in front, and `#SB-CM7222K` says "number" twice.
+
+Verified with **25 assertions run twice — once with HPOS on and once with it off**, against real
+WordPress + WooCommerce 11 in Playground: two real orders numbered and reloaded from the database, a
+later save not renumbering, no ambiguous characters, the lookup helper in both directions plus its
+nonsense case, an order stripped of the meta still reporting its ID and still findable by it, the
+`wc/v3/orders` search the CMS actually calls finding each order **by its printed number** without
+dragging in the other, search by phone and by a legacy numeric ID still working, the REST `number`
+field, the courier parcel's `invoice`, and the theme's own thank-you template and WooCommerce's order
+email both printing the generated number. Both storage modes, 25/25.
+
+**Note for future Playground runs:** a fresh WooCommerce 11 install under this blueprint comes up
+with **HPOS off**, not on. A suite that assumes otherwise silently tests only the legacy path — the
+first run here reported the HPOS search hooks as working when they had never been reached. Force it
+with `woocommerce_feature_custom_order_tables_enabled` + `woocommerce_custom_orders_table_enabled` in
+a `runPHP` step of its own, and have the script print which mode it is in.
+
 ## Translation templates (2026-08-11)
 
 `tools/makepot.php` regenerates both `.pot` files. There is no wp-cli on this machine and no
@@ -1666,3 +1729,154 @@ thing in a clean Playground with no mounts: `Theme_Upgrader::install()` and
 `Plugin_Upgrader::install()` twice each — once fresh, once with `overwrite_package` set, which is
 what wp-admin's "Replace current with uploaded" does — activating both and checking a file left
 behind by the older copy is actually gone.
+
+## The delivery record is the courier's, not the shop's (2026-08-12, plugin 1.6.0)
+
+The owner opened the courier report on an order and found it led with a count of *this shop's* own
+orders from that number. That is not the question the card exists for, so it is gone.
+
+- **`simple_bangla_cms_local_history()` is deleted, and `local` is off the `/orders/{id}/record`
+  response.** It was ~90 lines of raw SQL against `wc_order_addresses` / `_billing_phone` with an
+  HPOS branch, and every line of it answered something the Orders screen already answers by
+  searching the phone number. Worse than redundant: printed first, in a card headed "fraud", four
+  completed local orders read as evidence about how the customer behaves *everywhere* — which is
+  the only thing this card can usefully say and the one thing local history cannot know.
+- **Steadfast is the report; Pathao and RedX are corroboration** (owner's decision — asked, and
+  they chose to keep the other two rather than strip them). `SIMPLE_BANGLA_CMS_RECORD_PRIMARY`
+  names the distinction and `simple_bangla_cms_courier_records()` acts on it in one place: the
+  primary courier is rendered full size and, **when it is not configured, returns an entry saying
+  so** instead of being skipped. A secondary courier nobody set up is simply absent. Before this,
+  everything unconfigured was skipped silently — which was survivable while the local figures
+  filled the card and would now be an empty box with nothing to explain it.
+- **The API key cannot read this figure and the field description now says so.** Steadfast
+  publishes no fraud endpoint on `portal.packzy.com`; the number every Bangladeshi fraud-check
+  site shows comes from a merchant-portal session on `steadfast.com.bd` calling
+  `/user/frauds/check/{phone}`. That was already what the plugin did, but the owner reasonably
+  expected "add the Steadfast key" to be enough, so **Portal email / Portal password** is now
+  described as the thing the record depends on rather than as an extra.
+- **Reports are parsed defensively across nine plausible keys**, not one. There is no published
+  schema for the notes other merchants file against a number — `total_delivered` and
+  `total_cancelled` are the only two fields the community packages agree on — so
+  `simple_bangla_cms_record_reports()` sweeps `reports` / `fraud_reports` / `frauds` / `fraud` /
+  `notes` / `remarks` / `comments` / `feedbacks` / `customer_reports`, at the top level and under
+  `data` / `result` / `customer`, accepts a bare string or a record, folds a single record that
+  arrived unwrapped into a list of one, dedupes across keys, caps at 20 and truncates at 500
+  characters. Betting on one key would have cost a silent "no reports" over a customer with
+  several; guessing wrong across all nine costs an empty list, which is the honest answer when
+  nothing recognisable arrived.
+- **`reports_read` is the flag that keeps that honest.** An empty list means "asked and found
+  none" only for Steadfast; for Pathao and RedX it means the question was never asked. Same trap
+  the `rate === null` line beside it was already written to avoid, and the two readings are
+  opposite recommendations.
+- **The phone is normalised once, in `simple_bangla_cms_courier_records()`**, to the local
+  11-digit form — the block list's rule, applied to a third caller. It was previously passed to
+  each courier exactly as typed, so `+8801712345678` and `01712345678` were two cache entries for
+  one customer and RedX's own `88`-prefixing was the only normalisation happening anywhere. The
+  transient key is versioned to `sb_cms_record2_` because the cached shape gained `reports`, and a
+  six-hour-old entry from before this would have rendered as a customer with no reports rather
+  than as one never asked about.
+
+**Not verified against a live Steadfast account** — same limitation as when the couriers were
+built, since nobody here has portal credentials. What *is* verified is everything that does not
+need one: 35 assertions in `php -l`-clean isolation over phone normalisation (five spellings of
+one mobile, plus the two that are too short to ask about), the six payload shapes the reports
+could arrive in, the six that look like reports and are not (`fraud` as a bool, as a count, a
+pagination block), dedupe, the cap, truncation, and the `reports_read` / `rate === null`
+distinctions. Send the first real check with the Steadfast portal open beside the screen, and if
+the reports list stays empty on a number the portal shows reports for, the fix is one more key in
+the list in `simple_bangla_cms_record_reports()`.
+
+## The courier stage is a fact about an order, not a place it waits (2026-08-12, plugin 1.7.0)
+
+The owner asked for the **Courier-এ আছে tab removed**, and for the work it stood for to happen on the
+New Orders row itself: press *Send courier* in the Courier column, the consignment number appears
+where the button was, and three buttons — **Completed · Canceled · Returned** — appear where the
+status badge was. Pressing one moves the order to its section and out of New.
+
+**This reverses the stage the order statuses were rebuilt around on 2026-08-09.** That round was
+right that `processing` cannot mean "with the courier" — WooCommerce's COD gateway sets it as the
+order is placed — but it answered with a status, and a status is a place an order waits. Handing a
+parcel over is not that. It is something that happened *to* an order that is still the shop's
+outstanding work, which is why the owner had to open two tabs every morning to see one morning's
+orders. The fix is that a dispatch no longer changes the status at all.
+
+- **The dispatch is recorded where it already was.** `simple_bangla_cms_courier_send()` used to write
+  `_sb_courier` meta, an order note, *and* a status transition. Only the transition is gone; the meta
+  is what the list reads for the consignment number and what refuses a second booking, and the note
+  is the trail a human reads. The status was the third telling of one fact, and the only one that
+  moved the order somewhere.
+- **`isDispatched()` and `offersOutcomes()` in `order-utils.js` are the whole of the new rule.** The
+  three buttons appear when an order has a shipment *and* is still in an open status — so a delivered
+  parcel does not offer them again, where one stray tap would turn a completed sale into a return.
+  The list, the phone cards, the order card and the full order page all ask those two functions
+  rather than testing a status themselves.
+- **`ORDER_OUTCOMES` replaces `COURIER_OUTCOMES`, and gained Canceled.** Returned stays separate from
+  cancelled because a parcel that came back cost a courier fee and a cancelled order did not — the
+  two tabs are how that gets counted — and because `sb-returned` restocks while `cancelled`'s restock
+  is WooCommerce's own. Where each lands is the owner's mapping, not an obvious one: Completed →
+  Completed Orders, Canceled → **Cancel Orders**, Returned → **Failed / Cancelled**.
+- **Four tabs plus All**, so the rule that every status appears in exactly one view still holds:
+  New = `pending` + `processing` + `on-hold` + `sb-courier`, Completed = `completed`, Cancel Orders =
+  `cancelled`, Failed / Cancelled = `sb-returned` + `refunded` + `failed`.
+- **`sb-courier` stays registered in the theme and nothing sets it.** The orders dispatched under the
+  previous system are in it, so it is folded into New Orders — with its consignment number and its
+  three buttons, exactly like a new one — rather than being reachable only from All. Deleting the
+  status would have made those orders vanish from every list including the customer's own. It also
+  stays on `woocommerce_order_is_paid_statuses` and in `simple_bangla_cms_reported_statuses()` for
+  the same reason: a status dropped from the dashboard's list is orders silently missing from every
+  figure while the Orders screen goes on listing them.
+- **It is out of the bulk-change dropdown**, though — offering it would let the owner park orders in
+  a stage nothing else now sets.
+- **`statusOptions()` takes the current value and appends it when the list does not contain it.** A
+  `<select>` whose value matches no option displays the *first* one, so a legacy `sb-courier` order
+  on the full order page would have read as "Pending payment" — and saving a form the owner never
+  touched would have moved a real order. This is the general fix, so a status registered by anything
+  else behaves too.
+- **Each of the last two cells says what happened *or* offers what happens next, never both.** That
+  is what keeps a table row from growing a second line of controls: the consignment number replaces
+  the Send button, the three buttons replace the badge, and a finished order is back to a badge.
+
+Verified with 32 browser assertions against real WordPress + WooCommerce: the tab strip reading
+All · New Orders · Completed Orders · Cancel Orders · Failed / Cancelled with no Courier tab; an
+un-dispatched row offering Send courier and still showing its badge; a dispatched row showing
+`#<consignment>` with the courier under it, no Send button, and exactly the three outcome buttons; a
+legacy `sb-courier` order listed under New with the same three; each button removing the row from New
+and — asked of the server, past the interface — writing `completed`, `cancelled` and `sb-returned`;
+each order then found on its own tab and absent from the others; a finished order back to a badge;
+the order card offering the same three plus a re-send rather than a first send; the phone cards
+carrying them too; no sideways pan at 1440/1024/390; and no console errors.
+
+**A dispatch itself is still unverified against a live courier account** — nobody here has portal
+credentials, so the shipment record the three buttons key off is written as meta, which is exactly
+what a successful dispatch leaves behind. Send the first real parcel with the courier's own panel
+open beside the screen.
+
+## The dashboard's month list starts when the shop did (2026-08-12, plugin 1.7.1)
+
+The owner opened the period dropdown and found it offering months back to September 2024 — a shop
+that has existed for days, asked to scroll past twenty-three months of guaranteed zeroes to reach
+the only two that mean anything.
+
+- **`FIRST_MONTH` in `screens/overview.js` is a floor, not a length.** The list used to be "twenty-four
+  months back from today", which is a window that drags its own past along with it. It is now built
+  from *today down to* `2026-08`, so it holds exactly the months the store has been open and gains
+  next month by itself — nobody edits the file again as the shop ages.
+- **It is a constant in the interface, not a query for the first order.** Deriving the floor from the
+  earliest order would be self-maintaining, but it costs a request on every dashboard visit to answer
+  a question whose answer is one line, and it would give a brand-new store with no orders at all an
+  empty dropdown. The month the shop opened is a fact somebody knows.
+- **Months are counted as `year * 12 + month` for the loop**, so stepping across a December needs no
+  special case, and `Math.max( today, floor )` means a device whose clock is set before the shop
+  opened still gets one month rather than a dropdown with no months in it.
+- **The rolling spans and All time are untouched.** `Last 90 days` and `Last 12 months` reach back
+  before the shop opened, but they are rolling — they will be the right question every month from
+  now on, and today they simply read the same as All time.
+- **The server is unchanged.** `simple_bangla_cms_resolve_period()` still accepts any `YYYY-MM` from
+  2000 to 2100; this is which months are *offered*, and a floor enforced there would only turn a
+  hand-typed URL into a silent fallback to `30d`.
+
+Verified by running the generator over four clocks — August 2026 (one month), January 2027 (six,
+newest first, ending at August 2026), a clock set to July 2026 (still one), and March 2028 (twenty,
+March 2028 down to August 2026). `php -l` clean on the version bump. The plugin version moves to
+1.7.1 because the import map versions every module by it — without the bump a browser keeps serving
+the cached dashboard.

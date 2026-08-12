@@ -120,9 +120,10 @@ function simple_bangla_cms_local_to_gmt( $local ) {
  * @return string[] Status slugs without the `wc-` prefix.
  */
 function simple_bangla_cms_reported_statuses() {
-	// The theme's two extra stages are in the middle, in the order a parcel travels. Without
-	// `sb-courier` here the dashboard's own figures would stop agreeing with the Orders screen the
-	// moment the first parcel was dispatched.
+	// The theme's two extra statuses are in the middle, in the order a parcel travels. Nothing sets
+	// `sb-courier` any more — a dispatch stopped changing the status on 2026-08-12 — but orders sent
+	// under the old system still hold it, and leaving it out would drop them from every dashboard
+	// figure while the Orders screen went on listing them.
 	return array( 'pending', 'processing', 'on-hold', 'sb-courier', 'completed', 'sb-returned', 'cancelled', 'refunded', 'failed' );
 }
 
