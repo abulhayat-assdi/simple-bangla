@@ -2136,3 +2136,42 @@ right (a forwarded-for header is spoofable, and trusting one makes the control d
 Cloudflare or any reverse proxy every visitor shares one bucket, so five failures by anyone locks the
 owner out for fifteen minutes. If the shop goes behind a proxy, the host must restore the real client
 address before PHP sees it.
+
+## The bottom bar's icons are solid, and Chat wears Messenger's mark (2026-08-12, theme 1.8.2)
+
+The owner put their phone beside the reference's and found the row lighter and the Chat button
+wrong. Two separate things, one screenshot.
+
+- **Chat carries Messenger's own logo now, not a speech bubble.** The button opens `m.me`, and a
+  generic bubble could equally be a live-chat widget, a comment form or a support ticket — a
+  customer picks a destination out of that row by its logo. This does not undo the 2026-08-11 change
+  that replaced the broken ring with a bubble; that fixed a glyph that read as *reload*, and the
+  bubble stays exactly where it was earned, on the thank-you page's delivery-note row.
+- **A new `messenger` slug rather than editing `chat`**, for that reason: the two callers want
+  different pictures, and the thank-you page must not sprout a social logo beside a delivery note.
+  Scaled `0.9` and re-centred with a `transform` on the path, because the source mark fills the full
+  24 box while every other glyph in the set sits inside roughly 3–21 — at native size it out-weighed
+  the four icons beside it.
+- **Shop, Call and Cart are solid too** (owner's choice when asked — the alternative on the table was
+  changing the Chat icon alone). At the very bottom of a phone screen a filled silhouette is read as
+  a shape and a hairline outline as a smudge.
+- **Three new slugs — `shop-solid`, `phone-solid`, `cart-solid` — not a CSS `fill` on the originals.**
+  The same three glyphs sit in the header, the drawer and the checkout at smaller sizes, where the
+  outline is right; and none of those paths is a closed silhouette, so filling one turns the bag's
+  handle arc into a blob and the cart's open rail into a wedge. Home needed neither treatment: its
+  path was already a closed house and has been filled by CSS since 1.4.0.
+- The bag's handle is the **last stroked thing on the bar**, kept at `stroke-width: 2` so it does not
+  read as a hairline hanging off a filled body. The CSS comment that described the row as "the
+  theme's usual outlines" was corrected rather than left to mislead.
+
+No new translatable string — the five labels are unchanged — so neither `.pot` moved.
+
+**Verified by drawing them, not by reasoning about them.** `php -l` clean, then the real
+`simple_bangla_icon()` was rendered into a standalone page from a script stubbing only `esc_attr()`
+and `absint()`, and screenshotted in headless Chrome: the new row beside the outline row it replaces,
+plus all four at 72px for shape. Worth repeating for any icon change — a path that is subtly wrong is
+still perfectly valid markup, and nothing in `php -l` or a browser console will say so.
+
+**Note:** headless Chrome could not write its screenshot into the scratchpad until it was given its
+own `--user-data-dir`; the failure surfaces as `Failed to write file …: Access is denied`, which reads
+like a permissions problem with the output path and is not one.

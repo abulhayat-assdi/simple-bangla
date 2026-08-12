@@ -131,6 +131,17 @@ function simple_bangla_icons() {
 		 * as Chat. It is the one icon on that bar a customer has to recognise instantly.
 		 */
 		'chat'   => '<path d="M21 14.5a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
+		/*
+		 * Solid twins of shop, phone and cart, drawn only for the phone's bottom bar. That row is
+		 * the shop's whole navigation on a phone and reads at a glance from a solid silhouette in
+		 * a way a hairline outline does not — but the same three glyphs also sit in the header, the
+		 * drawer and the checkout at smaller sizes, where the outline is right. Two slugs rather
+		 * than a CSS fill on the originals: none of those paths is a closed silhouette, so filling
+		 * one turns the bag's handle arc into a blob and the cart's open rail into a wedge.
+		 */
+		'shop-solid'  => '<path d="M8.5 8.5V6.5a3.5 3.5 0 0 1 7 0v2"/><path fill="currentColor" stroke="none" d="M3.6 8.4A1.5 1.5 0 0 1 4.7 8h14.6a1.5 1.5 0 0 1 1.5 1.63l-.87 9.5A2.5 2.5 0 0 1 17.45 21H6.55a2.5 2.5 0 0 1-2.49-2.27l-.87-9.5a1.5 1.5 0 0 1 .4-1.16Z"/>',
+		'phone-solid' => '<path fill="currentColor" stroke="none" d="M6.62 10.79a15.1 15.1 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.03-.24c1.12.37 2.33.57 3.56.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.4 21 3 13.6 3 4.5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.44.57 3.56a1 1 0 0 1-.25 1.02l-2.2 2.21Z"/>',
+		'cart-solid'  => '<path fill="currentColor" stroke="none" d="M15.55 13a2 2 0 0 0 1.75-1.03l3.58-6.49A1 1 0 0 0 20.01 4H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.44C4.52 15.37 5.48 17 7 17h12v-2H7l1.1-2h7.45ZM7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>',
 		'filter' => '<path d="M4 6h16M7 12h10M10 18h4"/>',
 		'mail'   => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
 		'pin'    => '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -144,6 +155,14 @@ function simple_bangla_icons() {
 		'minus'  => '<path d="M5 12h14"/>',
 		// Brand marks are filled shapes, so they are drawn with fill and no stroke.
 		'whatsapp' => '<path fill="currentColor" stroke="none" d="M12.04 2A9.9 9.9 0 0 0 2.1 11.9a9.8 9.8 0 0 0 1.35 4.97L2 22l5.28-1.38a9.9 9.9 0 0 0 4.76 1.21h.01A9.9 9.9 0 0 0 22 11.93 9.9 9.9 0 0 0 12.04 2Zm5.8 14.06c-.24.69-1.42 1.32-1.96 1.36-.5.05-.98.24-3.3-.7-2.79-1.13-4.55-3.98-4.69-4.17-.13-.18-1.11-1.5-1.11-2.86 0-1.36.7-2.02.95-2.3.25-.27.55-.34.73-.34.18 0 .37 0 .53.01.17.01.4-.06.62.49.24.58.8 2 .87 2.15.07.14.12.31.02.5-.1.18-.15.3-.29.46-.15.16-.31.36-.44.49-.15.14-.3.3-.13.6.18.29.78 1.29 1.67 2.09 1.15 1.02 2.12 1.34 2.42 1.49.3.15.47.12.65-.07.18-.2.75-.87.95-1.17.2-.3.4-.25.66-.15.27.1 1.68.79 1.97.93.29.15.48.22.55.34.07.13.07.72-.17 1.4Z"/>',
+		/*
+		 * Messenger's own mark, not a generic bubble. The Chat button opens m.me, and on a phone
+		 * bar a customer picks that destination out by its logo — a plain speech bubble could be
+		 * a live chat widget, a comment form or a support ticket. Scaled to 0.9 and re-centred
+		 * because the source path fills the full 24 box while every other glyph here sits inside
+		 * roughly 3–21, so at native size it would out-weigh the four icons beside it.
+		 */
+		'messenger' => '<path fill="currentColor" stroke="none" transform="translate(1.2 1.2) scale(.9)" d="M12 0C5.37 0 0 4.97 0 11.11c0 3.5 1.74 6.62 4.47 8.66V24l4.09-2.24c1.09.3 2.24.46 3.44.46 6.63 0 12-4.97 12-11.11C24 4.97 18.63 0 12 0Zm1.19 14.96-3.05-3.26-5.97 3.26L10.73 8l3.13 3.26L19.75 8l-6.56 6.96Z"/>',
 		'facebook' => '<path fill="currentColor" stroke="none" d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.45 2.89h-2.33v6.99A10 10 0 0 0 22 12Z"/>',
 		'instagram' => '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none"/>',
 		'youtube' => '<path fill="currentColor" stroke="none" d="M21.6 7.2a2.5 2.5 0 0 0-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.83.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.83-.43a2.5 2.5 0 0 0 1.77-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15.1V8.9l5.2 3.1Z"/>',

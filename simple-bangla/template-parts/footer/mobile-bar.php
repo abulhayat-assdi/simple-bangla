@@ -5,6 +5,11 @@
  * Five destinations, with Home in the middle rendered icon-only — that is how the reference
  * lays it out, and the wider centre target is the one people hit with a thumb.
  *
+ * The icons are the solid set, not the theme's usual outlines: at a glance, over a photo, at the
+ * very bottom of a phone screen, a filled silhouette is read as a shape while an outline is read
+ * as a smudge. Chat carries Messenger's own mark for the same reason — it names where the button
+ * goes, which a generic bubble does not.
+ *
  * @package Simple_Bangla
  */
 
@@ -20,7 +25,7 @@ $simple_bangla_items = array();
 
 if ( function_exists( 'wc_get_page_permalink' ) ) {
 	$simple_bangla_items[] = array(
-		'icon'  => 'shop',
+		'icon'  => 'shop-solid',
 		'label' => __( 'Shop', 'simple-bangla' ),
 		'url'   => wc_get_page_permalink( 'shop' ),
 	);
@@ -28,7 +33,7 @@ if ( function_exists( 'wc_get_page_permalink' ) ) {
 
 if ( $simple_bangla_tel ) {
 	$simple_bangla_items[] = array(
-		'icon'  => 'phone',
+		'icon'  => 'phone-solid',
 		'label' => __( 'Call', 'simple-bangla' ),
 		'url'   => 'tel:' . $simple_bangla_tel,
 	);
@@ -43,7 +48,7 @@ $simple_bangla_items[] = array(
 
 if ( $simple_bangla_messenger ) {
 	$simple_bangla_items[] = array(
-		'icon'     => 'chat',
+		'icon'     => 'messenger',
 		'label'    => __( 'Chat', 'simple-bangla' ),
 		'url'      => 'https://m.me/' . rawurlencode( $simple_bangla_messenger ),
 		'external' => true,
@@ -52,7 +57,7 @@ if ( $simple_bangla_messenger ) {
 
 if ( function_exists( 'wc_get_cart_url' ) ) {
 	$simple_bangla_items[] = array(
-		'icon'  => 'cart',
+		'icon'  => 'cart-solid',
 		'label' => __( 'Cart', 'simple-bangla' ),
 		'url'   => wc_get_cart_url(),
 	);

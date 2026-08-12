@@ -263,8 +263,9 @@
 }
 
 /*
- * The row's icons are the theme's usual outlines, thickened a little: at 24px on a phone a
- * 1.8px stroke reads as grey however black it is.
+ * The row's icons are the solid set, so almost nothing here is stroked any more — the shop bag's
+ * handle arc is the last outline on the bar, and it is thickened so it does not read as a hairline
+ * hanging off a filled body.
  */
 .sb-bottom-bar .sb-icon {
 	stroke-width: 2;
