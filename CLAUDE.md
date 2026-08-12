@@ -2137,6 +2137,80 @@ Cloudflare or any reverse proxy every visitor shares one bucket, so five failure
 owner out for fifteen minutes. If the shop goes behind a proxy, the host must restore the real client
 address before PHP sees it.
 
+## Stored links follow the site when it moves domain (2026-08-12, theme 1.9.0)
+
+The owner moved the shop from its host's temporary address to `simplebangla.net` and found the
+homepage banners still sending customers to the old site. WordPress rewrites nothing on a move, and
+the theme stores full URLs in nine settings — five hero slide links and four banner links — so it
+has to answer for them. `simple-bangla/inc/site-address.php`.
+
+- **In the theme, not the CMS plugin.** Fifth application of the block list's rule: a banner is the
+  first thing a customer taps on the homepage, and switching the management interface off must not
+  start sending shoppers to a domain the shop no longer controls.
+- **The whole mechanism is one remembered fact** — the address the site had last time this ran. When
+  it stops matching, every stored link on the old address is moved to the new one, once, in place.
+  Nothing is resolved at render time, so the homepage costs exactly what it did before. The
+  alternative, rewriting on the way out of `get_theme_mod()`, would have put a URL parse on every
+  banner on every page view to answer a question that changes once a year.
+- **Compared on host plus path, never on the whole string.** `home_url()` runs its result through
+  `set_url_scheme()`, so the same site answers `http://` on one request and `https://` on the next;
+  a string comparison would read that as a move and rewrite the links back and forth on every other
+  page load.
+- **Only the nine link settings and custom menu items are touched.** Not "every setting that looks
+  like a URL" — the social, WhatsApp and Messenger fields are addresses on other people's sites. And
+  only *custom* menu items: page and category items store an object id and their link is rebuilt on
+  every render, so a move never reaches them.
+- **The first run is a different problem from every later one, and is solved differently.** Later
+  moves know the address being left, so only that address is touched and the rule is exact. The
+  first run is healing a move nobody recorded, where a link on a foreign host is genuinely
+  ambiguous: stale, or a deliberate link to somebody else's site. The question that separates them
+  is whether *this* site can answer the path. `/shop/` and `/product-category/microphone/` can;
+  `/simplebangla` on Facebook cannot.
+- **That resolver does not use `url_to_postid()`, which is the obvious tool and does not work.**
+  Measured against WooCommerce 11 with pretty permalinks and 139 rewrite rules registered, it
+  answers **0 for the shop page** — the single most likely destination of a banner on this site —
+  while `get_page_by_path()` and a query by `name` both find it immediately. This mattered more than
+  a normal wrong answer: a resolver that says no leaves the stale link in place, which is the bug
+  the file exists to fix, so its failure mode is silence.
+- **On `wp_loaded`, not `init`.** The resolver asks `taxonomy_exists( 'product_cat' )`, and
+  WooCommerce registers its taxonomies on `init` at priority 5. It would happen to run first today,
+  because plugins add their hooks before a theme does, but a repair whose correctness rests on hook
+  registration order is one plugin away from silently deciding the shop has no categories.
+- **The prefix test appends a slash to both sides.** Without it the address `old.example` also
+  claims `old.example.attacker.test`, and a move would rewrite a link to a site the owner did not
+  choose.
+- **A directory-style link keeps its trailing slash and a slashless one does not gain one.**
+  WordPress redirects between the two spellings, and a banner that costs every shopper a redirect is
+  a slower banner for nothing.
+- **`add_option()` is the concurrency claim**, because it fails when the row exists and that failure
+  is atomic in a way "look, find nothing, write" is not. A move on a live shop is several requests
+  arriving together, each seeing the same stale address; the work is idempotent, but the first-run
+  repair costs real queries. A lock older than five minutes is broken, so a request that died
+  mid-move cannot freeze the mechanism forever.
+- **Every change is recorded** in `simple_bangla_address_log` — what moved, from where, to where,
+  and when. Code that rewrites the owner's data silently is code nobody can audit after a surprise.
+- **Not covered, and deliberately** (the owner chose this scope when asked): URLs written inside
+  product descriptions, page bodies and custom fields. Those are edited prose rather than settings,
+  and a mechanism that rewrote a shop's written content on every domain change is a different and
+  much riskier feature.
+
+Verified twice over. **26 assertions** on the pure URL arithmetic in isolation — trailing slashes,
+queries, fragments, `http` on the old address, the look-alike host, external links left exactly
+alone, idempotence, and a second move onto a third domain. Then **37 assertions inside Playground
+against real WordPress + WooCommerce 11** with the demo catalogue imported, which is the half that
+needed a database: theme mods actually written and read back, a real custom menu item rewritten
+while a Facebook one beside it is untouched, the address remembered, the log counting exactly the
+six seeded stale links, a second run changing nothing, a recorded move to a third address carried
+through with its query string intact, the claim lock taken, refused while held and broken when
+stale, and the watcher hooked to `wp_loaded` and not to `init`. 37/37 and 26/26.
+
+Two notes for future Playground runs on this machine. **`--mount-dir` takes the host path and the
+VFS path as two separate arguments**, and the host path here contains spaces — the repository lives
+under `Dev File\simplebangla.com-from-bristy's-PC` — so the theme has to be copied somewhere
+space-free before it can be mounted at all. And **PowerShell 5.1's `Out-File -Encoding utf8` writes
+a BOM**, which makes a generated blueprint fail as "not a valid JSON file"; write it with a tool
+that does not, or with `sed`.
+
 ## The bottom bar's icons are solid, and Chat wears Messenger's mark (2026-08-12, theme 1.8.2)
 
 The owner put their phone beside the reference's and found the row lighter and the Chat button

@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * Used as the asset cache-buster in production. During development inc/enqueue.php
  * prefers the file modification time so edits show up without bumping this.
  */
-define( 'SIMPLE_BANGLA_VERSION', '1.8.2' );
+define( 'SIMPLE_BANGLA_VERSION', '1.9.0' );
 
 /** Absolute path to the theme directory, with a trailing slash. */
 define( 'SIMPLE_BANGLA_DIR', trailingslashit( get_template_directory() ) );
@@ -40,6 +40,12 @@ require_once SIMPLE_BANGLA_DIR . 'inc/pages.php';
  * without it WordPress prints its own default favicon on every page of a stock install.
  */
 require_once SIMPLE_BANGLA_DIR . 'inc/site-icon.php';
+/*
+ * Stored links follow the site when it changes domain. Outside the WooCommerce guard and in the
+ * theme rather than the plugin: the hero and banner links are the first thing a customer taps on
+ * the homepage, and after a move they point at a site the shop no longer controls.
+ */
+require_once SIMPLE_BANGLA_DIR . 'inc/site-address.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/nav-walker.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/ajax-search.php';
 require_once SIMPLE_BANGLA_DIR . 'inc/demo-content.php';
