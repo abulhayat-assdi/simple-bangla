@@ -80,7 +80,7 @@ function simple_bangla_setup() {
 	 * After changing these sizes, run "Regenerate Thumbnails" to re-crop existing media.
 	 */
 	set_post_thumbnail_size( 600, 600, true );
-	add_image_size( 'simple-bangla-hero', 1200, 500, true );
+	add_image_size( 'simple-bangla-hero', 1200, 600, false );
 	add_image_size( 'simple-bangla-category-icon', 150, 150, true );
 	add_image_size( 'simple-bangla-gallery', 600, 600, true );
 	add_image_size( 'simple-bangla-card', 400, 400, true );
