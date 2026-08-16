@@ -151,10 +151,20 @@ function simple_bangla_buy_now_button() {
 	printf(
 		'<input type="hidden" name="add-to-cart" value="%1$d" /><button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-btn--ghost sb-buy-now">%2$s</button>',
 		absint( $product->get_id() ),
-		esc_html__( 'Buy Now', 'simple-bangla' )
+		esc_html__( 'অর্ডার করুন', 'simple-bangla' )
 	);
 }
 add_action( 'woocommerce_after_add_to_cart_button', 'simple_bangla_buy_now_button', 20 );
+
+/**
+ * Customize the single product Add to Cart button text to Bangla.
+ *
+ * @return string
+ */
+function simple_bangla_single_add_to_cart_text() {
+	return __( 'কার্টে যোগ করুন', 'simple-bangla' );
+}
+add_filter( 'woocommerce_product_single_add_to_cart_text', 'simple_bangla_single_add_to_cart_text' );
 
 /**
  * Send a Buy Now purchase straight to checkout.
@@ -228,7 +238,7 @@ function simple_bangla_whatsapp_order_button() {
 	$url = simple_bangla_whatsapp_url(
 		sprintf(
 			/* translators: 1: product name, 2: product URL. */
-			__( 'Hello! I would like to order: %1$s (%2$s)', 'simple-bangla' ),
+			__( 'হ্যালো! আমি অর্ডার করতে চাই: %1$s (%2$s)', 'simple-bangla' ),
 			$product->get_name(),
 			$product->get_permalink()
 		)
@@ -244,7 +254,7 @@ function simple_bangla_whatsapp_order_button() {
 		// wp_kses_post() strips <svg> and <path> outright, so the theme's own icon markup is
 		// echoed as-is. It contains no dynamic input.
 		simple_bangla_get_icon( 'whatsapp', 20 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		esc_html__( 'Order on WhatsApp', 'simple-bangla' )
+		esc_html__( 'হোয়াটসঅ্যাপে অর্ডার করুন', 'simple-bangla' )
 	);
 }
 add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_whatsapp_order_button', 20 );
@@ -272,7 +282,7 @@ function simple_bangla_call_order_button() {
 		simple_bangla_get_icon( 'phone', 20 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		sprintf(
 			/* translators: %s: the shop's phone number. */
-			esc_html__( 'Call for order: %s', 'simple-bangla' ),
+			esc_html__( 'কল করে অর্ডার করুন: %s', 'simple-bangla' ),
 			esc_html( $phone )
 		)
 	);
@@ -351,59 +361,44 @@ add_action( 'woocommerce_after_add_to_cart_quantity', 'simple_bangla_hide_quanti
  */
 function simple_bangla_checkout_fields( $fields ) {
 
-	foreach ( array( 'billing_last_name', 'billing_company', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode' ) as $unwanted ) {
+	foreach ( array( 'billing_last_name', 'billing_company', 'billing_address_2', 'billing_city', 'billing_state', 'billing_postcode', 'billing_country', 'billing_email' ) as $unwanted ) {
 		unset( $fields['billing'][ $unwanted ] );
 	}
 
-	/*
-	 * The placeholder carries the question and the label is hidden by the stylesheet, because
-	 * repeating each one twice on a four-field form is noise. The asterisk lives in the
-	 * placeholder text for the same reason — there is no visible label to hang it off.
-	 *
-	 * Name and phone sit side by side (first/last); everything longer takes a full line.
-	 */
-	$labels = array(
-		'billing_first_name' => array(
-			'label'       => __( 'আপনার নাম', 'simple-bangla' ),
-			'placeholder' => __( 'আপনার নাম লিখুন *', 'simple-bangla' ),
-			'priority'    => 10,
-			'required'    => true,
-			'class'       => array( 'form-row-first' ),
-		),
-		'billing_phone'      => array(
-			'label'       => __( 'মোবাইল নাম্বার', 'simple-bangla' ),
-			'placeholder' => __( 'মোবাইল নাম্বার *', 'simple-bangla' ),
-			'priority'    => 20,
-			'required'    => true,
-			'class'       => array( 'form-row-last' ),
-		),
-		'billing_address_1'  => array(
-			'label'       => __( 'সম্পূর্ণ ঠিকানা', 'simple-bangla' ),
-			'placeholder' => __( 'সম্পূর্ণ ঠিকানা (জেলা সহ) *', 'simple-bangla' ),
-			'priority'    => 30,
-			'required'    => true,
-			'class'       => array( 'form-row-wide' ),
-		),
-		'billing_email'      => array(
-			'label'       => __( 'ইমেইল ঠিকানা', 'simple-bangla' ),
-			'placeholder' => __( 'ইমেইল ঠিকানা (ঐচ্ছিক)', 'simple-bangla' ),
-			'priority'    => 50,
-			'required'    => false,
-			'class'       => array( 'form-row-wide' ),
-		),
+	$fields['billing']['billing_first_name'] = array(
+		'label'       => __( 'নাম', 'simple-bangla' ),
+		'placeholder' => __( 'আপনার নাম লিখুন', 'simple-bangla' ),
+		'priority'    => 10,
+		'required'    => true,
+		'class'       => array( 'form-row-wide' ),
 	);
 
-	foreach ( $labels as $key => $overrides ) {
-		if ( isset( $fields['billing'][ $key ] ) ) {
-			$fields['billing'][ $key ] = array_merge( $fields['billing'][ $key ], $overrides );
-		}
-	}
+	$fields['billing']['billing_phone'] = array(
+		'label'       => __( 'মোবাইল নাম্বার', 'simple-bangla' ),
+		'placeholder' => __( 'আপনার মোবাইল নাম্বার লিখুন', 'simple-bangla' ),
+		'priority'    => 20,
+		'required'    => true,
+		'type'        => 'tel',
+		'class'       => array( 'form-row-wide' ),
+	);
 
-	/*
-	 * The order-notes field, relabelled as a delivery note and rendered by
-	 * template-parts/checkout/delivery-note.php rather than WooCommerce's own "Additional
-	 * information" block, which this theme's form-checkout.php never calls.
-	 */
+	$fields['billing']['billing_address_1'] = array(
+		'label'       => __( 'সম্পূর্ণ ঠিকানা', 'simple-bangla' ),
+		'placeholder' => __( 'আপনার ঠিকানা লিখুন', 'simple-bangla' ),
+		'priority'    => 30,
+		'required'    => true,
+		'class'       => array( 'form-row-wide' ),
+	);
+
+	$fields['billing']['billing_alt_phone'] = array(
+		'label'       => __( 'ব্যাকআপ নাম্বার (অপশনাল)', 'simple-bangla' ),
+		'placeholder' => __( 'ব্যাকআপ নাম্বার', 'simple-bangla' ),
+		'priority'    => 40,
+		'required'    => false,
+		'type'        => 'tel',
+		'class'       => array( 'form-row-wide' ),
+	);
+
 	if ( isset( $fields['order']['order_comments'] ) ) {
 		$fields['order']['order_comments'] = array_merge(
 			$fields['order']['order_comments'],
@@ -416,22 +411,51 @@ function simple_bangla_checkout_fields( $fields ) {
 		);
 	}
 
-	/*
-	 * The country is shown, not asked. With Bangladesh the only country the store sells to,
-	 * WooCommerce renders this field as a fixed value plus a hidden input rather than a
-	 * 250-option select — so the customer sees where the parcel is going and the page carries
-	 * about 15 KB less markup. That single-country setting is store configuration, applied by
-	 * the demo importer; if the owner later opens up more countries the select comes back on
-	 * its own and still works.
-	 */
-	if ( isset( $fields['billing']['billing_country'] ) ) {
-		$fields['billing']['billing_country']['class']    = array( 'form-row-wide' );
-		$fields['billing']['billing_country']['priority'] = 40;
-	}
-
 	return $fields;
 }
 add_filter( 'woocommerce_checkout_fields', 'simple_bangla_checkout_fields', 20 );
+
+/**
+ * Save custom checkout field (billing_alt_phone) to order meta.
+ *
+ * @param int $order_id Order ID.
+ */
+function simple_bangla_save_checkout_alt_phone( $order_id ) {
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+	if ( ! empty( $_POST['billing_alt_phone'] ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$alt_phone = sanitize_text_field( wp_unslash( $_POST['billing_alt_phone'] ) );
+		update_post_meta( $order_id, '_billing_alt_phone', $alt_phone );
+		update_post_meta( $order_id, 'billing_alt_phone', $alt_phone );
+	}
+}
+add_action( 'woocommerce_checkout_update_order_meta', 'simple_bangla_save_checkout_alt_phone' );
+
+/**
+ * Render Payment heading inside checkout payment box.
+ */
+function simple_bangla_payment_heading() {
+	echo '<h4 class="sb-payment-heading"><em>Payment</em></h4>';
+}
+add_action( 'woocommerce_review_order_before_payment', 'simple_bangla_payment_heading' );
+
+/**
+ * Customize the place order button HTML with shopping cart icon matching reference image.
+ *
+ * @param string $button_html Original button HTML.
+ * @return string
+ */
+function simple_bangla_order_button_html( $button_html ) {
+	$icon = '<svg class="sb-place-order-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>';
+
+	return sprintf(
+		'<button type="submit" class="button alt sb-btn-place-order" name="woocommerce_checkout_place_order" id="place_order" value="%1$s" data-value="%1$s">%2$s <span>%3$s</span></button>',
+		esc_attr__( 'Order Now', 'simple-bangla' ),
+		$icon,
+		esc_html__( 'Order Now', 'simple-bangla' )
+	);
+}
+add_filter( 'woocommerce_order_button_html', 'simple_bangla_order_button_html' );
 
 /**
  * Render the delivery note after the shipping-charge choice.

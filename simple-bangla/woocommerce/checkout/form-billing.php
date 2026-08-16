@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 
 <div class="sb-checkout__block woocommerce-billing-fields">
 
-	<h3 class="sb-checkout__legend"><?php esc_html_e( 'ডেলিভারি তথ্য', 'simple-bangla' ); ?></h3>
+	<h3 class="sb-checkout__legend"><?php esc_html_e( 'Billing Details', 'simple-bangla' ); ?></h3>
 
 	<?php do_action( 'woocommerce_before_checkout_billing_form', $checkout ); ?>
 

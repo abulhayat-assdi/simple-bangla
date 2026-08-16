@@ -112,8 +112,8 @@ $simple_bangla_order_url = $simple_bangla_one_click
 		>
 			<?php
 			echo $simple_bangla_one_click
-				? esc_html__( 'Order Now', 'simple-bangla' )
-				: esc_html__( 'Choose Options', 'simple-bangla' );
+				? esc_html__( 'অর্ডার করুন', 'simple-bangla' )
+				: esc_html__( 'অপশন বেছে নিন', 'simple-bangla' );
 			?>
 			<span class="screen-reader-text"><?php echo esc_html( $product->get_name() ); ?></span>
 		</a>

@@ -468,7 +468,7 @@ small {
 	width: 100%;
 	padding-inline: var(--sb-space-2);
 	background: var(--sb-bg);
-	border: 1px solid transparent;
+	border: 1px solid var(--sb-line);
 	border-radius: var(--sb-radius-pill);
 	overflow: hidden;
 }
@@ -502,12 +502,12 @@ small {
 	padding-inline: var(--sb-space-2);
 	border: 0;
 	background: transparent;
-	color: var(--sb-muted);
+	color: #000000;
 	transition: color var(--sb-transition);
 }
 
 .sb-search__submit:hover {
-	color: var(--sb-ink);
+	color: #333333;
 }
 
 /* -- Entries -- */

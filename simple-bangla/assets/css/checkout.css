@@ -152,15 +152,19 @@
  */
 .sb-checkout .woocommerce-billing-fields__field-wrapper > .form-row > label,
 .sb-checkout__note > .form-row > label {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	margin: -1px;
+	display: block;
+	position: static;
+	width: auto;
+	height: auto;
+	margin: 0 0 6px 0;
 	padding: 0;
-	overflow: hidden;
-	clip: rect(0 0 0 0);
-	white-space: nowrap;
+	overflow: visible;
+	clip: auto;
+	white-space: normal;
 	border: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #111827;
 }
 
 .sb-checkout .required {
@@ -425,36 +429,59 @@
 
 .sb-checkout #payment {
 	margin-top: var(--sb-space-4);
+	padding: 16px;
+	border: 1px solid #cde0b4;
+	border-radius: 12px;
+	background-color: #f3f8ea;
+}
+
+.sb-checkout .sb-payment-heading {
+	margin: 0 0 12px 0;
+	font-size: 18px;
+	font-weight: 700;
+	font-style: italic;
+	color: #1f2937;
 }
 
 .sb-checkout #payment ul.payment_methods {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	border: 1px solid var(--sb-line);
-	border-radius: var(--sb-radius-sm);
+	border: 0;
+	background: transparent;
 }
 
 .sb-checkout #payment ul.payment_methods > li {
-	padding: var(--sb-space-3);
-}
-
-.sb-checkout #payment ul.payment_methods > li + li {
-	border-top: 1px solid var(--sb-line);
+	padding: 0;
 }
 
 .sb-checkout #payment ul.payment_methods label {
-	display: inline;
-	font-size: var(--sb-text-base);
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #111827;
+	cursor: pointer;
+}
+
+.sb-checkout #payment ul.payment_methods input[type="radio"] {
+	width: 18px;
+	height: 18px;
+	accent-color: #16a34a;
+	margin: 0;
+	cursor: pointer;
 }
 
 .sb-checkout #payment .payment_box {
-	margin-top: var(--sb-space-3);
-	padding: var(--sb-space-3);
-	border-radius: var(--sb-radius-sm);
-	background: var(--sb-bg-alt);
-	color: var(--sb-muted);
-	font-size: var(--sb-text-sm);
+	margin-top: 10px;
+	padding: 12px 16px;
+	border: 1px solid #dcdcdc;
+	border-radius: 6px;
+	background: #ffffff;
+	color: #1f2937;
+	font-size: 15px;
+	font-weight: 400;
 }
 
 .sb-checkout #payment .payment_box p {
@@ -469,28 +496,39 @@
 }
 
 /*
- * Place order. Green rather than the theme's black, because on this one page the button is a
- * commitment rather than navigation and it should not look like every other link.
+ * Place order button styled to match reference image (olive green, cart icon).
  */
 .sb-checkout #place_order {
-	display: block;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
 	width: 100%;
-	padding: var(--sb-space-3) var(--sb-space-5);
+	min-height: 52px;
+	margin-top: 18px;
+	padding: 12px 24px;
 	border: 0;
-	border-radius: var(--sb-radius);
-	background: #16a34a;
+	border-radius: 10px;
+	background: #9ab07e;
 	color: #ffffff;
 	font-family: inherit;
-	font-size: var(--sb-text-lg);
+	font-size: 19px;
 	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.02em;
+	text-transform: none;
+	letter-spacing: 0.5px;
 	cursor: pointer;
-	transition: background-color var(--sb-transition);
+	transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.sb-checkout #place_order:hover {
-	background: #15803d;
+.sb-checkout #place_order:hover,
+.sb-checkout #place_order:focus-visible {
+	background: #8aa06e;
+}
+
+.sb-place-order-icon {
+	flex-shrink: 0;
+	width: 22px;
+	height: 22px;
 }
 
 /* -- Coupon -- */
