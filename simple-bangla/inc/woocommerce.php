@@ -149,12 +149,14 @@ function simple_bangla_buy_now_button() {
 	// field WooCommerce's own add-to-cart button never fires and $_REQUEST['add-to-cart']
 	// is empty — WC_Form_Handler::add_to_cart_action() bails before our redirect filter runs.
 	printf(
-		'<input type="hidden" name="add-to-cart" value="%1$d" /><button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-btn--ghost sb-buy-now">%2$s</button>',
+		'<input type="hidden" name="add-to-cart" value="%1$d" /><button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-buy-now">%2$s</button>',
 		absint( $product->get_id() ),
 		esc_html__( 'অর্ডার করুন', 'simple-bangla' )
 	);
 }
-add_action( 'woocommerce_after_add_to_cart_button', 'simple_bangla_buy_now_button', 20 );
+// Buy Now ("অর্ডার করুন") moves to after_add_to_cart_form so it sits below the add-to-cart
+// row — the same position the WhatsApp button used to occupy.
+add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_buy_now_button', 15 );
 
 /**
  * Customize the single product Add to Cart button text to Bangla.
@@ -222,10 +224,13 @@ function simple_bangla_disable_ajax_add_to_cart( $enabled ) {
 add_filter( 'woocommerce_is_ajax_add_to_cart_enabled', 'simple_bangla_disable_ajax_add_to_cart' );
 
 /**
- * Offer WhatsApp as an ordering route under the add-to-cart form.
+ * Offer WhatsApp as an ordering route beside the add-to-cart button.
  *
  * Ordering over WhatsApp is how a large share of Bangladeshi storefronts actually take orders,
  * so the message is pre-filled with the product name and its URL.
+ *
+ * Moved to woocommerce_after_add_to_cart_button (priority 20) so it appears in the same row
+ * as "কার্টে যোগ করুন", taking the position that "অর্ডার করুন" previously held.
  */
 function simple_bangla_whatsapp_order_button() {
 
@@ -249,7 +254,7 @@ function simple_bangla_whatsapp_order_button() {
 	}
 
 	printf(
-		'<a class="sb-btn sb-whatsapp-order" href="%1$s" target="_blank" rel="noopener">%2$s<span>%3$s</span></a>',
+		'<input type="hidden" name="sb_whatsapp_dummy" value="0" /><a class="sb-btn sb-whatsapp-order" href="%1$s" target="_blank" rel="noopener">%2$s<span>%3$s</span></a>',
 		esc_url( $url ),
 		// wp_kses_post() strips <svg> and <path> outright, so the theme's own icon markup is
 		// echoed as-is. It contains no dynamic input.
@@ -257,37 +262,11 @@ function simple_bangla_whatsapp_order_button() {
 		esc_html__( 'হোয়াটসঅ্যাপে অর্ডার করুন', 'simple-bangla' )
 	);
 }
-add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_whatsapp_order_button', 20 );
+// WhatsApp button now sits beside "কার্টে যোগ করুন", inside the form row.
+add_action( 'woocommerce_after_add_to_cart_button', 'simple_bangla_whatsapp_order_button', 20 );
 
-/**
- * Offer the shop's phone number as an ordering route, beside WhatsApp.
- *
- * A large share of this store's customers would rather talk to someone than fill in a form, and
- * on a phone a tel: link is one tap to a dialer with the number already in it.
- */
-function simple_bangla_call_order_button() {
-
-	$phone = simple_bangla_get_contact( 'phone' );
-	$tel   = simple_bangla_tel_href( $phone );
-
-	if ( ! $tel ) {
-		return;
-	}
-
-	printf(
-		'<a class="sb-btn sb-call-order" href="%1$s">%2$s<span>%3$s</span></a>',
-		esc_url( 'tel:' . $tel ),
-		// wp_kses_post() strips <svg> and <path>, so the theme's own icon markup is echoed
-		// as-is. It contains no dynamic input.
-		simple_bangla_get_icon( 'phone', 20 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		sprintf(
-			/* translators: %s: the shop's phone number. */
-			esc_html__( 'কল করে অর্ডার করুন: %s', 'simple-bangla' ),
-			esc_html( $phone )
-		)
-	);
-}
-add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_call_order_button', 25 );
+// The "কল করে অর্ডার করুন" button was removed from the product page at the store owner's
+// request (2026-08-19). The phone number is still shown in the header and footer.
 
 /**
  * Drop the quantity box from the product page.

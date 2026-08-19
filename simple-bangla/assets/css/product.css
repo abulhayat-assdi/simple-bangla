@@ -130,8 +130,9 @@
 /* -- Add to cart -- */
 
 /*
- * The four order routes — Add to cart, Buy Now, WhatsApp, Call — read as one block of
- * choices, so they share a single tight gap rather than each carrying its own margin.
+ * Three order routes — Add to cart (purple), WhatsApp (green), Order Now (ghost) — read as
+ * one block. The first row holds the two buttons side-by-side inside the form; the second row
+ * holds the full-width "অর্ডার করুন" button rendered by after_add_to_cart_form.
  * The quantity field is not styled here because the product page no longer renders one;
  * see simple_bangla_hide_quantity_start() and the checkout's own stepper.
  */
@@ -167,47 +168,54 @@
 	border-color: var(--sb-brand-dark);
 }
 
-.sb-buy-now {
+/*
+ * WhatsApp button is now inside the form row, beside "কার্টে যোগ করুন". It flexes equally
+ * with the add-to-cart button so both share the available width.
+ * Color swapped to ghost/outline at store owner's request (2026-08-19).
+ */
+.sb-whatsapp-order {
 	flex: 1 1 140px;
-}
-
-.sb-whatsapp-order,
-.sb-call-order {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: var(--sb-space-2);
-	width: 100%;
-	margin-bottom: var(--sb-space-2);
-	padding-block: var(--sb-space-3);
+	padding: var(--sb-space-3) var(--sb-space-4);
+	background: transparent;
+	border-color: var(--sb-line);
+	color: var(--sb-ink);
+	white-space: nowrap;
 }
 
-.sb-whatsapp-order {
+.sb-whatsapp-order:hover,
+.sb-whatsapp-order:focus-visible {
+	background: transparent;
+	border-color: var(--sb-brand);
+	color: var(--sb-brand);
+}
+
+/*
+ * "অর্ডার করুন" (Buy Now) is now a full-width button rendered after the form via
+ * woocommerce_after_add_to_cart_form, occupying the row WhatsApp previously held.
+ * Color swapped to green (#25d366) at store owner's request (2026-08-19).
+ * It carries the bottom gap that separates the button block from the product meta.
+ */
+.sb-buy-now {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	margin-bottom: var(--sb-space-5);
+	padding-block: var(--sb-space-3);
 	background: #25d366;
 	border-color: #25d366;
 	color: #fff;
 }
 
-.sb-whatsapp-order:hover,
-.sb-whatsapp-order:focus-visible {
+.sb-buy-now:hover,
+.sb-buy-now:focus-visible {
 	background: #1da851;
 	border-color: #1da851;
 	color: #fff;
-}
-
-.sb-call-order {
-	/* Last of the four, so it carries the gap down to the meta block below. */
-	margin-bottom: var(--sb-space-5);
-	background: var(--sb-ink);
-	border-color: var(--sb-ink);
-	color: #fff;
-}
-
-.sb-call-order:hover,
-.sb-call-order:focus-visible {
-	background: var(--sb-brand);
-	border-color: var(--sb-brand);
-	color: var(--sb-on-brand);
 }
 
 /* -- Variations -- */

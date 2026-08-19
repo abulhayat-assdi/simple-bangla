@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * Used as the asset cache-buster in production. During development inc/enqueue.php
  * prefers the file modification time so edits show up without bumping this.
  */
-define( 'SIMPLE_BANGLA_VERSION', '1.9.0' );
+define( 'SIMPLE_BANGLA_VERSION', '1.9.2' );
 
 /** Absolute path to the theme directory, with a trailing slash. */
 define( 'SIMPLE_BANGLA_DIR', trailingslashit( get_template_directory() ) );
