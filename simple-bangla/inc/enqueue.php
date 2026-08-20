@@ -280,7 +280,8 @@ function simple_bangla_enqueue_assets() {
 			'simple-bangla-product',
 			'simpleBanglaProduct',
 			array(
-				'i18n' => array(
+				'checkoutUrl' => function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : '',
+				'i18n'        => array(
 					'giveReview'   => __( 'Give Review', 'simple-bangla' ),
 					'cancelReview' => __( 'Cancel', 'simple-bangla' ),
 				),

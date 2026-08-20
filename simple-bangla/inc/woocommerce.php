@@ -149,14 +149,16 @@ function simple_bangla_buy_now_button() {
 	// field WooCommerce's own add-to-cart button never fires and $_REQUEST['add-to-cart']
 	// is empty — WC_Form_Handler::add_to_cart_action() bails before our redirect filter runs.
 	printf(
-		'<input type="hidden" name="add-to-cart" value="%1$d" /><button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-buy-now">%2$s</button>',
+		'<input type="hidden" name="add-to-cart" value="%1$d" />' .
+		'<input type="hidden" name="sb_buy_now" value="0" />' .
+		'<button type="submit" name="sb_buy_now" value="1" class="sb-btn sb-buy-now">%2$s</button>',
 		absint( $product->get_id() ),
 		esc_html__( 'অর্ডার করুন', 'simple-bangla' )
 	);
 }
-// Buy Now ("অর্ডার করুন") moves to after_add_to_cart_form so it sits below the add-to-cart
-// row — the same position the WhatsApp button used to occupy.
-add_action( 'woocommerce_after_add_to_cart_form', 'simple_bangla_buy_now_button', 15 );
+// Buy Now ("অর্ডার করুন") is inside form.cart via woocommerce_after_add_to_cart_button (priority 30)
+// so it submits the cart form, sitting as a full-width button below the "Add to Cart" + "WhatsApp" row.
+add_action( 'woocommerce_after_add_to_cart_button', 'simple_bangla_buy_now_button', 30 );
 
 /**
  * Customize the single product Add to Cart button text to Bangla.
@@ -184,7 +186,23 @@ function simple_bangla_buy_now_redirect( $url ) {
 
 	return wc_get_checkout_url();
 }
-add_filter( 'woocommerce_add_to_cart_redirect', 'simple_bangla_buy_now_redirect' );
+add_filter( 'woocommerce_add_to_cart_redirect', 'simple_bangla_buy_now_redirect', 999 );
+
+/**
+ * Fallback redirect to checkout when sb_buy_now was submitted.
+ *
+ * Catches cases where an add-to-cart request was processed with sb_buy_now=1 but WooCommerce's
+ * add_to_cart_redirect filter did not perform the HTTP redirect.
+ */
+function simple_bangla_buy_now_template_redirect() {
+
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( ! empty( $_REQUEST['sb_buy_now'] ) && function_exists( 'is_checkout' ) && ! is_checkout() && ! is_cart() ) {
+		wp_safe_redirect( wc_get_checkout_url() );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'simple_bangla_buy_now_template_redirect', 999 );
 
 /**
  * Say nothing when the add-to-cart was a one-click order.

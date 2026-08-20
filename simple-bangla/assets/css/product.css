@@ -194,8 +194,8 @@
 }
 
 /*
- * "অর্ডার করুন" (Buy Now) is now a full-width button rendered after the form via
- * woocommerce_after_add_to_cart_form, occupying the row WhatsApp previously held.
+ * "অর্ডার করুন" (Buy Now) is a full-width button rendered inside the cart form via
+ * woocommerce_after_add_to_cart_button (priority 30), occupying a row below Add to Cart and WhatsApp.
  * Color swapped to green (#25d366) at store owner's request (2026-08-19).
  * It carries the bottom gap that separates the button block from the product meta.
  */

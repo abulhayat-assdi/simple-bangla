@@ -113,3 +113,42 @@
 		}
 	});
 })();
+
+/**
+ * Buy Now button: ensure sb_buy_now flag is active when clicking "অর্ডার করুন"
+ * so both native POST and JS/AJAX form submissions carry sb_buy_now=1 to checkout.
+ */
+(function () {
+	'use strict';
+
+	document.addEventListener('click', function (event) {
+		var btn = event.target.closest('.sb-buy-now');
+		if (!btn) {
+			return;
+		}
+
+		var form = btn.closest('form.cart');
+		if (!form) {
+			return;
+		}
+
+		var hidden = form.querySelector('input[name="sb_buy_now"]');
+		if (!hidden) {
+			hidden = document.createElement('input');
+			hidden.type = 'hidden';
+			hidden.name = 'sb_buy_now';
+			form.appendChild(hidden);
+		}
+		hidden.value = '1';
+	}, true);
+
+	if (typeof jQuery !== 'undefined') {
+		jQuery(document.body).on('added_to_cart', function () {
+			var form = document.querySelector('form.cart');
+			if (form && form.querySelector('input[name="sb_buy_now"]') && form.querySelector('input[name="sb_buy_now"]').value === '1') {
+				var checkoutUrl = (window.simpleBanglaProduct && window.simpleBanglaProduct.checkoutUrl) ? window.simpleBanglaProduct.checkoutUrl : '/checkout/';
+				window.location.href = checkoutUrl;
+			}
+		});
+	}
+})();
