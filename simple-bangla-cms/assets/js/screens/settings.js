@@ -76,12 +76,20 @@ const APPEARANCE_CARDS = [
 	},
 ];
 
+const SHIPPING_CARDS = [
+	{
+		title: 'Delivery Charge',
+		lead: 'Applied at checkout when the customer selects their area.',
+		keys: [ 'simple_bangla_shipping_inside_dhaka', 'simple_bangla_shipping_outside_dhaka' ],
+	},
+];
+
 export function Settings() {
 	const canColors = can( 'appearance.manage' );
 	const canStore = can( 'store.manage' );
 
 	// Two schema groups, one request: the logo and the palette are both "how the shop looks".
-	const state = useSettings( 'brand,colors' );
+	const state = useSettings( 'brand,colors,shipping' );
 
 	const [ woo, setWoo ] = useState( null );
 	const [ wooBase, setWooBase ] = useState( {} );
@@ -166,6 +174,7 @@ export function Settings() {
 	};
 
 	const appearanceCards = canColors ? layoutFields( state.fields, APPEARANCE_CARDS ) : [];
+	const shippingCards = canColors ? layoutFields( state.fields, SHIPPING_CARDS ) : [];
 
 	// The logo is lifted out of the run so it can sit at the top of the page. The colours stay
 	// below the store's own details, where they already were.
@@ -208,6 +217,10 @@ export function Settings() {
 						<${ CourierCard } />
 				  `
 				: null }
+
+			${ shippingCards.map(
+				( card ) => html`<${ SchemaCard } key=${ card.title } card=${ card } state=${ state } />`
+			) }
 
 			${ colorCards.map(
 				( card ) => html`<${ SchemaCard } key=${ card.title } card=${ card } state=${ state } />`

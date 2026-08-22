@@ -3,7 +3,7 @@
  * Plugin Name:       Simple Bangla CMS
  * Plugin URI:        https://simplebangla.com/
  * Description:       A custom store-management interface for Simple Bangla, so day-to-day work happens outside wp-admin. This plugin is the API half: authentication, the settings bridge and the dashboard endpoints.
- * Version:           1.9.1
+ * Version:           1.9.2
  * Requires at least: 6.4
  * Requires PHP:      7.4
  * Author:            Simple Bangla
@@ -21,7 +21,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SIMPLE_BANGLA_CMS_VERSION', '1.9.1' );
+// Prevent duplicate execution if another copy of the plugin is already loaded.
+if ( defined( 'SIMPLE_BANGLA_CMS_VERSION' ) ) {
+	return;
+}
+
+define( 'SIMPLE_BANGLA_CMS_VERSION', '1.9.2' );
 define( 'SIMPLE_BANGLA_CMS_FILE', __FILE__ );
 define( 'SIMPLE_BANGLA_CMS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLE_BANGLA_CMS_URL', plugin_dir_url( __FILE__ ) );
@@ -65,27 +70,31 @@ require_once SIMPLE_BANGLA_CMS_DIR . 'inc/courier.php';
  * active. Nothing here touches the order tables directly except the analytics read in
  * inc/stats.php, which queries `wc_order_stats` — a table HPOS does not change.
  */
-function simple_bangla_cms_declare_hpos() {
+if ( ! function_exists( 'simple_bangla_cms_declare_hpos' ) ) {
+	function simple_bangla_cms_declare_hpos() {
 
-	if ( ! class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-		return;
+		if ( ! class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+			return;
+		}
+
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+			'custom_order_tables',
+			SIMPLE_BANGLA_CMS_FILE,
+			true
+		);
 	}
-
-	\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
-		'custom_order_tables',
-		SIMPLE_BANGLA_CMS_FILE,
-		true
-	);
+	add_action( 'before_woocommerce_init', 'simple_bangla_cms_declare_hpos' );
 }
-add_action( 'before_woocommerce_init', 'simple_bangla_cms_declare_hpos' );
 
 /**
  * Whether the environment this plugin needs is actually present.
  *
  * @return bool
  */
-function simple_bangla_cms_is_ready() {
-	return class_exists( 'WooCommerce' );
+if ( ! function_exists( 'simple_bangla_cms_is_ready' ) ) {
+	function simple_bangla_cms_is_ready() {
+		return class_exists( 'WooCommerce' );
+	}
 }
 
 /**
@@ -98,17 +107,21 @@ function simple_bangla_cms_is_ready() {
  *
  * @return bool
  */
-function simple_bangla_cms_theme_is_active() {
-	return SIMPLE_BANGLA_CMS_THEME === get_stylesheet() || SIMPLE_BANGLA_CMS_THEME === get_template();
+if ( ! function_exists( 'simple_bangla_cms_theme_is_active' ) ) {
+	function simple_bangla_cms_theme_is_active() {
+		return SIMPLE_BANGLA_CMS_THEME === get_stylesheet() || SIMPLE_BANGLA_CMS_THEME === get_template();
+	}
 }
 
 /**
  * Load translations.
  */
-function simple_bangla_cms_load_textdomain() {
-	load_plugin_textdomain( 'simple-bangla-cms', false, dirname( plugin_basename( SIMPLE_BANGLA_CMS_FILE ) ) . '/languages' );
+if ( ! function_exists( 'simple_bangla_cms_load_textdomain' ) ) {
+	function simple_bangla_cms_load_textdomain() {
+		load_plugin_textdomain( 'simple-bangla-cms', false, dirname( plugin_basename( SIMPLE_BANGLA_CMS_FILE ) ) . '/languages' );
+	}
+	add_action( 'init', 'simple_bangla_cms_load_textdomain' );
 }
-add_action( 'init', 'simple_bangla_cms_load_textdomain' );
 
 /**
  * Warn in wp-admin when something the CMS depends on is missing or misconfigured.
@@ -117,58 +130,72 @@ add_action( 'init', 'simple_bangla_cms_load_textdomain' );
  * project is that the owner does not go there. A notice is worth the exception because each of
  * these conditions makes the CMS behave in a way that would otherwise look like a bug.
  */
-function simple_bangla_cms_admin_notices() {
+if ( ! function_exists( 'simple_bangla_cms_admin_notices' ) ) {
+	function simple_bangla_cms_admin_notices() {
 
-	if ( ! current_user_can( 'activate_plugins' ) ) {
-		return;
-	}
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
 
-	if ( ! simple_bangla_cms_is_ready() ) {
-		printf(
-			'<div class="notice notice-error"><p>%s</p></div>',
-			esc_html__( 'Simple Bangla CMS needs WooCommerce to be installed and active.', 'simple-bangla-cms' )
-		);
-		return;
-	}
+		if ( defined( 'WP_PLUGIN_DIR' ) ) {
+			$legacy_dirs = glob( WP_PLUGIN_DIR . '/simple-bangla-cms-*' );
+			if ( ! empty( $legacy_dirs ) ) {
+				printf(
+					'<div class="notice notice-warning"><p>%s</p></div>',
+					esc_html__( 'Multiple copies of Simple Bangla CMS detected in wp-content/plugins (e.g. simple-bangla-cms-1.9.1). Please delete old versioned folders to keep only simple-bangla-cms.', 'simple-bangla-cms' )
+				);
+			}
+		}
 
-	if ( ! simple_bangla_cms_theme_is_active() ) {
-		printf(
-			'<div class="notice notice-warning"><p>%s</p></div>',
-			esc_html__( 'Simple Bangla CMS is active but the Simple Bangla theme is not. Content and appearance settings are disabled until it is, because theme settings are stored per theme.', 'simple-bangla-cms' )
-		);
-	}
+		if ( ! simple_bangla_cms_is_ready() ) {
+			printf(
+				'<div class="notice notice-error"><p>%s</p></div>',
+				esc_html__( 'Simple Bangla CMS needs WooCommerce to be installed and active.', 'simple-bangla-cms' )
+			);
+			return;
+		}
 
-	if ( ! simple_bangla_cms_permalinks_ready() ) {
-		printf(
-			'<div class="notice notice-error"><p>%s</p></div>',
-			sprintf(
-				/* translators: %s: URL of the permalink settings screen. */
-				wp_kses_post( __( 'Permalinks are set to Plain, so <code>%1$s</code> will not open. Choose <strong>Post name</strong> under <a href="%2$s">Settings → Permalinks</a>.', 'simple-bangla-cms' ) ),
-				esc_html( simple_bangla_cms_url() ),
-				esc_url( admin_url( 'options-permalink.php' ) )
-			)
-		);
-	}
+		if ( ! simple_bangla_cms_theme_is_active() ) {
+			printf(
+				'<div class="notice notice-warning"><p>%s</p></div>',
+				esc_html__( 'Simple Bangla CMS is active but the Simple Bangla theme is not. Content and appearance settings are disabled until it is, because theme settings are stored per theme.', 'simple-bangla-cms' )
+			);
+		}
 
-	if ( ! simple_bangla_cms_hpos_enabled() ) {
-		printf(
-			'<div class="notice notice-warning"><p>%s</p></div>',
-			esc_html__( 'High-Performance Order Storage is off. Turn it on under WooCommerce → Settings → Advanced → Features. Order screens in the CMS get dramatically slower without it once the store passes a few thousand orders.', 'simple-bangla-cms' )
-		);
+		if ( ! simple_bangla_cms_permalinks_ready() ) {
+			printf(
+				'<div class="notice notice-error"><p>%s</p></div>',
+				sprintf(
+					/* translators: %s: URL of the permalink settings screen. */
+					wp_kses_post( __( 'Permalinks are set to Plain, so <code>%1$s</code> will not open. Choose <strong>Post name</strong> under <a href="%2$s">Settings → Permalinks</a>.', 'simple-bangla-cms' ) ),
+					esc_html( simple_bangla_cms_url() ),
+					esc_url( admin_url( 'options-permalink.php' ) )
+				)
+			);
+		}
+
+		if ( ! simple_bangla_cms_hpos_enabled() ) {
+			printf(
+				'<div class="notice notice-warning"><p>%s</p></div>',
+				esc_html__( 'High-Performance Order Storage is off. Turn it on under WooCommerce → Settings → Advanced → Features. Order screens in the CMS get dramatically slower without it once the store passes a few thousand orders.', 'simple-bangla-cms' )
+			);
+		}
 	}
+	add_action( 'admin_notices', 'simple_bangla_cms_admin_notices' );
 }
-add_action( 'admin_notices', 'simple_bangla_cms_admin_notices' );
 
 /**
  * Whether WooCommerce is storing orders in its own tables rather than `wp_posts`.
  *
  * @return bool
  */
-function simple_bangla_cms_hpos_enabled() {
+if ( ! function_exists( 'simple_bangla_cms_hpos_enabled' ) ) {
+	function simple_bangla_cms_hpos_enabled() {
 
-	if ( ! class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) ) {
-		return false;
+		if ( ! class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) ) {
+			return false;
+		}
+
+		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
 	}
-
-	return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
 }

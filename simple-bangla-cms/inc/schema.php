@@ -17,6 +17,31 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Find the current cost of a WooCommerce flat rate by its title.
+ *
+ * @param string $title
+ * @param int $default
+ * @return int
+ */
+function simple_bangla_cms_get_flat_rate_cost( $title, $default = 0 ) {
+	global $wpdb;
+	static $costs = null;
+
+	if ( null === $costs ) {
+		$costs   = array();
+		$results = $wpdb->get_results( "SELECT option_value FROM {$wpdb->options} WHERE option_name LIKE 'woocommerce_flat_rate_%_settings'" );
+		foreach ( $results as $row ) {
+			$val = maybe_unserialize( $row->option_value );
+			if ( is_array( $val ) && isset( $val['title'], $val['cost'] ) ) {
+				$costs[ $val['title'] ] = (int) $val['cost'];
+			}
+		}
+	}
+
+	return isset( $costs[ $title ] ) ? $costs[ $title ] : $default;
+}
+
+/**
  * Every theme setting the CMS may read or write.
  *
  * The key is the literal storage name, so a write is a plain set_theme_mod() — or, for the
@@ -113,6 +138,26 @@ function simple_bangla_cms_settings_schema() {
 		'sanitize' => 'absint',
 		'group'    => 'store',
 		'label'    => __( 'Payment methods image', 'simple-bangla-cms' ),
+	);
+
+	/* -- Shipping -- */
+
+	$schema['simple_bangla_shipping_inside_dhaka'] = array(
+		'type'        => 'int',
+		'default'     => simple_bangla_cms_get_flat_rate_cost( 'ঢাকার ভেতরে', 70 ),
+		'sanitize'    => 'absint',
+		'group'       => 'shipping',
+		'label'       => __( 'Inside Dhaka', 'simple-bangla-cms' ),
+		'description' => __( 'Applied at checkout when the customer selects Inside Dhaka.', 'simple-bangla-cms' ),
+	);
+
+	$schema['simple_bangla_shipping_outside_dhaka'] = array(
+		'type'        => 'int',
+		'default'     => simple_bangla_cms_get_flat_rate_cost( 'ঢাকার বাইরে', 120 ),
+		'sanitize'    => 'absint',
+		'group'       => 'shipping',
+		'label'       => __( 'Outside Dhaka', 'simple-bangla-cms' ),
+		'description' => __( 'Applied at checkout when the customer selects Outside Dhaka.', 'simple-bangla-cms' ),
 	);
 
 	/* -- Hero slider -- */

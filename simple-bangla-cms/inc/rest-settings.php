@@ -33,7 +33,7 @@ function simple_bangla_cms_register_settings_routes() {
 						'type'              => 'string',
 						'required'          => false,
 						'sanitize_callback' => 'simple_bangla_cms_sanitize_groups',
-						'description'       => __( 'Limit to these groups, comma separated: brand, colors, store, hero, hotdeals, circles, rows, banners.', 'simple-bangla-cms' ),
+						'description'       => __( 'Limit to these groups, comma separated: brand, colors, store, shipping, hero, hotdeals, circles, rows, banners.', 'simple-bangla-cms' ),
 					),
 				),
 			),
@@ -225,3 +225,43 @@ function simple_bangla_cms_settings_save( $request ) {
 		)
 	);
 }
+
+/**
+ * Update WooCommerce flat rates when delivery charges are changed in the CMS.
+ *
+ * @param array $clean The settings just saved.
+ */
+function simple_bangla_cms_sync_shipping_rates( $clean ) {
+
+	if ( ! isset( $clean['simple_bangla_shipping_inside_dhaka'] ) && ! isset( $clean['simple_bangla_shipping_outside_dhaka'] ) ) {
+		return;
+	}
+
+	global $wpdb;
+	$results = $wpdb->get_results( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE 'woocommerce_flat_rate_%_settings'" );
+
+	$changed = false;
+
+	foreach ( $results as $row ) {
+		$value = maybe_unserialize( $row->option_value );
+
+		if ( ! is_array( $value ) || ! isset( $value['title'] ) ) {
+			continue;
+		}
+
+		if ( 'ঢাকার ভেতরে' === $value['title'] && isset( $clean['simple_bangla_shipping_inside_dhaka'] ) ) {
+			$value['cost'] = (string) $clean['simple_bangla_shipping_inside_dhaka'];
+			update_option( $row->option_name, $value );
+			$changed = true;
+		} elseif ( 'ঢাকার বাইরে' === $value['title'] && isset( $clean['simple_bangla_shipping_outside_dhaka'] ) ) {
+			$value['cost'] = (string) $clean['simple_bangla_shipping_outside_dhaka'];
+			update_option( $row->option_name, $value );
+			$changed = true;
+		}
+	}
+
+	if ( $changed && class_exists( 'WC_Cache_Helper' ) ) {
+		WC_Cache_Helper::get_transient_version( 'shipping', true );
+	}
+}
+add_action( 'simple_bangla_cms_settings_saved', 'simple_bangla_cms_sync_shipping_rates' );
